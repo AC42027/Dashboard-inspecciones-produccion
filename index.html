@@ -234,6 +234,12 @@
             </div>
 
             <div class="flex items-center gap-2">
+                <button id="headerAdminToggle" onclick="toggleHeaderAdmin()"
+                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors flex items-center gap-2"
+                    title="Acceso Administrador">
+                    <i class="fas fa-user-shield text-xl"></i>
+                    <span id="headerAdminText" class="text-xs font-bold hidden md:inline">Acceso Admin</span>
+                </button>
                 <button id="themeToggle"
                     class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors ml-2">
                     <i class="fas fa-moon text-xl dark:hidden"></i>
@@ -382,7 +388,7 @@
                     </button>
                 </div>
 
-                <!-- Admin Panel (Solo visible para Iván Bastardo) -->
+                <!-- Admin Panel (Visible solo para usuarios con privilegios de Django) -->
                 <div id="adminPanel"
                     class="hidden bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 mb-8 border border-purple-100 dark:border-purple-800">
                     <h3 class="text-lg font-bold text-purple-800 dark:text-purple-300 mb-2">Panel de Generación de Rutas
@@ -560,6 +566,7 @@
 
         // ASIGNACIONES MODO
         let isAdminModo = false;
+        let loggedUser = '';
         let asignacionesActuales = []; // Las obtenidas de la BD para mostrar
         let asignacionesPreview = []; // Las generadas temporalmente antes de guardar
         const asrsTeam = [
@@ -600,6 +607,30 @@
         document.addEventListener('DOMContentLoaded', () => {
             initTheme();
             setupEventListeners();
+
+            // Restaurar sesión si existe
+            if (localStorage.getItem('isAdminModo') === 'true') {
+                isAdminModo = true;
+                loggedUser = localStorage.getItem('loggedUser') || '';
+
+                if (isAdminModo) {
+                    renderTeamList();
+                    const adminPanel = document.getElementById('adminPanel');
+                    if (adminPanel) adminPanel.classList.remove('hidden');
+
+                    const btnModoAdmin = document.getElementById('btnModoAdmin');
+                    if (btnModoAdmin) {
+                        btnModoAdmin.innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
+                        btnModoAdmin.classList.replace('bg-gray-200', 'bg-red-600');
+                        if (btnModoAdmin.classList.contains('text-gray-700')) {
+                            btnModoAdmin.classList.replace('text-gray-700', 'text-white');
+                        }
+                    }
+                    actualizarHeaderAdmin(loggedUser);
+                    actualizarDataListsAdmin();
+                }
+            }
+
             fetchData();
         });
 
@@ -650,12 +681,6 @@
             const btn = document.getElementById('ldapSubmitBtn');
             const error = document.getElementById('ldapError');
 
-            if (user !== 'ac18958' && user !== 'ac17157') {
-                error.textContent = "Acceso denegado. Solo AC18958 y AC17157 tienen permisos.";
-                error.classList.remove('hidden');
-                return;
-            }
-
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
             btn.disabled = true;
             error.classList.add('hidden');
@@ -667,22 +692,46 @@
                     body: JSON.stringify({ username: user, password: pass })
                 });
 
-                if (res.ok) {
-                    isAdminModo = true;
-                    toggleAuthModal();
-                    renderTeamList(); // Inicializar lista de asociados
-                    document.getElementById('adminPanel').classList.remove('hidden');
-                    document.getElementById('btnModoAdmin').innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
-                    document.getElementById('btnModoAdmin').classList.replace('bg-gray-200', 'bg-red-600');
-                    document.getElementById('btnModoAdmin').classList.replace('text-gray-700', 'text-white');
-                    actualizarDataListsAdmin(); // Cargar equipos en el buscador manual
+                const data = await res.json();
+                if (res.ok && data.status === 'ok') {
+                    // Validar el privilegio devuelto por Django. 
+                    // Si no está definido (backend pendiente), cae en el fallback de los dos admins originales.
+                    const isUserAdmin = data.is_admin !== undefined ? data.is_admin : (user === 'ac18958' || user === 'ac17157');
+
+                    if (isUserAdmin) {
+                        isAdminModo = true;
+                        loggedUser = user;
+
+                        // Persistencia de sesión
+                        localStorage.setItem('isAdminModo', 'true');
+                        localStorage.setItem('loggedUser', user);
+
+                        toggleAuthModal();
+                        renderTeamList(); // Inicializar lista de asociados
+                        document.getElementById('adminPanel').classList.remove('hidden');
+
+                        const btnModoAdmin = document.getElementById('btnModoAdmin');
+                        if (btnModoAdmin) {
+                            btnModoAdmin.innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
+                            btnModoAdmin.classList.replace('bg-gray-200', 'bg-red-600');
+                            if (btnModoAdmin.classList.contains('text-gray-700')) {
+                                btnModoAdmin.classList.replace('text-gray-700', 'text-white');
+                            }
+                        }
+
+                        actualizarHeaderAdmin(user);
+                        actualizarDataListsAdmin(); // Cargar equipos en el buscador manual
+                        renderTabla(); // Re-renderizar la tabla para mostrar el botón "Cerrar Aviso"
+                    } else {
+                        error.textContent = "Acceso denegado. Tu usuario no tiene privilegios de administrador.";
+                        error.classList.remove('hidden');
+                    }
                 } else {
-                    const data = await res.json();
-                    error.textContent = data.error || "Credenciales inválidas o error de red.";
+                    error.textContent = data.message || data.error || "Credenciales inválidas o error de red.";
                     error.classList.remove('hidden');
                 }
             } catch (err) {
-                error.textContent = "Error de conexión con el servidor LDAP.";
+                error.textContent = "Error de conexión con el servidor LDAP o la API.";
                 error.classList.remove('hidden');
             } finally {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Autenticar';
@@ -736,12 +785,68 @@
         function toggleModoAdmin() {
             if (isAdminModo) {
                 isAdminModo = false;
+                loggedUser = '';
+
+                // Limpiar persistencia
+                localStorage.removeItem('isAdminModo');
+                localStorage.removeItem('loggedUser');
+
                 document.getElementById('adminPanel').classList.add('hidden');
-                document.getElementById('btnModoAdmin').innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
-                document.getElementById('btnModoAdmin').classList.replace('bg-red-600', 'bg-gray-200');
-                document.getElementById('btnModoAdmin').classList.replace('text-white', 'text-gray-700');
+
+                const btnModoAdmin = document.getElementById('btnModoAdmin');
+                if (btnModoAdmin) {
+                    btnModoAdmin.innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
+                    btnModoAdmin.classList.replace('bg-red-600', 'bg-gray-200');
+                    if (btnModoAdmin.classList.contains('text-white')) {
+                        btnModoAdmin.classList.replace('text-white', 'text-gray-700');
+                    }
+                }
+                actualizarHeaderAdmin();
+                renderTabla();
             } else {
                 toggleAuthModal();
+            }
+        }
+
+        window.toggleHeaderAdmin = function () {
+            if (isAdminModo) {
+                isAdminModo = false;
+                loggedUser = '';
+
+                // Limpiar persistencia
+                localStorage.removeItem('isAdminModo');
+                localStorage.removeItem('loggedUser');
+
+                document.getElementById('adminPanel').classList.add('hidden');
+
+                const btnModoAdmin = document.getElementById('btnModoAdmin');
+                if (btnModoAdmin) {
+                    btnModoAdmin.innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
+                    btnModoAdmin.classList.replace('bg-red-600', 'bg-gray-200');
+                    if (btnModoAdmin.classList.contains('text-white')) {
+                        btnModoAdmin.classList.replace('text-white', 'text-gray-700');
+                    }
+                }
+
+                actualizarHeaderAdmin();
+                renderTabla();
+                mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión de administrador.', 'fa-info-circle text-blue-500');
+            } else {
+                toggleAuthModal();
+            }
+        };
+
+        function actualizarHeaderAdmin(username = '') {
+            const btn = document.getElementById('headerAdminToggle');
+            const text = document.getElementById('headerAdminText');
+            if (isAdminModo) {
+                btn.classList.add('text-purple-600', 'dark:text-purple-400');
+                text.textContent = `Admin (${username.toUpperCase()})`;
+                text.classList.remove('hidden');
+            } else {
+                btn.classList.remove('text-purple-600', 'dark:text-purple-400');
+                text.textContent = 'Acceso Admin';
+                text.classList.add('hidden', 'md:inline');
             }
         }
 
@@ -874,7 +979,7 @@
             renderTabla(); // Simple re-render, es rápido con vanilla JS
         };
 
-        window.mostrarConfirmacion = function(titulo, mensaje, iconoClass = 'fa-question-circle text-blue-500') {
+        window.mostrarConfirmacion = function (titulo, mensaje, iconoClass = 'fa-question-circle text-blue-500') {
             console.log("[Modal] mostrarConfirmacion llamado:", titulo, mensaje);
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
@@ -884,19 +989,19 @@
                 const iconEl = document.getElementById('customModalIcon');
                 const cancelBtn = document.getElementById('customModalCancel');
                 const confirmBtn = document.getElementById('customModalConfirm');
-                
+
                 titleEl.textContent = titulo;
                 textEl.textContent = mensaje;
                 iconEl.innerHTML = `<i class="fas ${iconoClass} text-3xl"></i>`;
-                
+
                 cancelBtn.classList.remove('hidden');
-                
+
                 modal.classList.remove('hidden');
                 setTimeout(() => {
                     content.classList.remove('scale-95', 'opacity-0');
                     content.classList.add('scale-100', 'opacity-100');
                 }, 10);
-                
+
                 function close(result) {
                     console.log("[Modal] close(Confirmacion) ejecutado con resultado:", result);
                     content.classList.remove('scale-100', 'opacity-100');
@@ -906,13 +1011,13 @@
                         resolve(result);
                     }, 200);
                 }
-                
+
                 confirmBtn.onclick = () => close(true);
                 cancelBtn.onclick = () => close(false);
             });
         };
 
-        window.mostrarAlerta = function(titulo, mensaje, iconoClass = 'fa-info-circle text-blue-500') {
+        window.mostrarAlerta = function (titulo, mensaje, iconoClass = 'fa-info-circle text-blue-500') {
             console.log("[Modal] mostrarAlerta llamado:", titulo, mensaje);
             return new Promise((resolve) => {
                 const modal = document.getElementById('customModal');
@@ -922,19 +1027,19 @@
                 const iconEl = document.getElementById('customModalIcon');
                 const cancelBtn = document.getElementById('customModalCancel');
                 const confirmBtn = document.getElementById('customModalConfirm');
-                
+
                 titleEl.textContent = titulo;
                 textEl.textContent = mensaje;
                 iconEl.innerHTML = `<i class="fas ${iconoClass} text-3xl"></i>`;
-                
+
                 cancelBtn.classList.add('hidden');
-                
+
                 modal.classList.remove('hidden');
                 setTimeout(() => {
                     content.classList.remove('scale-95', 'opacity-0');
                     content.classList.add('scale-100', 'opacity-100');
                 }, 10);
-                
+
                 function close() {
                     console.log("[Modal] close(Alerta) ejecutado");
                     content.classList.remove('scale-100', 'opacity-100');
@@ -944,7 +1049,7 @@
                         resolve();
                     }, 200);
                 }
-                
+
                 confirmBtn.onclick = () => close();
             });
         };
@@ -958,17 +1063,17 @@
             );
             console.log("[CerrarAviso] confirmacion resultado:", confirmar);
             if (!confirmar) return;
-            
+
             const originalContent = btn.innerHTML;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cerrando...';
             btn.disabled = true;
-            
+
             try {
                 const res = await fetch(`http://10.107.194.110:8080/api/inspecciones/${inspeccionId}/cerrar/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
-                
+
                 const data = await res.json();
                 console.log("[CerrarAviso] respuesta servidor:", res.status, data);
                 if (res.ok && data.status === 'ok') {
@@ -981,7 +1086,7 @@
                     if (inspFiltradasObj) {
                         inspFiltradasObj.sap_nr_status = 'cerrada';
                     }
-                    
+
                     // Re-renderizar la tabla para mostrar la transición en el frontend inmediatamente
                     renderTabla();
 
@@ -1072,24 +1177,24 @@
                                         <!-- Sección SAP PM -->
                                         <div class="flex items-center gap-3">
                                             ${i.sap_nr_numero ? (() => {
-                                                let badgeClass = "bg-blue-200 dark:bg-blue-800 text-blue-900 dark:text-blue-100";
-                                                if (i.sap_nr_status === 'cerrada') {
-                                                    badgeClass = "bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100";
-                                                } else if (i.sap_nr_status === 'error') {
-                                                    badgeClass = "bg-red-200 dark:bg-red-800 text-red-900 dark:text-red-100";
-                                                }
-                                                return `
+                            let badgeClass = "bg-blue-200 dark:bg-blue-800 text-blue-900 dark:text-blue-100";
+                            if (i.sap_nr_status === 'cerrada') {
+                                badgeClass = "bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100";
+                            } else if (i.sap_nr_status === 'error') {
+                                badgeClass = "bg-red-200 dark:bg-red-800 text-red-900 dark:text-red-100";
+                            }
+                            return `
                                                     <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-bold text-blue-800 dark:text-blue-300">
                                                         <i class="fas fa-cogs"></i> SAP PM: ${i.sap_nr_numero}
                                                         <span class="px-1.5 py-0.5 rounded ${badgeClass} text-[10px] uppercase">${i.sap_nr_status}</span>
                                                     </div>
-                                                    ${i.sap_nr_status === 'creada' ? `
+                                                    ${(i.sap_nr_status === 'creada' && isAdminModo) ? `
                                                         <button onclick="cerrarAviso(${i.id}, '${i.sap_nr_numero}', this); event.stopPropagation();" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold transition-all shadow flex items-center gap-1.5 active:scale-95">
                                                             <i class="fas fa-times-circle"></i> Cerrar Aviso
                                                         </button>
                                                     ` : ''}
                                                 `;
-                                            })() : `
+                        })() : `
                                                 <div class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400">
                                                     <i class="fas fa-minus-circle"></i> Sin Notificación SAP
                                                 </div>
@@ -1634,18 +1739,23 @@
         }
     </script>
     <!-- Custom Modal Container -->
-    <div id="customModal" class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
-        <div class="glass-panel p-6 max-w-sm w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 shadow-2xl rounded-2xl border border-white/20 bg-white/95 dark:bg-slate-900/95" id="customModalContent">
+    <div id="customModal"
+        class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
+        <div class="glass-panel p-6 max-w-sm w-full mx-4 transform scale-95 opacity-0 transition-all duration-300 shadow-2xl rounded-2xl border border-white/20 bg-white/95 dark:bg-slate-900/95"
+            id="customModalContent">
             <div class="flex items-center gap-3 mb-4 text-goodyear-blue dark:text-goodyear-yellow">
                 <div id="customModalIcon" class="flex items-center">
                     <i class="fas fa-question-circle text-3xl"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-800 dark:text-white" id="customModalTitle">Confirmación</h3>
             </div>
-            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed" id="customModalText">¿Está seguro?</p>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed" id="customModalText">¿Está seguro?
+            </p>
             <div class="flex justify-end gap-3" id="customModalButtons">
-                <button id="customModalCancel" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg font-bold text-xs transition-all uppercase tracking-wider active:scale-95">Cancelar</button>
-                <button id="customModalConfirm" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs transition-all shadow uppercase tracking-wider active:scale-95">Aceptar</button>
+                <button id="customModalCancel"
+                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg font-bold text-xs transition-all uppercase tracking-wider active:scale-95">Cancelar</button>
+                <button id="customModalConfirm"
+                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs transition-all shadow uppercase tracking-wider active:scale-95">Aceptar</button>
             </div>
         </div>
     </div>
