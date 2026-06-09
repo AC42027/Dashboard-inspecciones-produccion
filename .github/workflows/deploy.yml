@@ -1,0 +1,15 @@
+name: Deploy Dashboard Producción
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Pull latest changes
+        run: |
+          cd /var/www/html/insp_pry/dashboard
+          git pull origin master
