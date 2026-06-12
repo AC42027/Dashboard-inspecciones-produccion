@@ -3,7 +3,7 @@ name: Deploy Dashboard Producción
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   deploy:
@@ -12,4 +12,4 @@ jobs:
       - name: Pull latest changes
         run: |
           cd /var/www/html/insp_pry/dashboard
-          git pull origin master
+          git pull origin main
