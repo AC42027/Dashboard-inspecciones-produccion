@@ -1462,6 +1462,11 @@
                 Owner: i.owner,
                 OK: i.tecnicos.filter((t) => t.estado === 'OK').length,
                 NOK: i.tecnicos.filter((t) => t.estado === 'NOK').length,
+                "Observaciones Generales": i.observaciones || '',
+                "Aviso SAP PM": i.sap_nr_numero || 'Sin aviso',
+                "Estado SAP": i.sap_nr_status || '',
+                "SAP Código Equipo": i.sap_equnr || '',
+                "SAP Ubic. Técnica": i.sap_tplnr || '',
             }));
 
             const ws = XLSX.utils.json_to_sheet(datos);
@@ -1471,8 +1476,9 @@
             // Ajustar ancho de columnas automáticamente
             const colWidths = [
                 { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 15 },
-                { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 },
-                { wch: 8 }, { wch: 8 }
+                { wch: 15 }, { wch: 15 }, { wch: 18 }, { wch: 18 },
+                { wch: 8 }, { wch: 8 }, { wch: 30 }, { wch: 15 },
+                { wch: 15 }, { wch: 15 }, { wch: 15 }
             ];
             ws['!cols'] = colWidths;
 
