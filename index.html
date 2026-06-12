@@ -253,6 +253,10 @@
                 class="pb-3 text-goodyear-blue dark:text-goodyear-yellow font-bold border-b-2 border-goodyear-blue dark:border-goodyear-yellow text-sm sm:text-base transition-colors">
                 <i class="fas fa-search-plus"></i> Historial Inspecciones
             </button>
+            <button id="tab-planificacion" onclick="switchTab('planificacion')"
+                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                <i class="fas fa-calendar-check"></i> Planificación
+            </button>
             <div class="hidden">
                 <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
                     class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
@@ -529,6 +533,33 @@
             </section>
         </div>
 
+        <!-- PESTAÑA 3: PLANIFICACIÓN -->
+        <div id="view-planificacion" class="space-y-8 hidden">
+            <section class="glass-panel p-8 max-w-md mx-auto mt-10">
+                <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2 mb-6 justify-center">
+                    <i class="fas fa-user-lock text-goodyear-blue dark:text-goodyear-yellow"></i> Acceso Planificación
+                </h2>
+                
+                <form id="planificacionLoginForm" class="space-y-4" onsubmit="handlePlanificacionLogin(event)">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Usuario LDAP</label>
+                        <input type="text" id="planLdapUser" required class="glass-input w-full" placeholder="Ej. ac17157">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
+                        <input type="password" id="planLdapPass" required class="glass-input w-full" placeholder="••••••••">
+                    </div>
+                    
+                    <div id="planLdapError" class="hidden text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 p-2.5 rounded border border-red-200 dark:border-red-800"></div>
+                    <div id="planLdapSuccess" class="hidden text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 p-2.5 rounded border border-green-200 dark:border-green-800"></div>
+
+                    <button type="submit" id="planLdapSubmitBtn" class="w-full py-2.5 bg-goodyear-blue hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
+                        <i class="fas fa-sign-in-alt"></i> Autenticar
+                    </button>
+                </form>
+            </section>
+        </div>
+
     </main>
 
     <!-- Auth Modal (LDAP) -->
@@ -647,6 +678,7 @@
         function switchTab(tab) {
             document.getElementById('view-inspecciones').classList.toggle('hidden', tab !== 'inspecciones');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
+            document.getElementById('view-planificacion').classList.toggle('hidden', tab !== 'planificacion');
 
             // Ampliar ancho para la pestaña de asignaciones para mejor visibilidad
             const mainCont = document.querySelector('main');
@@ -660,6 +692,11 @@
 
             document.getElementById('tab-inspecciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             document.getElementById('tab-asignaciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            
+            const tabPlan = document.getElementById('tab-planificacion');
+            if (tabPlan) {
+                tabPlan.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'planificacion' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            }
 
             if (tab === 'asignaciones') {
                 const now = new Date();
@@ -673,6 +710,43 @@
                     document.getElementById('asigFechaGenerar').value = fechaStr;
                     cargarAsignacionesSemanales();
                 }
+            }
+        }
+
+        async function handlePlanificacionLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('planLdapUser').value.toLowerCase();
+            const pass = document.getElementById('planLdapPass').value;
+            const btn = document.getElementById('planLdapSubmitBtn');
+            const error = document.getElementById('planLdapError');
+            const success = document.getElementById('planLdapSuccess');
+
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
+            btn.disabled = true;
+            error.classList.add('hidden');
+            success.classList.add('hidden');
+
+            try {
+                const res = await fetch('http://10.107.194.110:8080/api/login-ldap/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user, password: pass })
+                });
+
+                const data = await res.json();
+                if (res.ok && data.status === 'ok') {
+                    success.textContent = `¡Autenticación exitosa! Bienvenido, ${data.first_name || user}.`;
+                    success.classList.remove('hidden');
+                } else {
+                    error.textContent = data.message || data.error || "Credenciales inválidas o acceso denegado.";
+                    error.classList.remove('hidden');
+                }
+            } catch (err) {
+                error.textContent = "Error de conexión con el servidor LDAP o la API.";
+                error.classList.remove('hidden');
+            } finally {
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Autenticar';
+                btn.disabled = false;
             }
         }
 
