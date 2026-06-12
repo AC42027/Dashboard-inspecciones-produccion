@@ -1327,6 +1327,12 @@
                                             `}
                                         </div>
                                     </div>
+                                    ${i.observaciones ? `
+                                        <div class="mb-4 p-4 bg-blue-50/50 dark:bg-slate-900/40 border-l-4 border-goodyear-blue dark:border-goodyear-yellow rounded text-sm text-gray-700 dark:text-gray-300">
+                                            <span class="font-bold text-goodyear-blue dark:text-blue-400 block mb-1"><i class="fas fa-comment-alt"></i> Observaciones Generales:</span>
+                                            <span class="italic">"${i.observaciones}"</span>
+                                        </div>
+                                    ` : ''}
                                     
                                     ${hallazgosHtml ? `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${hallazgosHtml}</div>` : '<p class="text-gray-500 italic">No hay comentarios ni hallazgos NOK para esta inspección.</p>'}
                                 </div>
