@@ -284,7 +284,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4" id="filtros-container">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4" id="filtros-container">
                     <select id="filtro-division" class="glass-input w-full">
                         <option value="">División (Todas)</option>
                     </select>
@@ -308,6 +308,12 @@
                         <option value="OK">OK</option>
                         <option value="NOK">NOK</option>
                         <option value="PENDIENTE">PENDIENTE (7 días)</option>
+                    </select>
+                    <select id="filtro-sap" class="glass-input w-full">
+                        <option value="">Avisos SAP (Todos)</option>
+                        <option value="abierto">Con Aviso Abierto</option>
+                        <option value="cerrado">Con Aviso Cerrado</option>
+                        <option value="sin_aviso">Sin Aviso</option>
                     </select>
                 </div>
             </section>
@@ -580,7 +586,7 @@
 
         // FILTROS
         const filtros = {
-            division: '', area: '', zona: '', equipo: '', fecha: '', owner: '', estado: ''
+            division: '', area: '', zona: '', equipo: '', fecha: '', owner: '', estado: '', sap: ''
         };
 
         // ELEMENTOS DOM
@@ -602,6 +608,7 @@
                 fecha: document.getElementById('filtro-fecha'),
                 owner: document.getElementById('filtro-owner'),
                 estado: document.getElementById('filtro-estado'),
+                sap: document.getElementById('filtro-sap'),
             }
         };
 
@@ -927,13 +934,19 @@
                 const cumpleEstado = filtros.estado === '' ||
                     (filtros.estado === 'PENDIENTE' ? ultimaInspeccionPorEquipo[i.equipo] < sieteDiasAntes : i.tecnicos.some((t) => t.estado === filtros.estado));
 
+                const cumpleSap = filtros.sap === '' ||
+                    (filtros.sap === 'abierto' ? (i.sap_nr_numero && i.sap_nr_status !== 'cerrada') :
+                     filtros.sap === 'cerrado' ? (i.sap_nr_status === 'cerrada') :
+                     filtros.sap === 'sin_aviso' ? (!i.sap_nr_numero) : true);
+
                 return (filtros.division === '' || i.division === filtros.division) &&
                     (filtros.area === '' || i.area === filtros.area) &&
                     (filtros.zona === '' || i.zona === filtros.zona) &&
                     (filtros.equipo === '' || i.equipo === filtros.equipo) &&
                     (filtros.fecha === '' || i.fecha === filtros.fecha) &&
                     (filtros.owner === '' || i.owner === filtros.owner) &&
-                    cumpleEstado;
+                    cumpleEstado &&
+                    cumpleSap;
             });
 
             // Ordenar por fecha descendente
@@ -1058,7 +1071,8 @@
 
         window.copiarAlPortapapeles = function (texto, event) {
             if (event) event.stopPropagation();
-            navigator.clipboard.writeText(texto).then(() => {
+            
+            const onSuccess = () => {
                 const toast = document.createElement('div');
                 toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-2xl border border-slate-700/50 transition-all duration-300 transform translate-y-0 opacity-100';
                 toast.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> <span>Aviso ${texto} copiado</span>`;
@@ -1068,9 +1082,33 @@
                     toast.classList.add('opacity-0', 'translate-y-2');
                     setTimeout(() => toast.remove(), 300);
                 }, 2000);
-            }).catch(err => {
-                console.error("Error al copiar: ", err);
-            });
+            };
+
+            const fallbackCopiar = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = texto;
+                textArea.style.position = "absolute";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.select();
+                textArea.setSelectionRange(0, 99999);
+                try {
+                    document.execCommand('copy');
+                    onSuccess();
+                } catch (err) {
+                    console.error('Fallback Copy failed', err);
+                }
+                document.body.removeChild(textArea);
+            };
+
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+                navigator.clipboard.writeText(texto).then(onSuccess).catch(err => {
+                    console.warn("navigator.clipboard failed, trying fallback: ", err);
+                    fallbackCopiar();
+                });
+            } else {
+                fallbackCopiar();
+            }
         };
 
          window.cerrarAviso = async function (inspeccionId, sapNrNumero, btn) {
