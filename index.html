@@ -253,10 +253,12 @@
                 class="pb-3 text-goodyear-blue dark:text-goodyear-yellow font-bold border-b-2 border-goodyear-blue dark:border-goodyear-yellow text-sm sm:text-base transition-colors">
                 <i class="fas fa-search-plus"></i> Historial Inspecciones
             </button>
-            <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
-                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-tasks"></i> Asignaciones ASRS
-            </button>
+            <div class="hidden">
+                <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
+                    class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                    <i class="fas fa-tasks"></i> Asignaciones ASRS
+                </button>
+            </div>
         </div>
     </header>
 
@@ -1052,9 +1054,26 @@
 
                 confirmBtn.onclick = () => close();
             });
+         };
+
+        window.copiarAlPortapapeles = function (texto, event) {
+            if (event) event.stopPropagation();
+            navigator.clipboard.writeText(texto).then(() => {
+                const toast = document.createElement('div');
+                toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-2xl border border-slate-700/50 transition-all duration-300 transform translate-y-0 opacity-100';
+                toast.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> <span>Aviso ${texto} copiado</span>`;
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.classList.remove('opacity-100', 'translate-y-0');
+                    toast.classList.add('opacity-0', 'translate-y-2');
+                    setTimeout(() => toast.remove(), 300);
+                }, 2000);
+            }).catch(err => {
+                console.error("Error al copiar: ", err);
+            });
         };
 
-        window.cerrarAviso = async function (inspeccionId, sapNrNumero, btn) {
+         window.cerrarAviso = async function (inspeccionId, sapNrNumero, btn) {
             console.log("[CerrarAviso] click en boton. ID:", inspeccionId, "SAP NR:", sapNrNumero);
             const confirmar = await mostrarConfirmacion(
                 'Cerrar Aviso SAP PM',
@@ -1133,8 +1152,8 @@
                         <td class="font-bold text-goodyear-blue dark:text-blue-400">
                             <div>${i.equipo}</div>
                             ${i.sap_nr_numero ? `
-                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 border border-blue-200 dark:border-blue-800" title="Aviso SAP PM">
-                                    <i class="fas fa-cogs text-[8px]"></i> ${i.sap_nr_numero}
+                                <span onclick="copiarAlPortapapeles('${i.sap_nr_numero}', event)" class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:hover:bg-blue-900/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800 cursor-pointer transition-all active:scale-95" title="Copiar Aviso SAP PM">
+                                    <i class="fas fa-cogs text-[8px]"></i> ${i.sap_nr_numero} <i class="far fa-copy text-[8px] opacity-60"></i>
                                 </span>
                             ` : ''}
                         </td>
@@ -1176,7 +1195,7 @@
                                         
                                         <!-- Sección SAP PM -->
                                         <div class="flex items-center gap-3">
-                                            ${i.sap_nr_numero ? (() => {
+                                             ${i.sap_nr_numero ? (() => {
                             let badgeClass = "bg-blue-200 dark:bg-blue-800 text-blue-900 dark:text-blue-100";
                             if (i.sap_nr_status === 'cerrada') {
                                 badgeClass = "bg-green-200 dark:bg-green-800 text-green-900 dark:text-green-100";
@@ -1184,15 +1203,10 @@
                                 badgeClass = "bg-red-200 dark:bg-red-800 text-red-900 dark:text-red-100";
                             }
                             return `
-                                                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-bold text-blue-800 dark:text-blue-300">
-                                                        <i class="fas fa-cogs"></i> SAP PM: ${i.sap_nr_numero}
-                                                        <span class="px-1.5 py-0.5 rounded ${badgeClass} text-[10px] uppercase">${i.sap_nr_status}</span>
-                                                    </div>
-                                                    ${(i.sap_nr_status === 'creada' && isAdminModo) ? `
-                                                        <button onclick="cerrarAviso(${i.id}, '${i.sap_nr_numero}', this); event.stopPropagation();" class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold transition-all shadow flex items-center gap-1.5 active:scale-95">
-                                                            <i class="fas fa-times-circle"></i> Cerrar Aviso
-                                                        </button>
-                                                    ` : ''}
+                                                    <div onclick="copiarAlPortapapeles('${i.sap_nr_numero}', event)" class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:hover:bg-blue-900/80 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-bold text-blue-800 dark:text-blue-300 cursor-pointer transition-all active:scale-95" title="Copiar Aviso SAP PM">
+                                                         <i class="fas fa-cogs"></i> SAP PM: ${i.sap_nr_numero} <i class="far fa-copy opacity-60"></i>
+                                                         <span class="px-1.5 py-0.5 rounded ${badgeClass} text-[10px] uppercase">${i.sap_nr_status}</span>
+                                                     </div>
                                                 `;
                         })() : `
                                                 <div class="inline-flex items-center gap-2 px-3 py-1 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-bold text-gray-500 dark:text-gray-400">
