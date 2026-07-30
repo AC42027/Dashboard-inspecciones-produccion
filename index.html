@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Inspecciones - Goodyear</title>
+    <title>Dashboard de Inspecciones ASRS - Goodyear</title>
 
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -241,7 +241,7 @@
                     class="h-8 md:h-10 object-contain">
                 <h1
                     class="text-xl font-bold text-gray-800 dark:text-white hidden sm:block ml-2 border-l-2 border-gray-300 dark:border-slate-600 pl-4">
-                    Dashboard de Inspecciones</h1>
+                    Dashboard de Inspecciones ASRS</h1>
             </div>
 
             <div class="flex items-center gap-2">
@@ -309,13 +309,7 @@
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4" id="filtros-container">
-                    <select id="filtro-division" class="glass-input w-full">
-                        <option value="">División (Todas)</option>
-                    </select>
-                    <select id="filtro-area" class="glass-input w-full">
-                        <option value="">Área (Todas)</option>
-                    </select>
-                    <select id="filtro-zona" class="glass-input w-full">
+<select id="filtro-zona" class="glass-input w-full">
                         <option value="">Zona (Todas)</option>
                     </select>
                     <select id="filtro-equipo" class="glass-input w-full">
@@ -366,12 +360,10 @@
                     <table class="w-full text-left premium-table" id="tabla-inspecciones">
                         <thead>
                             <tr>
-                                <th>Fecha</th>
-                                <th>Inicio</th>
-                                <th>Fin</th>
-                                <th>División</th>
-                                <th>Área</th>
-                                <th>Equipo</th>
+<th>Fecha</th>
+                                 <th>Inicio</th>
+                                 <th>Fin</th>
+                                 <th>Equipo</th>
                                 <th>Zona</th>
                                 <th>Owner</th>
                                 <th class="text-center">Hallazgos</th>
@@ -818,7 +810,7 @@
 
         // FILTROS
         const filtros = {
-            division: '', area: '', zona: '', equipo: '', fecha: '', owner: '', estado: '', sap: ''
+            zona: '', equipo: '', fecha: '', owner: '', estado: '', sap: ''
         };
 
         // ELEMENTOS DOM
@@ -833,8 +825,6 @@
             btnNext: document.getElementById('btn-next'),
             graficasContainer: document.getElementById('graficas-container'),
             filtros: {
-                division: document.getElementById('filtro-division'),
-                area: document.getElementById('filtro-area'),
                 zona: document.getElementById('filtro-zona'),
                 equipo: document.getElementById('filtro-equipo'),
                 fecha: document.getElementById('filtro-fecha'),
@@ -1485,9 +1475,7 @@
                      filtros.sap === 'cerrado' ? (i.sap_nr_status === 'cerrada') :
                      filtros.sap === 'sin_aviso' ? (!i.sap_nr_numero) : true);
 
-                return (filtros.division === '' || i.division === filtros.division) &&
-                    (filtros.area === '' || i.area === filtros.area) &&
-                    (filtros.zona === '' || i.zona === filtros.zona) &&
+                return (filtros.zona === '' || i.zona === filtros.zona) &&
                     (filtros.equipo === '' || i.equipo === filtros.equipo) &&
                     (filtros.fecha === '' || i.fecha === filtros.fecha) &&
                     (filtros.owner === '' || i.owner === filtros.owner) &&
@@ -1540,12 +1528,11 @@
                     options.map(o => `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`).join('');
             };
 
-            populate('division', getUnique('division', ['area', 'zona', 'equipo', 'fecha', 'owner']), 'División (Todas)');
-            populate('area', getUnique('area', ['division', 'zona', 'equipo', 'fecha', 'owner']), 'Área (Todas)');
-            populate('zona', getUnique('zona', ['division', 'area', 'equipo', 'fecha', 'owner']), 'Zona (Todas)');
-            populate('equipo', getUnique('equipo', ['division', 'area', 'zona', 'fecha', 'owner']), 'Equipo (Todos)');
-            populate('fecha', getUnique('fecha', ['division', 'area', 'zona', 'equipo', 'owner']), 'Fecha (Todas)');
-            populate('owner', getUnique('owner', ['division', 'area', 'zona', 'equipo', 'fecha']), 'Owner (Todos)');
+            
+            populate('zona', getUnique('zona', ['equipo', 'fecha', 'owner']), 'Zona (Todas)');
+            populate('equipo', getUnique('equipo', ['zona', 'fecha', 'owner']), 'Equipo (Todos)');
+            populate('fecha', getUnique('fecha', ['zona', 'equipo', 'owner']), 'Fecha (Todas)');
+            populate('owner', getUnique('owner', ['zona', 'equipo', 'fecha']), 'Owner (Todos)');
         }
 
         // RENDERIZADO
@@ -1751,8 +1738,6 @@
                         <td>${i.fecha}</td>
                         <td>${formatearHora(i.horaInicio)}</td>
                         <td>${formatearHora(i.horaFin)}</td>
-                        <td>${i.division}</td>
-                        <td>${i.area}</td>
                         <td class="font-bold text-goodyear-blue dark:text-blue-400">
                             <div>${i.equipo}</div>
                             ${i.sap_nr_numero ? `
@@ -1946,10 +1931,8 @@
             const datos = inspeccionesFiltradas.map(i => ({
                 Fecha: i.fecha,
                 "Hora Inicio": formatearHora(i.horaInicio),
-                "Hora Fin": formatearHora(i.horaFin),
-                División: i.division,
-                Área: i.area,
-                Zona: i.zona,
+"Hora Fin": formatearHora(i.horaFin),
+                 Zona: i.zona,
                 Equipo: i.equipo,
                 Owner: i.owner,
                 OK: i.tecnicos.filter((t) => t.estado === 'OK').length,
