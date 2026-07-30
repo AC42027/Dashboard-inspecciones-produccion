@@ -831,7 +831,9 @@
             }
 
             document.getElementById('tab-inspecciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
-            document.getElementById('tab-asignaciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            const tabAsig = document.getElementById('tab-asignaciones');
+            tabAsig.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            if (!isAdminModo) tabAsig.classList.add('hidden');
             
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
