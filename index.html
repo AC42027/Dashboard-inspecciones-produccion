@@ -735,6 +735,9 @@
         let asignacionesActuales = []; // Las obtenidas de la BD para mostrar
         let asignacionesGuardadas = false; // Controla habilitación del botón Exportar
         let asignacionesPreview = []; // Las generadas temporalmente antes de guardar
+
+        const API_BASE = 'http://10.107.194.110:8080';
+
         function cargarTeam() {
             const guardado = localStorage.getItem('asrsTeam');
             if (guardado) {
@@ -747,8 +750,33 @@
                 "Jose Saez", "Martin Orellana"
             ];
         }
-        function guardarTeam() {
+        async function guardarTeam() {
             localStorage.setItem('asrsTeam', JSON.stringify(asrsTeam));
+            try {
+                await fetch(`${API_BASE}/api/equipo/`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nombres: asrsTeam })
+                });
+            } catch (e) {
+                console.warn('No se pudo guardar equipo en el servidor, solo en localStorage');
+            }
+        }
+        async function syncTeamFromAPI() {
+            try {
+                const res = await fetch(`${API_BASE}/api/equipo/`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.nombres && Array.isArray(data.nombres) && data.nombres.length > 0) {
+                        asrsTeam.length = 0;
+                        asrsTeam.push(...data.nombres);
+                        localStorage.setItem('asrsTeam', JSON.stringify(asrsTeam));
+                        renderTeamList();
+                    }
+                }
+            } catch (e) {
+                console.warn('No se pudo sincronizar equipo desde el servidor, usando localStorage');
+            }
         }
         const asrsTeam = cargarTeam();
 
@@ -792,6 +820,7 @@
 
                 if (isAdminModo) {
                     renderTeamList();
+                    syncTeamFromAPI(); // Sincronizar equipo desde el servidor
                     const adminPanel = document.getElementById('adminPanel');
                     if (adminPanel) adminPanel.classList.remove('hidden');
 
@@ -1103,6 +1132,7 @@
 
                         toggleAuthModal();
                         renderTeamList(); // Inicializar lista de asociados
+                        await syncTeamFromAPI(); // Sincronizar equipo desde el servidor
                         document.getElementById('adminPanel').classList.remove('hidden');
                         document.getElementById('tab-asignaciones').classList.remove('hidden');
 
@@ -1159,12 +1189,12 @@
             }
         }
 
-        function addAssociate() {
+        async function addAssociate() {
             const input = document.getElementById('newAssociateName');
             const name = input.value.trim();
             if (name && !asrsTeam.includes(name)) {
                 asrsTeam.push(name);
-                guardarTeam();
+                await guardarTeam();
                 input.value = '';
                 renderTeamList();
             } else if (name) {
@@ -1172,13 +1202,13 @@
             }
         }
 
-        function removeAssociate(index) {
+        async function removeAssociate(index) {
             if (asrsTeam.length <= 5) {
                 alert("Debe haber al menos 5 asociados para cubrir la lógica de Press Robots.");
                 return;
             }
             asrsTeam.splice(index, 1);
-            guardarTeam();
+            await guardarTeam();
             renderTeamList();
         }
 
