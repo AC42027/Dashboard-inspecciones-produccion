@@ -2259,13 +2259,13 @@
             }
             const list = asignacionesActuales;
 
-            // Normalizar fecha a mes legible
             const fechaRef = list[0].fecha || '';
-            const tituloMes = fechaRef.length >= 7
-                ? new Date(fechaRef.slice(0, 4) + '-' + fechaRef.slice(5, 7) + '-01').toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
-                : fechaRef;
+            const fechaObj = fechaRef.length >= 7
+                ? new Date(fechaRef.slice(0, 4) + '-' + fechaRef.slice(5, 7) + '-01')
+                : new Date();
+            const tituloMes = fechaObj.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
+            const hoy = new Date().toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
 
-            // Agrupar por asociado y ordenar
             const porAso = {};
             list.forEach(a => {
                 const nom = a.asociado || 'Sin asignar';
@@ -2273,18 +2273,27 @@
                 porAso[nom].push(a);
             });
 
-            // Construir datos: fila título + headers + datos agrupados
+            let totalRealizadas = 0;
+            let totalPendientes = 0;
             const datos = [];
-            // Fila 0: Título
-            datos.push([`Rutas ASRS - ${tituloMes}`]);
-            // Fila 1: Headers
-            const headers = ['Asociado', 'Equipo', 'Zona', 'Estado'];
+
+            // Fila 0: Banner título azul
+            datos.push(['GOODYEAR - RUTAS ASRS']);
+            // Fila 1: Subtítulo mes + fecha generación
+            datos.push([`${tituloMes}  |  Generado: ${hoy}`]);
+            // Fila 2: Espaciador
+            datos.push([]);
+            // Fila 3: Headers
+            const headers = ['ASOCIADO', 'EQUIPO', 'ZONA', 'ESTADO'];
             datos.push(headers);
 
-            Object.keys(porAso).sort().forEach(aso => {
+            const asosOrdenados = Object.keys(porAso).sort();
+            let filaDatos = 4;
+
+            asosOrdenados.forEach((aso, ai) => {
                 const equipos = porAso[aso];
-                equipos.forEach((a, idx) => {
-                    // Determinar estado según inspecciones
+                const esPar = ai % 2 === 0;
+                equipos.forEach(a => {
                     const realizada = inspecciones.some(i => {
                         if (i.equipo !== a.equipo) return false;
                         if (a.fecha) {
@@ -2293,133 +2302,146 @@
                         }
                         return true;
                     });
-                    if (idx === 0) {
-                        datos.push([aso, a.equipo, a.zona || 'N/A', realizada ? 'Realizada' : 'Pendiente']);
-                    } else {
-                        datos.push(['', a.equipo, a.zona || 'N/A', realizada ? 'Realizada' : 'Pendiente']);
-                    }
+                    const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
+                    if (realizada) totalRealizadas++; else totalPendientes++;
+                    datos.push([aso, a.equipo, a.zona || 'N/A', estado]);
                 });
             });
 
+            const totalAsignaciones = datos.length - 4;
+            const filaResumen = datos.length;
+            // Fila resumen
+            datos.push([]);
+            const filaResumen2 = datos.length;
+            datos.push(['', 'RESUMEN', `${totalRealizadas} Realizadas  /  ${totalPendientes} Pendientes  /  ${totalAsignaciones} Total`, '']);
+
             const ws = XLSX.utils.aoa_to_sheet(datos);
+            const ultFilaDatos = filaResumen - 1;
+            const ultCol = headers.length - 1;
 
-            // Fusionar celdas del título
-            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+            // Fusiones
+            ws['!merges'] = [
+                { s: { r: 0, c: 0 }, e: { r: 0, c: ultCol } },
+                { s: { r: 1, c: 0 }, e: { r: 1, c: ultCol } }
+            ];
+            if (filaResumen2 > filaResumen) {
+                ws['!merges'].push({ s: { r: filaResumen2, c: 1 }, e: { r: filaResumen2, c: 2 } });
+            }
 
-            // Columnas
+            // Anchos de columna
             ws['!cols'] = [
-                { wch: 28 },
-                { wch: 22 },
-                { wch: 18 },
-                { wch: 14 }
+                { wch: 30 },
+                { wch: 24 },
+                { wch: 20 },
+                { wch: 16 }
             ];
 
-            // Estilos
-            const blueFill = { patternType: 'solid', fgColor: { rgb: '003399' } };
-            const whiteFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' };
-            const headerFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' };
-            const titleFont = { bold: true, color: { rgb: '003399' }, sz: 14, name: 'Calibri' };
-            const borderThin = {
-                top: { style: 'thin', color: { rgb: '999999' } },
-                bottom: { style: 'thin', color: { rgb: '999999' } },
-                left: { style: 'thin', color: { rgb: '999999' } },
-                right: { style: 'thin', color: { rgb: '999999' } }
+            // Alturas de fila
+            const rowHeights = {};
+            rowHeights[0] = { hpt: 36 };
+            rowHeights[1] = { hpt: 20 };
+            rowHeights[3] = { hpt: 26 };
+            ws['!rows'] = Object.keys(rowHeights).sort((a, b) => a - b).map(i => rowHeights[i] || { hpt: 22 });
+
+            // ========= ESTILOS =========
+            const blue = '003399';
+            const darkBlue = '002266';
+            const grayMed = '999999';
+            const grayLight = 'E8E8E8';
+
+            // Función helper para aplicar estilo a celda
+            function setStyle(r, c, s) {
+                const addr = XLSX.utils.encode_cell({ r, c });
+                if (!ws[addr]) ws[addr] = { t: 's', v: '' };
+                ws[addr].s = s;
+            }
+
+            // 1) TÍTULO PRINCIPAL (fila 0) - fondo azul, texto blanco grande
+            for (let c = 0; c <= ultCol; c++) {
+                setStyle(0, c, {
+                    font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 18, name: 'Calibri' },
+                    fill: { patternType: 'solid', fgColor: { rgb: blue } },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: { top: { style: 'medium', color: { rgb: darkBlue } }, bottom: { style: 'thin', color: { rgb: blue } }, left: { style: 'thin', color: { rgb: blue } }, right: { style: 'thin', color: { rgb: blue } } }
+                });
+            }
+
+            // 2) SUBTÍTULO (fila 1) - azul claro
+            for (let c = 0; c <= ultCol; c++) {
+                setStyle(1, c, {
+                    font: { color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' },
+                    fill: { patternType: 'solid', fgColor: { rgb: '4477AA' } },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: { top: { style: 'thin', color: { rgb: '4477AA' } }, bottom: { style: 'thin', color: { rgb: '4477AA' } }, left: { style: 'thin', color: { rgb: '4477AA' } }, right: { style: 'thin', color: { rgb: '4477AA' } } }
+                });
+            }
+
+            // 3) ESPACIADOR (fila 2)
+            for (let c = 0; c <= ultCol; c++) {
+                setStyle(2, c, { font: { sz: 6, name: 'Calibri' }, fill: { patternType: 'solid', fgColor: { rgb: 'FFFFFF' } } });
+            }
+
+            // 4) HEADERS (fila 3) - azul oscuro, blanco, uppercase
+            const headerStyle = {
+                font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 11, name: 'Calibri' },
+                fill: { patternType: 'solid', fgColor: { rgb: darkBlue } },
+                alignment: { horizontal: 'center', vertical: 'center' },
+                border: { top: { style: 'medium', color: { rgb: darkBlue } }, bottom: { style: 'medium', color: { rgb: darkBlue } }, left: { style: 'thin', color: { rgb: 'FFFFFF' } }, right: { style: 'thin', color: { rgb: 'FFFFFF' } } }
             };
-            const borderMedium = {
-                top: { style: 'medium', color: { rgb: '003399' } },
-                bottom: { style: 'medium', color: { rgb: '003399' } },
-                left: { style: 'medium', color: { rgb: '003399' } },
-                right: { style: 'medium', color: { rgb: '003399' } }
-            };
-            const centerAlign = { horizontal: 'center', vertical: 'center' };
-            const leftAlign = { vertical: 'center' };
-
-            // Aplicar estilo al título
-            const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
-            if (!ws[titleCell]) ws[titleCell] = {};
-            ws[titleCell].s = { font: titleFont, alignment: centerAlign };
-
-            // Aplicar estilos a headers (fila 1)
-            for (let c = 0; c < headers.length; c++) {
-                const addr = XLSX.utils.encode_cell({ r: 1, c });
-                if (!ws[addr]) ws[addr] = {};
-                ws[addr].s = { fill: blueFill, font: headerFont, alignment: centerAlign, border: borderMedium };
+            for (let c = 0; c <= ultCol; c++) {
+                setStyle(3, c, headerStyle);
             }
 
-            // Aplicar bordes y alineación a datos (desde fila 2)
-            for (let r = 2; r < datos.length; r++) {
-                for (let c = 0; c < headers.length; c++) {
-                    const addr = XLSX.utils.encode_cell({ r, c });
-                    if (!ws[addr]) ws[addr] = {};
-                    ws[addr].s = {
-                        border: borderThin,
-                        alignment: c === 3 ? centerAlign : leftAlign,
-                        font: { sz: 10, name: 'Calibri' }
-                    };
+            // 5) DATOS (fila 4 hasta filaResumen-1) - con zebra stripes
+            const asociadoColors = {};
+            asosOrdenados.forEach((aso, ai) => {
+                asociadoColors[aso] = ai % 2 === 0 ? 'FFFFFF' : 'F5F8FC';
+            });
+
+            let f = filaDatos;
+            asosOrdenados.forEach(aso => {
+                const bgColor = asociadoColors[aso];
+                const equipos = porAso[aso];
+                equipos.forEach(a => {
+                    const realizada = inspecciones.some(i => {
+                        if (i.equipo !== a.equipo) return false;
+                        if (a.fecha) {
+                            return i.fecha >= a.fecha &&
+                                new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000);
+                        }
+                        return true;
+                    });
+                    const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
+
+                    for (let c = 0; c <= ultCol; c++) {
+                        const isEstado = c === 3;
+                        let cellStyle = {
+                            font: { sz: 11, name: 'Calibri', bold: isEstado, color: { rgb: isEstado ? (realizada ? '1A7A1A' : 'CC0000') : '333333' } },
+                            fill: { patternType: 'solid', fgColor: { rgb: isEstado ? (realizada ? 'E8F5E8' : 'FFE8E8') : bgColor } },
+                            alignment: { vertical: 'center', horizontal: isEstado ? 'center' : 'left' },
+                            border: { top: { style: 'thin', color: { rgb: c === 3 ? (realizada ? 'C8E6C9' : 'FFCDD2') : grayMed } }, bottom: { style: 'thin', color: { rgb: c === 3 ? (realizada ? 'C8E6C9' : 'FFCDD2') : grayMed } }, left: { style: 'thin', color: { rgb: grayMed } }, right: { style: 'thin', color: { rgb: grayMed } } }
+                        };
+                        setStyle(f, c, cellStyle);
+                    }
+                    f++;
+                });
+            });
+
+            // 6) FILA RESUMEN
+            if (filaResumen2 > filaResumen) {
+                for (let c = 0; c <= ultCol; c++) {
+                    setStyle(filaResumen, c, { font: { sz: 6, name: 'Calibri' } });
+                }
+                const resStyle = {
+                    font: { bold: true, sz: 12, name: 'Calibri', color: { rgb: blue } },
+                    fill: { patternType: 'solid', fgColor: { rgb: 'E8F0FE' } },
+                    alignment: { horizontal: 'center', vertical: 'center' },
+                    border: { top: { style: 'medium', color: { rgb: blue } }, bottom: { style: 'medium', color: { rgb: blue } }, left: { style: 'thin', color: { rgb: blue } }, right: { style: 'thin', color: { rgb: blue } } }
+                };
+                for (let c = 0; c <= ultCol; c++) {
+                    setStyle(filaResumen2, c, resStyle);
                 }
             }
-
-            // Borde grueso alrededor de toda la tabla de datos
-            const lastRow = datos.length - 1;
-            const lastCol = headers.length - 1;
-            for (let c = 0; c <= lastCol; c++) {
-                const addrTop = XLSX.utils.encode_cell({ r: 1, c });
-                if (!ws[addrTop]) ws[addrTop] = {};
-                if (!ws[addrTop].s) ws[addrTop].s = {};
-                ws[addrTop].s.border = borderMedium;
-
-                const addrBottom = XLSX.utils.encode_cell({ r: lastRow, c });
-                if (!ws[addrBottom]) ws[addrBottom] = {};
-                if (!ws[addrBottom].s) ws[addrBottom].s = {};
-                ws[addrBottom].s.border = {
-                    ...borderThin,
-                    bottom: { style: 'medium', color: { rgb: '003399' } }
-                };
-            }
-            for (let r = 1; r <= lastRow; r++) {
-                const addrLeft = XLSX.utils.encode_cell({ r, c: 0 });
-                if (!ws[addrLeft]) ws[addrLeft] = {};
-                if (!ws[addrLeft].s) ws[addrLeft].s = {};
-                ws[addrLeft].s.border = {
-                    ...(ws[addrLeft].s.border || borderThin),
-                    left: { style: 'medium', color: { rgb: '003399' } }
-                };
-                const addrRight = XLSX.utils.encode_cell({ r, c: lastCol });
-                if (!ws[addrRight]) ws[addrRight] = {};
-                if (!ws[addrRight].s) ws[addrRight].s = {};
-                ws[addrRight].s.border = {
-                    ...(ws[addrRight].s.border || borderThin),
-                    right: { style: 'medium', color: { rgb: '003399' } }
-                };
-            }
-
-            // Colorear celdas de estado
-            for (let r = 2; r < datos.length; r++) {
-                const estado = datos[r][3];
-                if (estado === 'Pendiente') {
-                    const addr = XLSX.utils.encode_cell({ r, c: 3 });
-                    if (!ws[addr]) ws[addr] = {};
-                    ws[addr].s = {
-                        fill: { patternType: 'solid', fgColor: { rgb: 'FFF0F0' } },
-                        font: { bold: true, color: { rgb: 'CC0000' }, sz: 10, name: 'Calibri' },
-                        border: ws[addr].s?.border || borderThin,
-                        alignment: centerAlign
-                    };
-                }
-                if (estado === 'Realizada') {
-                    const addr = XLSX.utils.encode_cell({ r, c: 3 });
-                    if (!ws[addr]) ws[addr] = {};
-                    ws[addr].s = {
-                        fill: { patternType: 'solid', fgColor: { rgb: 'F0FFF0' } },
-                        font: { bold: true, color: { rgb: '006600' }, sz: 10, name: 'Calibri' },
-                        border: ws[addr].s?.border || borderThin,
-                        alignment: centerAlign
-                    };
-                }
-            }
-
-            // Altura de fila para título
-            ws['!rows'] = [{ hpt: 30 }, { hpt: 22 }];
 
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'Rutas_ASRS');
