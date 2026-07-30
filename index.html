@@ -517,8 +517,8 @@
                         class="p-2 bg-goodyear-blue text-white rounded hover:bg-blue-800 flex items-center justify-center min-w-[40px]">
                         <i class="fas fa-sync-alt"></i>
                     </button>
-                    <button onclick="exportarAsignacionExcel()"
-                        class="ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2">
+                    <button id="btnExportarAsignaciones" onclick="exportarAsignacionExcel()" disabled
+                        class="ml-auto px-4 py-2 bg-gray-400 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2 cursor-not-allowed">
                         <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Exportar</span>
                     </button>
                 </div>
@@ -732,6 +732,7 @@
         let isAdminModo = false;
         let loggedUser = '';
         let asignacionesActuales = []; // Las obtenidas de la BD para mostrar
+        let asignacionesGuardadas = false; // Controla habilitación del botón Exportar
         let asignacionesPreview = []; // Las generadas temporalmente antes de guardar
         const asrsTeam = [
             "Enzo Muñoz", "Claudio Ramirez", "Christian Zuñiga", "Carlos Silva",
@@ -1823,7 +1824,7 @@
         };
 
         // LÓGICA DE ASIGNACIONES SEMANALES ASRS
-        async function cargarAsignacionesSemanales() {
+        async function cargarAsignacionesSemanales(desdeGuardado = false) {
             const mes = document.getElementById('verFecha').value;
             if (!mes) return;
 
@@ -1832,6 +1833,14 @@
 
             tbody.innerHTML = '';
             loader.classList.remove('hidden');
+
+            // Deshabilitar exportar al cargar datos nuevos (excepto si viene de guardado)
+            if (!desdeGuardado) {
+                const btnExp = document.getElementById('btnExportarAsignaciones');
+                btnExp.disabled = true;
+                btnExp.className = 'ml-auto px-4 py-2 bg-gray-400 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2 cursor-not-allowed';
+                asignacionesGuardadas = false;
+            }
 
             try {
                 const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${mes}`);
@@ -2202,7 +2211,11 @@
                     alert("Inspección asignada correctamente");
                     document.getElementById('asigPreviewContainer').classList.add('hidden');
                     document.getElementById('verFecha').value = asignacionesPreview[0].fecha.slice(0, 7);
-                    cargarAsignacionesSemanales();
+                    asignacionesGuardadas = true;
+                    const btnExp = document.getElementById('btnExportarAsignaciones');
+                    btnExp.disabled = false;
+                    btnExp.className = 'ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2';
+                    cargarAsignacionesSemanales(true);
                 } else {
                     alert("Aviso: El servidor respondió con error. Revisa que el código en Django esté actualizado para recibir el campo 'fecha'.");
                 }
@@ -2240,8 +2253,11 @@
         }
 
         function exportarAsignacionExcel() {
-            const list = asignacionesPreview.length > 0 ? asignacionesPreview : asignacionesActuales;
-            if (list.length === 0) { alert("No hay datos para exportar."); return; }
+            if (!asignacionesGuardadas || asignacionesActuales.length === 0) {
+                alert("Primero debes guardar las asignaciones antes de exportar.");
+                return;
+            }
+            const list = asignacionesActuales;
 
             // Normalizar fecha a mes legible
             const fechaRef = list[0].fecha || '';
@@ -2303,11 +2319,17 @@
             const whiteFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' };
             const headerFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' };
             const titleFont = { bold: true, color: { rgb: '003399' }, sz: 14, name: 'Calibri' };
-            const border = {
-                top: { style: 'thin', color: { rgb: 'D0D0D0' } },
-                bottom: { style: 'thin', color: { rgb: 'D0D0D0' } },
-                left: { style: 'thin', color: { rgb: 'D0D0D0' } },
-                right: { style: 'thin', color: { rgb: 'D0D0D0' } }
+            const borderThin = {
+                top: { style: 'thin', color: { rgb: '999999' } },
+                bottom: { style: 'thin', color: { rgb: '999999' } },
+                left: { style: 'thin', color: { rgb: '999999' } },
+                right: { style: 'thin', color: { rgb: '999999' } }
+            };
+            const borderMedium = {
+                top: { style: 'medium', color: { rgb: '003399' } },
+                bottom: { style: 'medium', color: { rgb: '003399' } },
+                left: { style: 'medium', color: { rgb: '003399' } },
+                right: { style: 'medium', color: { rgb: '003399' } }
             };
             const centerAlign = { horizontal: 'center', vertical: 'center' };
             const leftAlign = { vertical: 'center' };
@@ -2321,7 +2343,7 @@
             for (let c = 0; c < headers.length; c++) {
                 const addr = XLSX.utils.encode_cell({ r: 1, c });
                 if (!ws[addr]) ws[addr] = {};
-                ws[addr].s = { fill: blueFill, font: headerFont, alignment: centerAlign, border: border };
+                ws[addr].s = { fill: blueFill, font: headerFont, alignment: centerAlign, border: borderMedium };
             }
 
             // Aplicar bordes y alineación a datos (desde fila 2)
@@ -2330,14 +2352,48 @@
                     const addr = XLSX.utils.encode_cell({ r, c });
                     if (!ws[addr]) ws[addr] = {};
                     ws[addr].s = {
-                        border: border,
+                        border: borderThin,
                         alignment: c === 3 ? centerAlign : leftAlign,
                         font: { sz: 10, name: 'Calibri' }
                     };
                 }
             }
 
-            // Colorear filas de "Pendiente" en rojo suave
+            // Borde grueso alrededor de toda la tabla de datos
+            const lastRow = datos.length - 1;
+            const lastCol = headers.length - 1;
+            for (let c = 0; c <= lastCol; c++) {
+                const addrTop = XLSX.utils.encode_cell({ r: 1, c });
+                if (!ws[addrTop]) ws[addrTop] = {};
+                if (!ws[addrTop].s) ws[addrTop].s = {};
+                ws[addrTop].s.border = borderMedium;
+
+                const addrBottom = XLSX.utils.encode_cell({ r: lastRow, c });
+                if (!ws[addrBottom]) ws[addrBottom] = {};
+                if (!ws[addrBottom].s) ws[addrBottom].s = {};
+                ws[addrBottom].s.border = {
+                    ...borderThin,
+                    bottom: { style: 'medium', color: { rgb: '003399' } }
+                };
+            }
+            for (let r = 1; r <= lastRow; r++) {
+                const addrLeft = XLSX.utils.encode_cell({ r, c: 0 });
+                if (!ws[addrLeft]) ws[addrLeft] = {};
+                if (!ws[addrLeft].s) ws[addrLeft].s = {};
+                ws[addrLeft].s.border = {
+                    ...(ws[addrLeft].s.border || borderThin),
+                    left: { style: 'medium', color: { rgb: '003399' } }
+                };
+                const addrRight = XLSX.utils.encode_cell({ r, c: lastCol });
+                if (!ws[addrRight]) ws[addrRight] = {};
+                if (!ws[addrRight].s) ws[addrRight].s = {};
+                ws[addrRight].s.border = {
+                    ...(ws[addrRight].s.border || borderThin),
+                    right: { style: 'medium', color: { rgb: '003399' } }
+                };
+            }
+
+            // Colorear celdas de estado
             for (let r = 2; r < datos.length; r++) {
                 const estado = datos[r][3];
                 if (estado === 'Pendiente') {
@@ -2346,7 +2402,7 @@
                     ws[addr].s = {
                         fill: { patternType: 'solid', fgColor: { rgb: 'FFF0F0' } },
                         font: { bold: true, color: { rgb: 'CC0000' }, sz: 10, name: 'Calibri' },
-                        border: border,
+                        border: ws[addr].s?.border || borderThin,
                         alignment: centerAlign
                     };
                 }
@@ -2356,7 +2412,7 @@
                     ws[addr].s = {
                         fill: { patternType: 'solid', fgColor: { rgb: 'F0FFF0' } },
                         font: { bold: true, color: { rgb: '006600' }, sz: 10, name: 'Calibri' },
-                        border: border,
+                        border: ws[addr].s?.border || borderThin,
                         alignment: centerAlign
                     };
                 }
