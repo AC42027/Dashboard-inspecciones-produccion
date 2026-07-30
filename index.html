@@ -500,9 +500,8 @@
                 <!-- Selector Público de Fecha -->
                 <div
                     class="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700">
-                    <label class="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Ver semana
-                        del:</label>
-                    <input type="date" id="verFecha" class="glass-input" onchange="cargarAsignacionesSemanales()">
+                    <label class="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Ver mes:</label>
+                    <input type="month" id="verFecha" class="glass-input" onchange="cargarAsignacionesSemanales()">
                     <button onclick="cargarAsignacionesSemanales()"
                         class="p-2 bg-goodyear-blue text-white rounded hover:bg-blue-800 flex items-center justify-center min-w-[40px]">
                         <i class="fas fa-sync-alt"></i>
@@ -796,13 +795,14 @@
 
             if (tab === 'asignaciones') {
                 const now = new Date();
+                const mesStr = now.toISOString().slice(0, 7);
                 // Calcular el lunes de esta semana
                 const day = now.getDay() || 7;
                 if (day !== 1) now.setHours(-24 * (day - 1));
                 const fechaStr = now.toISOString().split('T')[0];
 
                 if (!document.getElementById('verFecha').value) {
-                    document.getElementById('verFecha').value = fechaStr;
+                    document.getElementById('verFecha').value = mesStr;
                     document.getElementById('asigFechaGenerar').value = fechaStr;
                     cargarAsignacionesSemanales();
                 }
@@ -1724,8 +1724,8 @@
 
         // LÓGICA DE ASIGNACIONES SEMANALES ASRS
         async function cargarAsignacionesSemanales() {
-            const fecha = document.getElementById('verFecha').value;
-            if (!fecha) return;
+            const mes = document.getElementById('verFecha').value;
+            if (!mes) return;
 
             const tbody = document.getElementById('tabla-asignaciones-publica');
             const loader = document.getElementById('asigLoadingPublic');
@@ -1734,28 +1734,28 @@
             loader.classList.remove('hidden');
 
             try {
-                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/?fecha=${fecha}`);
+                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${mes}`);
                 if (!res.ok) throw new Error("Endpoint no encontrado");
 
                 const data = await res.json();
                 asignacionesActuales = data;
 
                 if (data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 font-medium">No hay rutas generadas para la semana del ${fecha}.<br>Iván Bastardo o Manuel Rivera deben generarlas.</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 font-medium">No hay rutas generadas para ${mes}.<br>Iván Bastardo o Manuel Rivera deben generarlas.</td></tr>`;
                     return;
                 }
 
-                renderTablaAsignacionesPublica(fecha);
+                renderTablaAsignacionesPublica(mes);
 
             } catch (err) {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-red-500">Error de conexión. Consultar a Manuel Rivera en caso de persistir error.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500">Error de conexión. Consultar a Manuel Rivera en caso de persistir error.</td></tr>`;
             } finally {
                 loader.classList.add('hidden');
             }
         }
 
-        function renderTablaAsignacionesPublica(fechaInicioStr) {
+        function renderTablaAsignacionesPublica(mesStr) {
             const tbody = document.getElementById('tabla-asignaciones-publica');
             const accionHeader = document.getElementById('asigAdminAccionHeader');
             let html = '';
@@ -1767,10 +1767,8 @@
                 accionHeader.classList.add('hidden');
             }
 
-            // Definir rango de la semana (7 días)
-            const fInicio = new Date(fechaInicioStr + "T00:00:00");
-            const fFin = new Date(fInicio);
-            fFin.setDate(fInicio.getDate() + 7);
+            // Extraer año y mes para filtrar inspecciones del mes
+            const [anio, mesNum] = mesStr.split('-').map(Number);
 
             // Agrupar por asociado
             const porAsociado = asignacionesActuales.reduce((acc, a) => {
@@ -1781,10 +1779,12 @@
 
             Object.entries(porAsociado).sort().forEach(([aso, equiposAso]) => {
                 equiposAso.forEach((asig, index) => {
-                    // Validar si está realizada en este rango de 7 días
+                    // Validar si está realizada en el mes
                     const realizada = inspecciones.some(i => {
-                        const fInsp = new Date(i.fecha + "T00:00:00");
-                        return i.equipo === asig.equipo && fInsp >= fInicio && fInsp < fFin;
+                        if (i.equipo !== asig.equipo) return false;
+                        const parts = i.fecha.split('-');
+                        if (parts.length < 2) return false;
+                        return parseInt(parts[0]) === anio && parseInt(parts[1]) === mesNum;
                     });
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
@@ -2101,7 +2101,7 @@
                 if (res.ok) {
                     alert("Inspección asignada correctamente");
                     document.getElementById('asigPreviewContainer').classList.add('hidden');
-                    document.getElementById('verFecha').value = asignacionesPreview[0].fecha;
+                    document.getElementById('verFecha').value = asignacionesPreview[0].fecha.slice(0, 7);
                     cargarAsignacionesSemanales();
                 } else {
                     alert("Aviso: El servidor respondió con error. Revisa que el código en Django esté actualizado para recibir el campo 'fecha'.");
