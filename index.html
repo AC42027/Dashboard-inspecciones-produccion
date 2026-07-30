@@ -273,6 +273,10 @@
                 class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
                 <i class="fas fa-tasks"></i> Asignaciones ASRS
             </button>
+            <button id="tab-equipos-sin-qr" onclick="switchTab('equipos-sin-qr')"
+                class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                <i class="fas fa-qrcode"></i> Equipos sin QR
+            </button>
         </div>
     </header>
 
@@ -547,6 +551,38 @@
                                 <td colspan="5" class="text-center py-8 text-gray-500">Selecciona un mes para ver las
                                     asignaciones.</td>
                             </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+
+        <!-- PESTAÑA: EQUIPOS SIN QR -->
+        <div id="view-equipos-sin-qr" class="space-y-8 hidden">
+            <section class="glass-panel p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                        <i class="fas fa-qrcode text-gray-600"></i> Equipos sin QR
+                    </h2>
+                    <button onclick="cargarEquiposSinQR()"
+                        class="px-3 py-1.5 bg-goodyear-blue text-white rounded text-sm font-medium hover:bg-blue-800 transition-colors">
+                        <i class="fas fa-sync-alt"></i> Refrescar
+                    </button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left premium-table text-sm">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Usuario</th>
+                                <th>Equipo</th>
+                                <th>Comentario</th>
+                                <th class="text-center">Acci&oacute;n</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-equipos-sin-qr">
+                            <tr><td colspan="6" class="text-center py-8 text-gray-500">Cargando...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -835,6 +871,7 @@
                     actualizarHeaderAdmin(loggedUser);
                     actualizarDataListsAdmin();
                     document.getElementById('tab-asignaciones').classList.remove('hidden');
+                    document.getElementById('tab-equipos-sin-qr').classList.remove('hidden');
                 }
             }
 
@@ -850,6 +887,7 @@
             if (tab === 'mis-asignaciones') return; // Deshabilitado temporalmente
             document.getElementById('view-inspecciones').classList.toggle('hidden', tab !== 'inspecciones');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
+            document.getElementById('view-equipos-sin-qr').classList.toggle('hidden', tab !== 'equipos-sin-qr');
             document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
 
             // Ampliar ancho para la pestaña de asignaciones para mejor visibilidad
@@ -866,6 +904,10 @@
             const tabAsig = document.getElementById('tab-asignaciones');
             tabAsig.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             if (!isAdminModo) tabAsig.classList.add('hidden');
+            
+            const tabEqSinQR = document.getElementById('tab-equipos-sin-qr');
+            tabEqSinQR.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'equipos-sin-qr' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            if (!isAdminModo) tabEqSinQR.classList.add('hidden');
             
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
@@ -1135,6 +1177,7 @@
                         await syncTeamFromAPI(); // Sincronizar equipo desde el servidor
                         document.getElementById('adminPanel').classList.remove('hidden');
                         document.getElementById('tab-asignaciones').classList.remove('hidden');
+                        document.getElementById('tab-equipos-sin-qr').classList.remove('hidden');
 
                         const btnModoAdmin = document.getElementById('btnModoAdmin');
                         if (btnModoAdmin) {
@@ -1253,6 +1296,7 @@
 
                 document.getElementById('adminPanel').classList.add('hidden');
                 document.getElementById('tab-asignaciones').classList.add('hidden');
+                document.getElementById('tab-equipos-sin-qr').classList.add('hidden');
 
                 const btnModoAdmin = document.getElementById('btnModoAdmin');
                 if (btnModoAdmin) {
@@ -1262,17 +1306,86 @@
                         btnModoAdmin.classList.replace('text-white', 'text-gray-700');
                     }
                 }
-
                 actualizarHeaderAdmin();
                 renderTabla();
                 const verFecha = document.getElementById('verFecha').value;
                 if (verFecha) cargarAsignacionesSemanales();
                 switchTab('inspecciones');
-                mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión de administrador.', 'fa-info-circle text-blue-500');
+                mostrarAlerta('Sesi\u00f3n Cerrada', 'Has cerrado la sesi\u00f3n de administrador.', 'fa-info-circle text-blue-500');
             } else {
                 toggleAuthModal();
             }
         };
+
+        // EQUIPOS SIN QR
+        let equiposSinQR = [];
+
+        async function cargarEquiposSinQR() {
+            const tbody = document.getElementById('tabla-equipos-sin-qr');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8"><div class="loader mx-auto mb-2"></div><p class="text-gray-500">Cargando...</p></td></tr>';
+
+            try {
+                const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/');
+                if (!res.ok) throw new Error('Error al cargar datos');
+                equiposSinQR = await res.json();
+                renderEquiposSinQR();
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Error al conectar con el servidor</td></tr>';
+            }
+        }
+
+        function renderEquiposSinQR() {
+            const tbody = document.getElementById('tabla-equipos-sin-qr');
+            if (!tbody) return;
+
+            if (equiposSinQR.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500 font-medium">No hay equipos sin QR registrados.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = equiposSinQR.map(eq => `
+                <tr>
+                    <td>${eq.fecha || '-'}</td>
+                    <td>${eq.hora || '-'}</td>
+                    <td>${eq.usuario_nombre || eq.usuario || '-'}</td>
+                    <td class="font-semibold">${eq.equipo_nombre}</td>
+                    <td>${eq.comentario || '-'}</td>
+                    <td class="text-center">
+                        <button onclick="eliminarEquipoSinQR(${eq.id})"
+                            class="text-red-500 hover:text-red-700 transition-colors"
+                            title="Eliminar (QR ya colocado)">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function eliminarEquipoSinQR(id) {
+            const confirmar = await mostrarConfirmacion(
+                'Eliminar Equipo sin QR',
+                '¿Seguro que ya se coloc\u00f3 el QR? Se eliminar\u00e1 este registro.',
+                'fa-check-circle text-green-500'
+            );
+            if (!confirmar) return;
+
+            try {
+                const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/' + id + '/', {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    await mostrarAlerta('Eliminado', 'Registro eliminado correctamente.', 'fa-check-circle text-green-500');
+                    cargarEquiposSinQR();
+                } else {
+                    await mostrarAlerta('Error', data.message || 'Error al eliminar', 'fa-times-circle text-red-500');
+                }
+            } catch (err) {
+                await mostrarAlerta('Error', 'No se pudo conectar con el servidor.', 'fa-exclamation-circle text-red-500');
+            }
+        }
+        // FIN EQUIPOS SIN QR
 
         function actualizarHeaderAdmin(username = '') {
             const btn = document.getElementById('headerAdminToggle');
