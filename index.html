@@ -1199,6 +1199,7 @@
                 renderTabla();
                 const verFecha = document.getElementById('verFecha').value;
                 if (verFecha) cargarAsignacionesSemanales();
+                switchTab('inspecciones');
             } else {
                 toggleAuthModal();
             }
@@ -1229,6 +1230,7 @@
                 renderTabla();
                 const verFecha = document.getElementById('verFecha').value;
                 if (verFecha) cargarAsignacionesSemanales();
+                switchTab('inspecciones');
                 mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión de administrador.', 'fa-info-circle text-blue-500');
             } else {
                 toggleAuthModal();
