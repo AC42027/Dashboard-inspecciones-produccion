@@ -489,7 +489,7 @@
                             <h4 class="font-bold text-gray-700 dark:text-gray-300">Vista Previa (No guardado aún)</h4>
                             <button onclick="guardarAsignacionesEnDjango()"
                                 class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow flex items-center gap-2">
-                                <i class="fas fa-save"></i> Guardar en BD
+                                <i class="fas fa-save"></i> Guardar
                             </button>
                         </div>
                         <div class="max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 p-2 text-sm"
@@ -2109,7 +2109,7 @@
             } catch (err) {
                 alert("Error de red. Asegúrate de que el servidor esté disponible.");
             } finally {
-                btn.innerHTML = '<i class="fas fa-save"></i> Guardar en BD';
+                btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
                 btn.disabled = false;
             }
         }
