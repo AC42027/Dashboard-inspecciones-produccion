@@ -605,8 +605,8 @@
                         <p class="text-green-600 dark:text-green-400 font-medium text-sm">Cargando tus asignaciones...</p>
                     </div>
 
-                    <!-- Progress Bar -->
-                    <div id="misAsigProgress" class="hidden mb-6">
+                    <!-- Progress Bars -->
+                    <div id="misAsigProgress" class="hidden mb-4">
                         <div class="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
                             <span id="misAsigProgressText">0 de 0 realizados</span>
                             <span id="misAsigProgressPct">0%</span>
@@ -614,6 +614,16 @@
                         <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                             <div id="misAsigProgressBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%"></div>
                         </div>
+                    </div>
+                    <div id="misAsigProgressAnual" class="hidden mb-6">
+                        <div class="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                            <span><i class="fas fa-calendar-alt text-blue-500"></i> Cumplimiento Anual</span>
+                            <span id="misAsigProgressAnualPct">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                            <div id="misAsigProgressAnualBar" class="h-full bg-blue-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1" id="misAsigProgressAnualText">0 de 0 realizados en el año</p>
                     </div>
 
                     <!-- Error -->
@@ -877,12 +887,14 @@
             const wrapper = document.getElementById('misAsigTableWrapper');
             const noData = document.getElementById('misAsigNoData');
             const progress = document.getElementById('misAsigProgress');
+            const progressAnual = document.getElementById('misAsigProgressAnual');
             const contentError = document.getElementById('misAsigContentError');
 
             loading.classList.remove('hidden');
             wrapper.classList.add('hidden');
             noData.classList.add('hidden');
             progress.classList.add('hidden');
+            progressAnual.classList.add('hidden');
             contentError.classList.add('hidden');
 
             try {
@@ -931,7 +943,7 @@
                 tbody.innerHTML = html;
                 wrapper.classList.remove('hidden');
 
-                // Progress bar
+                // Progress bar mensual
                 const total = misAsignaciones.length;
                 const pct = Math.round((realizados / total) * 100);
                 document.getElementById('misAsigProgressText').textContent = `${realizados} de ${total} realizados`;
@@ -939,11 +951,65 @@
                 document.getElementById('misAsigProgressBar').style.width = `${pct}%`;
                 progress.classList.remove('hidden');
 
+                // Cargar cumplimiento anual
+                const anio = mes.split('-')[0];
+                cargarCumplimientoAnual(anio);
+
             } catch (err) {
                 contentError.textContent = "Error al cargar asignaciones: " + err.message;
                 contentError.classList.remove('hidden');
             } finally {
                 loading.classList.add('hidden');
+            }
+        }
+
+        async function cargarCumplimientoAnual(anio) {
+            const progressAnual = document.getElementById('misAsigProgressAnual');
+            const normalizar = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const userNorm = normalizar(loggedUserFullName);
+
+            try {
+                // Fetch todos los meses del año en paralelo
+                const meses = Array.from({ length: 12 }, (_, i) =>
+                    `${anio}-${String(i + 1).padStart(2, '0')}`
+                );
+                const responses = await Promise.all(
+                    meses.map(m => fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${m}`))
+                );
+
+                // Acumular asignaciones del usuario de todo el año
+                let totalAnual = 0;
+                let realizadosAnual = 0;
+
+                for (const res of responses) {
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    const userAsigs = data.filter(a => normalizar(a.asociado) === userNorm);
+                    for (const a of userAsigs) {
+                        const realizada = inspecciones.some(i =>
+                            i.equipo === a.equipo &&
+                            i.fecha >= a.fecha &&
+                            new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
+                        );
+                        if (realizada) realizadosAnual++;
+                        totalAnual++;
+                    }
+                }
+
+                if (totalAnual === 0) {
+                    progressAnual.classList.add('hidden');
+                    return;
+                }
+
+                const pctAnual = Math.round((realizadosAnual / totalAnual) * 100);
+                document.getElementById('misAsigProgressAnualText').textContent = `${realizadosAnual} de ${totalAnual} realizados en el año`;
+                document.getElementById('misAsigProgressAnualPct').textContent = `${pctAnual}%`;
+                document.getElementById('misAsigProgressAnualBar').style.width = `${pctAnual}%`;
+                progressAnual.classList.remove('hidden');
+
+            } catch (err) {
+                console.error('Error al cargar cumplimiento anual:', err);
+                progressAnual.classList.add('hidden');
             }
         }
 
