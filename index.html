@@ -2242,12 +2242,134 @@
         function exportarAsignacionExcel() {
             const list = asignacionesPreview.length > 0 ? asignacionesPreview : asignacionesActuales;
             if (list.length === 0) { alert("No hay datos para exportar."); return; }
-            const ws = XLSX.utils.json_to_sheet(list);
+
+            // Normalizar fecha a mes legible
+            const fechaRef = list[0].fecha || '';
+            const tituloMes = fechaRef.length >= 7
+                ? new Date(fechaRef.slice(0, 4) + '-' + fechaRef.slice(5, 7) + '-01').toLocaleDateString('es-CL', { month: 'long', year: 'numeric' })
+                : fechaRef;
+
+            // Agrupar por asociado y ordenar
+            const porAso = {};
+            list.forEach(a => {
+                const nom = a.asociado || 'Sin asignar';
+                if (!porAso[nom]) porAso[nom] = [];
+                porAso[nom].push(a);
+            });
+
+            // Construir datos: fila título + headers + datos agrupados
+            const datos = [];
+            // Fila 0: Título
+            datos.push([`Rutas ASRS - ${tituloMes}`]);
+            // Fila 1: Headers
+            const headers = ['Asociado', 'Equipo', 'Zona', 'Estado'];
+            datos.push(headers);
+
+            Object.keys(porAso).sort().forEach(aso => {
+                const equipos = porAso[aso];
+                equipos.forEach((a, idx) => {
+                    // Determinar estado según inspecciones
+                    const realizada = inspecciones.some(i => {
+                        if (i.equipo !== a.equipo) return false;
+                        if (a.fecha) {
+                            return i.fecha >= a.fecha &&
+                                new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000);
+                        }
+                        return true;
+                    });
+                    if (idx === 0) {
+                        datos.push([aso, a.equipo, a.zona || 'N/A', realizada ? 'Realizada' : 'Pendiente']);
+                    } else {
+                        datos.push(['', a.equipo, a.zona || 'N/A', realizada ? 'Realizada' : 'Pendiente']);
+                    }
+                });
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(datos);
+
+            // Fusionar celdas del título
+            ws['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }];
+
+            // Columnas
+            ws['!cols'] = [
+                { wch: 28 },
+                { wch: 22 },
+                { wch: 18 },
+                { wch: 14 }
+            ];
+
+            // Estilos
+            const blueFill = { patternType: 'solid', fgColor: { rgb: '003399' } };
+            const whiteFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' };
+            const headerFont = { bold: true, color: { rgb: 'FFFFFF' }, sz: 10, name: 'Calibri' };
+            const titleFont = { bold: true, color: { rgb: '003399' }, sz: 14, name: 'Calibri' };
+            const border = {
+                top: { style: 'thin', color: { rgb: 'D0D0D0' } },
+                bottom: { style: 'thin', color: { rgb: 'D0D0D0' } },
+                left: { style: 'thin', color: { rgb: 'D0D0D0' } },
+                right: { style: 'thin', color: { rgb: 'D0D0D0' } }
+            };
+            const centerAlign = { horizontal: 'center', vertical: 'center' };
+            const leftAlign = { vertical: 'center' };
+
+            // Aplicar estilo al título
+            const titleCell = XLSX.utils.encode_cell({ r: 0, c: 0 });
+            if (!ws[titleCell]) ws[titleCell] = {};
+            ws[titleCell].s = { font: titleFont, alignment: centerAlign };
+
+            // Aplicar estilos a headers (fila 1)
+            for (let c = 0; c < headers.length; c++) {
+                const addr = XLSX.utils.encode_cell({ r: 1, c });
+                if (!ws[addr]) ws[addr] = {};
+                ws[addr].s = { fill: blueFill, font: headerFont, alignment: centerAlign, border: border };
+            }
+
+            // Aplicar bordes y alineación a datos (desde fila 2)
+            for (let r = 2; r < datos.length; r++) {
+                for (let c = 0; c < headers.length; c++) {
+                    const addr = XLSX.utils.encode_cell({ r, c });
+                    if (!ws[addr]) ws[addr] = {};
+                    ws[addr].s = {
+                        border: border,
+                        alignment: c === 3 ? centerAlign : leftAlign,
+                        font: { sz: 10, name: 'Calibri' }
+                    };
+                }
+            }
+
+            // Colorear filas de "Pendiente" en rojo suave
+            for (let r = 2; r < datos.length; r++) {
+                const estado = datos[r][3];
+                if (estado === 'Pendiente') {
+                    const addr = XLSX.utils.encode_cell({ r, c: 3 });
+                    if (!ws[addr]) ws[addr] = {};
+                    ws[addr].s = {
+                        fill: { patternType: 'solid', fgColor: { rgb: 'FFF0F0' } },
+                        font: { bold: true, color: { rgb: 'CC0000' }, sz: 10, name: 'Calibri' },
+                        border: border,
+                        alignment: centerAlign
+                    };
+                }
+                if (estado === 'Realizada') {
+                    const addr = XLSX.utils.encode_cell({ r, c: 3 });
+                    if (!ws[addr]) ws[addr] = {};
+                    ws[addr].s = {
+                        fill: { patternType: 'solid', fgColor: { rgb: 'F0FFF0' } },
+                        font: { bold: true, color: { rgb: '006600' }, sz: 10, name: 'Calibri' },
+                        border: border,
+                        alignment: centerAlign
+                    };
+                }
+            }
+
+            // Altura de fila para título
+            ws['!rows'] = [{ hpt: 30 }, { hpt: 22 }];
+
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, 'Rutas_Semanales');
+            XLSX.utils.book_append_sheet(wb, ws, 'Rutas_ASRS');
             const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-            const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
-            saveAs(blob, `Rutas_ASRS_${list[0].fecha}.xlsx`);
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            saveAs(blob, `Rutas_ASRS_${tituloMes.replace(/\s+/g, '_')}.xlsx`);
         }
     </script>
     <!-- Custom Modal Container -->
