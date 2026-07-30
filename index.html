@@ -253,16 +253,14 @@
                 class="pb-3 text-goodyear-blue dark:text-goodyear-yellow font-bold border-b-2 border-goodyear-blue dark:border-goodyear-yellow text-sm sm:text-base transition-colors">
                 <i class="fas fa-search-plus"></i> Historial Inspecciones
             </button>
-            <button id="tab-planificacion" onclick="switchTab('planificacion')"
+            <button id="tab-mis-asignaciones" onclick="switchTab('mis-asignaciones')"
                 class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-calendar-check"></i> Planificación
+                <i class="fas fa-calendar-check"></i> Mis Asignaciones
             </button>
-            <div class="hidden">
-                <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
-                    class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                    <i class="fas fa-tasks"></i> Asignaciones ASRS
-                </button>
-            </div>
+            <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
+                class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                <i class="fas fa-tasks"></i> Asignaciones ASRS
+            </button>
         </div>
     </header>
 
@@ -431,20 +429,24 @@
                         </div>
                     </div>
 
+                    <!-- Generación Automática (deshabilitada por ahora) -->
                     <div
-                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-purple-100 dark:border-purple-800">
+                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-purple-100 dark:border-purple-800 opacity-60">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 rounded text-[10px] font-bold uppercase tracking-wider">Próximamente</span>
+                        </div>
                         <p class="text-sm text-purple-700 dark:text-purple-200 mb-4">
-                            Selecciona una fecha (Lunes). El sistema repartirá los equipos de forma inteligente entre
-                            los asociados listados arriba.
+                            La generación automática de rutas estará disponible pronto.
+                            Por ahora, usa la asignación manual.
                         </p>
                         <div class="flex flex-col sm:flex-row gap-4">
                             <div class="flex flex-col gap-1 flex-grow">
                                 <label class="text-xs text-purple-600 dark:text-purple-400 font-bold ml-1">Lunes de la
                                     semana</label>
-                                <input type="date" id="asigFechaGenerar" class="glass-input w-full">
+                                <input type="date" id="asigFechaGenerar" class="glass-input w-full" disabled>
                             </div>
-                            <button onclick="generarAsignaciones()"
-                                class="self-end py-2 px-6 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-colors shadow-md flex items-center justify-center gap-2">
+                            <button disabled
+                                class="self-end py-2 px-6 bg-gray-400 text-white rounded-lg font-bold cursor-not-allowed flex items-center justify-center gap-2">
                                 <i class="fas fa-magic"></i> Generar Rutas Automáticas
                             </button>
                         </div>
@@ -539,31 +541,104 @@
             </section>
         </div>
 
-        <!-- PESTAÑA 3: PLANIFICACIÓN -->
-        <div id="view-planificacion" class="space-y-8 hidden">
-            <section class="glass-panel p-8 max-w-md mx-auto mt-10">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2 mb-6 justify-center">
-                    <i class="fas fa-user-lock text-goodyear-blue dark:text-goodyear-yellow"></i> Acceso Planificación
-                </h2>
-                
-                <form id="planificacionLoginForm" class="space-y-4" onsubmit="handlePlanificacionLogin(event)">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Usuario LDAP</label>
-                        <input type="text" id="planLdapUser" required class="glass-input w-full" placeholder="Ej. ac17157">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
-                        <input type="password" id="planLdapPass" required class="glass-input w-full" placeholder="••••••••">
-                    </div>
+        <!-- PESTAÑA 3: MIS ASIGNACIONES -->
+        <div id="view-mis-asignaciones" class="space-y-8 hidden">
+            <!-- Login Form -->
+            <div id="misAsigLogin">
+                <section class="glass-panel p-8 max-w-md mx-auto mt-10">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2 mb-6 justify-center">
+                        <i class="fas fa-user-lock text-goodyear-blue dark:text-goodyear-yellow"></i> Mis Asignaciones
+                    </h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 text-center mb-6">Ingresa con tu usuario de red para ver tus equipos asignados.</p>
                     
-                    <div id="planLdapError" class="hidden text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 p-2.5 rounded border border-red-200 dark:border-red-800"></div>
-                    <div id="planLdapSuccess" class="hidden text-xs font-bold text-green-600 bg-green-50 dark:bg-green-900/20 p-2.5 rounded border border-green-200 dark:border-green-800"></div>
+                    <form id="misAsigLoginForm" class="space-y-4" onsubmit="handleMisAsigLogin(event)">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Usuario LDAP</label>
+                            <input type="text" id="misAsigUser" required class="glass-input w-full" placeholder="Ej. ac17157">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
+                            <input type="password" id="misAsigPass" required class="glass-input w-full" placeholder="••••••••">
+                        </div>
+                        
+                        <div id="misAsigError" class="hidden text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 p-2.5 rounded border border-red-200 dark:border-red-800"></div>
 
-                    <button type="submit" id="planLdapSubmitBtn" class="w-full py-2.5 bg-goodyear-blue hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
-                        <i class="fas fa-sign-in-alt"></i> Autenticar
-                    </button>
-                </form>
-            </section>
+                        <button type="submit" id="misAsigSubmitBtn" class="w-full py-2.5 bg-goodyear-blue hover:bg-blue-700 text-white font-bold rounded-lg transition-colors shadow-md flex items-center justify-center gap-2 mt-2">
+                            <i class="fas fa-sign-in-alt"></i> Ingresar
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- Content (visible after login) -->
+            <div id="misAsigContent" class="hidden space-y-6">
+                <section class="glass-panel p-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
+                                <i class="fas fa-calendar-alt text-goodyear-blue dark:text-goodyear-yellow"></i> 
+                                Mis Asignaciones
+                            </h2>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                <i class="fas fa-user"></i> <span id="misAsigUserName"></span>
+                            </p>
+                        </div>
+                        <button onclick="cerrarSesionMisAsignaciones()"
+                            class="px-4 py-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-700 dark:text-red-400 rounded-lg font-medium text-sm transition-colors flex items-center gap-2">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </div>
+
+                    <!-- Month Selector -->
+                    <div class="flex items-center gap-4 mb-6 p-4 bg-gray-50 dark:bg-slate-800/50 rounded-lg border border-gray-100 dark:border-slate-700">
+                        <label class="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Mes:</label>
+                        <input type="month" id="misAsigMes" class="glass-input" onchange="cargarMisAsignaciones()">
+                        <button onclick="cargarMisAsignaciones()"
+                            class="p-2 bg-goodyear-blue text-white rounded hover:bg-blue-800 flex items-center justify-center min-w-[40px]">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+
+                    <!-- Loading -->
+                    <div id="misAsigLoading" class="hidden flex-col items-center justify-center py-10">
+                        <div class="loader mb-4 border-t-green-600 dark:border-t-green-400"></div>
+                        <p class="text-green-600 dark:text-green-400 font-medium text-sm">Cargando tus asignaciones...</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div id="misAsigProgress" class="hidden mb-6">
+                        <div class="flex justify-between text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+                            <span id="misAsigProgressText">0 de 0 realizados</span>
+                            <span id="misAsigProgressPct">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                            <div id="misAsigProgressBar" class="h-full bg-green-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Error -->
+                    <div id="misAsigContentError" class="hidden text-xs font-bold text-red-600 bg-red-50 dark:bg-red-900/20 p-3 rounded border border-red-200 dark:border-red-800 mb-4"></div>
+
+                    <!-- Table -->
+                    <div id="misAsigNoData" class="hidden text-center py-8 text-gray-500 font-medium">
+                        <i class="fas fa-inbox text-4xl mb-3 block opacity-50"></i>
+                        No tienes equipos asignados para este mes.
+                    </div>
+                    <div id="misAsigTableWrapper" class="hidden overflow-x-auto">
+                        <table class="w-full text-left premium-table text-sm">
+                            <thead>
+                                <tr>
+                                    <th>Equipo</th>
+                                    <th>Zona</th>
+                                    <th>Semana</th>
+                                    <th class="text-center">Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody id="misAsigTableBody"></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
         </div>
 
     </main>
@@ -654,7 +729,7 @@
             initTheme();
             setupEventListeners();
 
-            // Restaurar sesión si existe
+            // Restaurar sesión admin si existe
             if (localStorage.getItem('isAdminModo') === 'true') {
                 isAdminModo = true;
                 loggedUser = localStorage.getItem('loggedUser') || '';
@@ -674,7 +749,21 @@
                     }
                     actualizarHeaderAdmin(loggedUser);
                     actualizarDataListsAdmin();
+                    document.getElementById('tab-asignaciones').classList.remove('hidden');
                 }
+            }
+
+            // Restaurar sesión de Mis Asignaciones si existe
+            const savedFullName = localStorage.getItem('misAsigFullName');
+            if (savedFullName) {
+                loggedUserFullName = savedFullName;
+                document.getElementById('misAsigLogin').classList.add('hidden');
+                document.getElementById('misAsigContent').classList.remove('hidden');
+                document.getElementById('misAsigUserName').textContent = savedFullName;
+                const ahora = new Date();
+                const mesInput = document.getElementById('misAsigMes');
+                mesInput.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                cargarMisAsignaciones();
             }
 
             fetchData();
@@ -684,7 +773,7 @@
         function switchTab(tab) {
             document.getElementById('view-inspecciones').classList.toggle('hidden', tab !== 'inspecciones');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
-            document.getElementById('view-planificacion').classList.toggle('hidden', tab !== 'planificacion');
+            document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
 
             // Ampliar ancho para la pestaña de asignaciones para mejor visibilidad
             const mainCont = document.querySelector('main');
@@ -699,9 +788,9 @@
             document.getElementById('tab-inspecciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             document.getElementById('tab-asignaciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             
-            const tabPlan = document.getElementById('tab-planificacion');
-            if (tabPlan) {
-                tabPlan.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'planificacion' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            const tabMis = document.getElementById('tab-mis-asignaciones');
+            if (tabMis) {
+                tabMis.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'mis-asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             }
 
             if (tab === 'asignaciones') {
@@ -717,20 +806,32 @@
                     cargarAsignacionesSemanales();
                 }
             }
+
+            if (tab === 'mis-asignaciones') {
+                const mesInput = document.getElementById('misAsigMes');
+                if (!mesInput.value) {
+                    const ahora = new Date();
+                    mesInput.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                }
+                if (loggedUserFullName) {
+                    cargarMisAsignaciones();
+                }
+            }
         }
 
-        async function handlePlanificacionLogin(e) {
+        // MIS ASIGNACIONES
+        let loggedUserFullName = '';
+
+        async function handleMisAsigLogin(e) {
             e.preventDefault();
-            const user = document.getElementById('planLdapUser').value.toLowerCase();
-            const pass = document.getElementById('planLdapPass').value;
-            const btn = document.getElementById('planLdapSubmitBtn');
-            const error = document.getElementById('planLdapError');
-            const success = document.getElementById('planLdapSuccess');
+            const user = document.getElementById('misAsigUser').value.toLowerCase();
+            const pass = document.getElementById('misAsigPass').value;
+            const btn = document.getElementById('misAsigSubmitBtn');
+            const error = document.getElementById('misAsigError');
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
             btn.disabled = true;
             error.classList.add('hidden');
-            success.classList.add('hidden');
 
             try {
                 const res = await fetch('http://10.107.194.110:8080/api/login-ldap/', {
@@ -741,19 +842,117 @@
 
                 const data = await res.json();
                 if (res.ok && data.status === 'ok') {
-                    success.textContent = `¡Autenticación exitosa! Bienvenido, ${data.first_name || user}.`;
-                    success.classList.remove('hidden');
+                    loggedUserFullName = data.full_name || `${data.first_name} ${data.last_name}`.trim() || user;
+                    localStorage.setItem('misAsigFullName', loggedUserFullName);
+                    localStorage.setItem('misAsigUser', user);
+
+                    document.getElementById('misAsigLogin').classList.add('hidden');
+                    document.getElementById('misAsigContent').classList.remove('hidden');
+                    document.getElementById('misAsigUserName').textContent = loggedUserFullName;
+
+                    const ahora = new Date();
+                    const mesInput = document.getElementById('misAsigMes');
+                    mesInput.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                    cargarMisAsignaciones();
                 } else {
                     error.textContent = data.message || data.error || "Credenciales inválidas o acceso denegado.";
                     error.classList.remove('hidden');
                 }
             } catch (err) {
-                error.textContent = "Error de conexión con el servidor LDAP o la API.";
+                error.textContent = "Error de conexión con el servidor LDAP.";
                 error.classList.remove('hidden');
             } finally {
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Autenticar';
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
                 btn.disabled = false;
             }
+        }
+
+        async function cargarMisAsignaciones() {
+            const mes = document.getElementById('misAsigMes').value;
+            if (!mes) return;
+
+            const loading = document.getElementById('misAsigLoading');
+            const tbody = document.getElementById('misAsigTableBody');
+            const wrapper = document.getElementById('misAsigTableWrapper');
+            const noData = document.getElementById('misAsigNoData');
+            const progress = document.getElementById('misAsigProgress');
+            const contentError = document.getElementById('misAsigContentError');
+
+            loading.classList.remove('hidden');
+            wrapper.classList.add('hidden');
+            noData.classList.add('hidden');
+            progress.classList.add('hidden');
+            contentError.classList.add('hidden');
+
+            try {
+                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${mes}`);
+                if (!res.ok) throw new Error('Error al cargar asignaciones');
+                const data = await res.json();
+
+                // Normalizar para matching flexible
+                const normalizar = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const userNorm = normalizar(loggedUserFullName);
+
+                const misAsignaciones = data.filter(a => normalizar(a.asociado) === userNorm);
+
+                if (misAsignaciones.length === 0) {
+                    noData.classList.remove('hidden');
+                    loading.classList.add('hidden');
+                    return;
+                }
+
+                // Agrupar por semana y determinar estado
+                let realizados = 0;
+                let html = '';
+                misAsignaciones.forEach(a => {
+                    const realizada = inspecciones.some(i =>
+                        i.equipo === a.equipo &&
+                        i.fecha >= a.fecha &&
+                        new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
+                    );
+                    if (realizada) realizados++;
+
+                    const fInicio = new Date(a.fecha + 'T00:00:00');
+                    const semanaStr = fInicio.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+
+                    html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">
+                        <td class="font-medium text-goodyear-blue dark:text-blue-400 p-2">${a.equipo}</td>
+                        <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${a.zona || 'N/A'}</td>
+                        <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${semanaStr}</td>
+                        <td class="text-center p-2">
+                            ${realizada
+                                ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-check-circle"></i> Realizada</span>'
+                                : '<span class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-times-circle"></i> Pendiente</span>'}
+                        </td>
+                    </tr>`;
+                });
+
+                tbody.innerHTML = html;
+                wrapper.classList.remove('hidden');
+
+                // Progress bar
+                const total = misAsignaciones.length;
+                const pct = Math.round((realizados / total) * 100);
+                document.getElementById('misAsigProgressText').textContent = `${realizados} de ${total} realizados`;
+                document.getElementById('misAsigProgressPct').textContent = `${pct}%`;
+                document.getElementById('misAsigProgressBar').style.width = `${pct}%`;
+                progress.classList.remove('hidden');
+
+            } catch (err) {
+                contentError.textContent = "Error al cargar asignaciones: " + err.message;
+                contentError.classList.remove('hidden');
+            } finally {
+                loading.classList.add('hidden');
+            }
+        }
+
+        function cerrarSesionMisAsignaciones() {
+            loggedUserFullName = '';
+            localStorage.removeItem('misAsigFullName');
+            localStorage.removeItem('misAsigUser');
+            document.getElementById('misAsigContent').classList.add('hidden');
+            document.getElementById('misAsigLogin').classList.remove('hidden');
+            document.getElementById('misAsigLoginForm').reset();
         }
 
         // MODO ADMIN & LDAP
@@ -798,6 +997,7 @@
                         toggleAuthModal();
                         renderTeamList(); // Inicializar lista de asociados
                         document.getElementById('adminPanel').classList.remove('hidden');
+                        document.getElementById('tab-asignaciones').classList.remove('hidden');
 
                         const btnModoAdmin = document.getElementById('btnModoAdmin');
                         if (btnModoAdmin) {
@@ -881,6 +1081,7 @@
                 localStorage.removeItem('loggedUser');
 
                 document.getElementById('adminPanel').classList.add('hidden');
+                document.getElementById('tab-asignaciones').classList.add('hidden');
 
                 const btnModoAdmin = document.getElementById('btnModoAdmin');
                 if (btnModoAdmin) {
@@ -907,6 +1108,7 @@
                 localStorage.removeItem('loggedUser');
 
                 document.getElementById('adminPanel').classList.add('hidden');
+                document.getElementById('tab-asignaciones').classList.add('hidden');
 
                 const btnModoAdmin = document.getElementById('btnModoAdmin');
                 if (btnModoAdmin) {
