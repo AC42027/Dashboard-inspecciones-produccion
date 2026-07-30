@@ -264,9 +264,10 @@
                 class="pb-3 text-goodyear-blue dark:text-goodyear-yellow font-bold border-b-2 border-goodyear-blue dark:border-goodyear-yellow text-sm sm:text-base transition-colors">
                 <i class="fas fa-search-plus"></i> Historial Inspecciones
             </button>
-            <button id="tab-mis-asignaciones" onclick="switchTab('mis-asignaciones')"
-                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-calendar-check"></i> Mis Asignaciones
+            <button id="tab-mis-asignaciones" disabled
+                class="pb-3 text-gray-400 font-medium border-b-2 border-transparent text-sm sm:text-base cursor-not-allowed select-none relative group">
+                <i class="fas fa-calendar-check mr-1"></i> Mis Asignaciones
+                <span class="absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md group-hover:scale-110 transition-transform">Próximamente</span>
             </button>
             <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
                 class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
@@ -798,24 +799,16 @@
                 }
             }
 
-            // Restaurar sesión de Mis Asignaciones si existe
-            const savedFullName = localStorage.getItem('misAsigFullName');
-            if (savedFullName) {
-                loggedUserFullName = savedFullName;
-                document.getElementById('misAsigLogin').classList.add('hidden');
-                document.getElementById('misAsigContent').classList.remove('hidden');
-                document.getElementById('misAsigUserName').textContent = savedFullName;
-                const ahora = new Date();
-                const mesInput = document.getElementById('misAsigMes');
-                mesInput.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
-                cargarMisAsignaciones();
-            }
+            // Restaurar sesión de Mis Asignaciones (deshabilitado temporalmente)
+            localStorage.removeItem('misAsigFullName');
+            localStorage.removeItem('misAsigUser');
 
             fetchData();
         });
 
         // TABS LOGIC
         function switchTab(tab) {
+            if (tab === 'mis-asignaciones') return; // Deshabilitado temporalmente
             document.getElementById('view-inspecciones').classList.toggle('hidden', tab !== 'inspecciones');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
             document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
