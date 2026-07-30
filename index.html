@@ -631,8 +631,8 @@
                                 <tr>
                                     <th>Equipo</th>
                                     <th>Zona</th>
-                                    <th>Semana</th>
-                                    <th class="text-center">Estado</th>
+                                <th>Mes</th>
+                                <th class="text-center">Estado</th>
                                 </tr>
                             </thead>
                             <tbody id="misAsigTableBody"></tbody>
@@ -914,12 +914,12 @@
                     if (realizada) realizados++;
 
                     const fInicio = new Date(a.fecha + 'T00:00:00');
-                    const semanaStr = fInicio.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
+                    const mesStr = fInicio.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">
                         <td class="font-medium text-goodyear-blue dark:text-blue-400 p-2">${a.equipo}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${a.zona || 'N/A'}</td>
-                        <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${semanaStr}</td>
+                        <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${mesStr}</td>
                         <td class="text-center p-2">
                             ${realizada
                                 ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-check-circle"></i> Realizada</span>'
@@ -2099,7 +2099,7 @@
                 });
 
                 if (res.ok) {
-                    alert("¡Rutas semanales guardadas correctamente!");
+                    alert("Inspección asignada correctamente");
                     document.getElementById('asigPreviewContainer').classList.add('hidden');
                     document.getElementById('verFecha').value = asignacionesPreview[0].fecha;
                     cargarAsignacionesSemanales();
