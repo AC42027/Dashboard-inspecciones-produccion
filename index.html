@@ -247,9 +247,9 @@
             <div class="flex items-center gap-2">
                 <button id="headerAdminToggle" onclick="toggleHeaderAdmin()"
                     class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors flex items-center gap-2"
-                    title="Acceso Administrador">
+                    title="Acceso Planificación">
                     <i class="fas fa-user-shield text-xl"></i>
-                    <span id="headerAdminText" class="text-xs font-bold hidden md:inline">Acceso Admin</span>
+                    <span id="headerAdminText" class="text-xs font-bold hidden md:inline">Acceso Planificación</span>
                 </button>
                 <button id="themeToggle"
                     class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors ml-2">
@@ -692,7 +692,7 @@
         class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div class="glass-panel p-8 max-w-md w-full mx-4">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Acceso Administrador</h3>
+                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Acceso Planificación</h3>
                 <button onclick="toggleAuthModal()"
                     class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
                     <i class="fas fa-times text-xl"></i>
@@ -1248,7 +1248,7 @@
                 text.classList.remove('hidden');
             } else {
                 btn.classList.remove('text-purple-600', 'dark:text-purple-400');
-                text.textContent = 'Acceso Admin';
+                text.textContent = 'Acceso Planificación';
                 text.classList.add('hidden', 'md:inline');
             }
         }
