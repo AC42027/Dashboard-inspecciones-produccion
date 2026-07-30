@@ -1331,7 +1331,7 @@
                 equiposSinQR = await res.json();
                 renderEquiposSinQR();
             } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Error al conectar con el servidor</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-red-500">Error al conectar con el servidor. Verifique que el backend est\u00e9 funcionando y las migraciones aplicadas.</td></tr>';
             }
         }
 
