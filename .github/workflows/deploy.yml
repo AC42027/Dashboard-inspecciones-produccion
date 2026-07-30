@@ -12,4 +12,5 @@ jobs:
       - name: Pull latest changes
         run: |
           cd /var/www/html/insp_pry/dashboard
-          git pull origin main
+          git fetch origin main
+          git reset --hard origin/main
