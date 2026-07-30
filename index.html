@@ -528,11 +528,12 @@
                                 <th>Zona</th>
                                 <th>Equipo Asignado</th>
                                 <th class="text-center">Estado del Mes</th>
+                                <th id="asigAdminAccionHeader" class="text-center hidden">Acción</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-asignaciones-publica">
                             <tr>
-                                <td colspan="4" class="text-center py-8 text-gray-500">Selecciona un mes para ver las
+                                <td colspan="5" class="text-center py-8 text-gray-500">Selecciona un mes para ver las
                                     asignaciones.</td>
                             </tr>
                         </tbody>
@@ -1011,6 +1012,8 @@
                         actualizarHeaderAdmin(user);
                         actualizarDataListsAdmin(); // Cargar equipos en el buscador manual
                         renderTabla(); // Re-renderizar la tabla para mostrar el botón "Cerrar Aviso"
+                        const verFecha = document.getElementById('verFecha').value;
+                        if (verFecha) cargarAsignacionesSemanales();
                     } else {
                         error.textContent = "Acceso denegado. Tu usuario no tiene privilegios de administrador.";
                         error.classList.remove('hidden');
@@ -1093,6 +1096,8 @@
                 }
                 actualizarHeaderAdmin();
                 renderTabla();
+                const verFecha = document.getElementById('verFecha').value;
+                if (verFecha) cargarAsignacionesSemanales();
             } else {
                 toggleAuthModal();
             }
@@ -1121,6 +1126,8 @@
 
                 actualizarHeaderAdmin();
                 renderTabla();
+                const verFecha = document.getElementById('verFecha').value;
+                if (verFecha) cargarAsignacionesSemanales();
                 mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión de administrador.', 'fa-info-circle text-blue-500');
             } else {
                 toggleAuthModal();
@@ -1750,7 +1757,15 @@
 
         function renderTablaAsignacionesPublica(fechaInicioStr) {
             const tbody = document.getElementById('tabla-asignaciones-publica');
+            const accionHeader = document.getElementById('asigAdminAccionHeader');
             let html = '';
+
+            // Mostrar columna de acción solo en modo admin
+            if (isAdminModo) {
+                accionHeader.classList.remove('hidden');
+            } else {
+                accionHeader.classList.add('hidden');
+            }
 
             // Definir rango de la semana (7 días)
             const fInicio = new Date(fechaInicioStr + "T00:00:00");
@@ -1784,6 +1799,12 @@
                             ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-24 mx-auto"><i class="fas fa-check-circle"></i> Realizada</span>'
                             : '<span class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-24 mx-auto"><i class="fas fa-times-circle"></i> Pendiente</span>'}
                         </td>
+                        ${isAdminModo ? `
+                        <td class="text-center p-2">
+                            <button onclick="eliminarAsignacion(${asig.id})" class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded transition-colors" title="Eliminar asignación">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </td>` : ''}
                     </tr>`;
                 });
             });
@@ -2090,6 +2111,31 @@
             } finally {
                 btn.innerHTML = '<i class="fas fa-save"></i> Guardar en BD';
                 btn.disabled = false;
+            }
+        }
+
+        async function eliminarAsignacion(asignacionId) {
+            const confirmar = await mostrarConfirmacion(
+                'Eliminar Asignación',
+                '¿Estás seguro de eliminar esta asignación? No se podrá deshacer.',
+                'fa-trash-alt text-red-500'
+            );
+            if (!confirmar) return;
+
+            try {
+                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/${asignacionId}/eliminar/`, {
+                    method: 'DELETE'
+                });
+                const data = await res.json();
+                if (res.ok && data.status === 'ok') {
+                    await mostrarAlerta('Eliminada', 'Asignación eliminada correctamente.', 'fa-check-circle text-green-500');
+                    const fecha = document.getElementById('verFecha').value;
+                    if (fecha) cargarAsignacionesSemanales();
+                } else {
+                    await mostrarAlerta('Error', data.message || 'Error al eliminar', 'fa-times-circle text-red-500');
+                }
+            } catch (err) {
+                await mostrarAlerta('Error de Red', 'No se pudo conectar con el servidor.', 'fa-wifi text-red-500');
             }
         }
 
