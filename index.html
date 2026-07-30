@@ -914,6 +914,10 @@
                 tabMis.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'mis-asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             }
 
+            if (tab === 'equipos-sin-qr') {
+                cargarEquiposSinQR();
+            }
+
             if (tab === 'asignaciones') {
                 const now = new Date();
                 const mesStr = now.toISOString().slice(0, 7);
