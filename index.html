@@ -1320,7 +1320,9 @@
             tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8"><div class="loader mx-auto mb-2"></div><p class="text-gray-500">Cargando...</p></td></tr>';
 
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/');
+                const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/', {
+                    headers: { 'X-API-Token': 'fxoNqZPOR7nxwAYrbqFTONNEjUO2I1Hv3Wm34YGrEL4' }
+                });
                 if (!res.ok) throw new Error('Error al cargar datos');
                 equiposSinQR = await res.json();
                 renderEquiposSinQR();
@@ -1366,7 +1368,8 @@
 
             try {
                 const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/' + id + '/', {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: { 'X-API-Token': 'fxoNqZPOR7nxwAYrbqFTONNEjUO2I1Hv3Wm34YGrEL4' }
                 });
                 const data = await res.json();
                 if (res.ok) {
