@@ -274,7 +274,7 @@
                 <i class="fas fa-tasks"></i> Asignaciones ASRS
             </button>
             <button id="tab-equipos-sin-qr" onclick="switchTab('equipos-sin-qr')"
-                class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
                 <i class="fas fa-qrcode"></i> Equipos sin QR
             </button>
         </div>
@@ -570,7 +570,7 @@
                                 <th>Usuario</th>
                                 <th>Equipo</th>
                                 <th>Comentario</th>
-                                <th class="text-center">Acci&oacute;n</th>
+                                <th id="sinQrAccionHeader" class="text-center hidden">Acci&oacute;n</th>
                             </tr>
                         </thead>
                         <tbody id="tabla-equipos-sin-qr">
@@ -861,7 +861,6 @@
                     actualizarHeaderAdmin(loggedUser);
                     actualizarDataListsAdmin();
                     document.getElementById('tab-asignaciones').classList.remove('hidden');
-                    document.getElementById('tab-equipos-sin-qr').classList.remove('hidden');
                 }
             }
 
@@ -897,7 +896,6 @@
             
             const tabEqSinQR = document.getElementById('tab-equipos-sin-qr');
             tabEqSinQR.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'equipos-sin-qr' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
-            if (!isAdminModo) tabEqSinQR.classList.add('hidden');
             
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
@@ -1171,7 +1169,6 @@
                         await syncTeamFromAPI(); // Sincronizar equipo desde el servidor
                         document.getElementById('adminPanel').classList.remove('hidden');
                         document.getElementById('tab-asignaciones').classList.remove('hidden');
-                        document.getElementById('tab-equipos-sin-qr').classList.remove('hidden');
 
                         const btnModoAdmin = document.getElementById('btnModoAdmin');
                         if (btnModoAdmin) {
@@ -1185,6 +1182,7 @@
                         actualizarHeaderAdmin(user);
                         actualizarDataListsAdmin(); // Cargar equipos en el buscador manual
                         renderTabla(); // Re-renderizar la tabla para mostrar el botón "Cerrar Aviso"
+                        renderEquiposSinQR(); // Mostrar botón eliminar en Equipos sin QR
                         const verFecha = document.getElementById('verFecha').value;
                         if (verFecha) cargarAsignacionesSemanales();
                     } else {
@@ -1271,6 +1269,7 @@
                 }
                 actualizarHeaderAdmin();
                 renderTabla();
+                renderEquiposSinQR(); // Ocultar botón eliminar en Equipos sin QR
                 const verFecha = document.getElementById('verFecha').value;
                 if (verFecha) cargarAsignacionesSemanales();
                 switchTab('inspecciones');
@@ -1290,7 +1289,6 @@
 
                 document.getElementById('adminPanel').classList.add('hidden');
                 document.getElementById('tab-asignaciones').classList.add('hidden');
-                document.getElementById('tab-equipos-sin-qr').classList.add('hidden');
 
                 const btnModoAdmin = document.getElementById('btnModoAdmin');
                 if (btnModoAdmin) {
@@ -1302,6 +1300,7 @@
                 }
                 actualizarHeaderAdmin();
                 renderTabla();
+                renderEquiposSinQR(); // Ocultar botón eliminar en Equipos sin QR
                 const verFecha = document.getElementById('verFecha').value;
                 if (verFecha) cargarAsignacionesSemanales();
                 switchTab('inspecciones');
@@ -1335,6 +1334,9 @@
             const tbody = document.getElementById('tabla-equipos-sin-qr');
             if (!tbody) return;
 
+            const headerAccion = document.getElementById('sinQrAccionHeader');
+            if (headerAccion) headerAccion.classList.toggle('hidden', !isAdminModo);
+
             if (equiposSinQR.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500 font-medium">No hay equipos sin QR registrados.</td></tr>';
                 return;
@@ -1347,18 +1349,20 @@
                     <td>${eq.usuario_nombre || eq.usuario || '-'}</td>
                     <td class="font-semibold">${eq.equipo_nombre}</td>
                     <td>${eq.comentario || '-'}</td>
+                    ${isAdminModo ? `
                     <td class="text-center">
                         <button onclick="eliminarEquipoSinQR(${eq.id})"
                             class="text-red-500 hover:text-red-700 transition-colors"
                             title="Eliminar (QR ya colocado)">
                             <i class="fas fa-trash-alt"></i>
                         </button>
-                    </td>
+                    </td>` : ''}
                 </tr>
             `).join('');
         }
 
         async function eliminarEquipoSinQR(id) {
+            if (!isAdminModo) return;
             const confirmar = await mostrarConfirmacion(
                 'Eliminar Equipo sin QR',
                 '¿Seguro que ya se coloc\u00f3 el QR? Se eliminar\u00e1 este registro.',
