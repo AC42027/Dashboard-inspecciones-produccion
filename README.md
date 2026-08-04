@@ -14,7 +14,7 @@ Este proyecto es una aplicación web (Dashboard) para visualizar, filtrar y gest
 *   📈 **Panel de Gráficas (Chart.js):** Suite interactiva de gráficos modernos con gradientes dinámicos, selector de vistas y soporte para modo oscuro:
     *   **Resumen Ejecutivo (KPIs Globales):** Medidor de Tasa de Conformidad (% OK con indicador central), Cantidad por Zona, Estatus de Avisos SAP PM y Evolución Histórica / Tendencia Temporal.
     *   **Detalle por Zonas:** Gráfico de Cantidad por Equipo, Comparativo de Hallazgos OK vs NOK por Equipo e Condición Operativa % por Equipo.
-    *   **Selector Interactivo de Vistas:** Filtro de vista instantáneo entre *Vista Completa*, *Resumen KPIs*, *Detalle por Zonas* y *Tendencias & SAP*.
+    *   **Selector Interactivo de Vistas:** Filtro de vista instantáneo entre *Vista Completa*, *Resumen KPIs*, y *Detalle por Zonas*.
 *   📥 **Exportación a Excel:** Descarga directa de los datos filtrados en formato `.xlsx` usando **SheetJS** y **FileSaver**, con auto-ajuste de columnas.
 *   📅 **Pestaña de Planificación y Asignaciones ASRS:** 
     *   Visualización pública de asignaciones semanales y estado de cumplimiento ("Realizada" / "Pendiente").

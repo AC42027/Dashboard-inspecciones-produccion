@@ -2069,25 +2069,22 @@
 
             // 1. RENDERIZAR BARRA DE CONTROL DE VISTAS
             const navHtml = `
-                <div class="glass-panel p-4 flex flex-wrap items-center justify-center gap-2 text-xs font-semibold">
-                    <button onclick="setChartFilterMode('all')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='all'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                <div class="glass-panel p-4 flex flex-wrap items-center justify-center gap-3 text-xs font-semibold">
+                    <button onclick="setChartFilterMode('all')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='all'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
                         <i class="fas fa-th-large"></i> Vista Completa
                     </button>
-                    <button onclick="setChartFilterMode('kpi')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='kpi'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                    <button onclick="setChartFilterMode('kpi')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='kpi'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
                         <i class="fas fa-pie-chart"></i> Resumen KPIs
                     </button>
-                    <button onclick="setChartFilterMode('zones')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='zones'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
-                        <i class="fas fa-layer-group"></i> Detalle Zonas
-                    </button>
-                    <button onclick="setChartFilterMode('trend')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='trend'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
-                        <i class="fas fa-chart-area"></i> Tendencia & SAP
+                    <button onclick="setChartFilterMode('zones')" class="px-4 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='zones'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                        <i class="fas fa-layer-group"></i> Detalle por Zonas
                     </button>
                 </div>
             `;
             els.graficasContainer.innerHTML = navHtml;
 
             // 2. RESUMEN EJECUTIVO GLOBAL (KPIs)
-            if (currentChartMode === 'all' || currentChartMode === 'kpi' || currentChartMode === 'trend') {
+            if (currentChartMode === 'all' || currentChartMode === 'kpi') {
                 let globalOk = 0;
                 let globalNok = 0;
                 let conAvisoCount = 0;
