@@ -1905,10 +1905,11 @@
 
             els.tablaBody.innerHTML = items.map(i => {
                 const isExpanded = filaExpandida === i.id;
-                const tieneCritico = i.tecnicos.some(t => t.es_critico || t.estado === 'NOK');
+                const nokCount = (i.tecnicos || []).filter(t => t.estado === 'NOK').length;
+                const tieneCritico = (i.tecnicos || []).some(t => t.es_critico || t.estado === 'NOK');
 
                 let rowHtml = `
-                    <tr class="cursor-pointer transition-colors ${isExpanded ? 'row-expanded' : ''}" onclick="toggleFila(${i.id})">
+                    <tr class="cursor-pointer transition-colors ${tieneCritico ? 'border-l-4 border-l-red-500 bg-red-50/40 dark:bg-red-950/20 hover:bg-red-100/50 dark:hover:bg-red-900/30' : ''} ${isExpanded ? 'row-expanded' : ''}" onclick="toggleFila(${i.id})">
                         <td>${i.fecha}</td>
                         <td>${formatearHora(i.horaInicio)}</td>
                         <td>${formatearHora(i.horaFin)}</td>
@@ -1924,7 +1925,12 @@
                         <td>${i.owner}</td>
                         <td class="text-center font-bold text-xs ${tieneCritico ? 'text-red-600 dark:text-red-400' : (isExpanded ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500')}">
                             <div class="flex items-center justify-center gap-2">
-                                ${tieneCritico ? '<div class="beacon" title="Hallazgo Crítico"></div>' : ''}
+                                ${tieneCritico ? `
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300 border border-red-300 dark:border-red-800 shadow-sm" title="Hallazgo Crítico">
+                                        <span class="beacon"></span>
+                                        ${nokCount > 0 ? `${nokCount} NOK` : 'CRÍTICO'}
+                                    </span>
+                                ` : ''}
                                 <span><i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i> ${isExpanded ? 'CERRAR' : 'DETALLES'}</span>
                             </div>
                         </td>
