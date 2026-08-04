@@ -1924,17 +1924,20 @@
                         </td>
                         <td>${i.zona}</td>
                         <td>${i.owner}</td>
-                        <td class="text-center font-bold text-xs ${tieneFalla ? 'text-red-600 dark:text-red-400' : (isExpanded ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500')}">
-                            <div class="relative flex items-center justify-center min-h-[26px]">
-                                <div class="absolute left-2 flex items-center gap-1.5">
+                        <td class="text-center font-bold text-xs ${tieneFalla ? 'text-red-600 dark:text-red-400' : (isExpanded ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500')} min-w-[170px]">
+                            <div class="grid grid-cols-3 items-center w-full min-h-[26px]">
+                                <div class="flex items-center justify-start gap-1">
                                     ${esCritico ? `
-                                        <span class="text-[10px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm">
+                                        <span class="text-[9px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm whitespace-nowrap">
                                             CRÍTICO
                                         </span>
                                     ` : ''}
-                                    ${tieneFalla ? '<div class="beacon" title="Hallazgo NOK"></div>' : ''}
+                                    ${tieneFalla ? '<div class="beacon shrink-0" title="Hallazgo NOK"></div>' : ''}
                                 </div>
-                                <span><i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i> ${isExpanded ? 'CERRAR' : 'DETALLES'}</span>
+                                <div class="text-center whitespace-nowrap">
+                                    <span><i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i> ${isExpanded ? 'CERRAR' : 'DETALLES'}</span>
+                                </div>
+                                <div></div>
                             </div>
                         </td>
                     </tr>
