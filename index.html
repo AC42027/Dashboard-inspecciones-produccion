@@ -1925,18 +1925,19 @@
                         <td>${i.zona}</td>
                         <td>${i.owner}</td>
                         <td class="text-center font-bold text-xs ${tieneFalla ? 'text-red-600 dark:text-red-400' : (isExpanded ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500')}">
-                            <div class="inline-flex items-center justify-center relative my-1">
-                                <div class="absolute right-full mr-2 flex items-center gap-1.5 whitespace-nowrap">
+                            <div class="grid grid-cols-[1fr_auto_1fr] items-center w-full my-1">
+                                <div class="flex items-center justify-end gap-1.5 whitespace-nowrap pr-2">
                                     ${esCritico ? `
-                                        <span class="text-[9px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm">
+                                        <span class="text-[9px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm shrink-0">
                                             CRÍTICO
                                         </span>
                                     ` : ''}
                                     ${tieneFalla ? '<div class="beacon shrink-0" title="Hallazgo NOK"></div>' : ''}
                                 </div>
-                                <span class="whitespace-nowrap flex items-center gap-1">
+                                <span class="whitespace-nowrap flex items-center gap-1 justify-center">
                                     <i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i> ${isExpanded ? 'CERRAR' : 'DETALLES'}
                                 </span>
+                                <div></div>
                             </div>
                         </td>
                     </tr>
