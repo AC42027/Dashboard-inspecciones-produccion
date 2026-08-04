@@ -607,7 +607,7 @@
                             <form id="misAsigLoginForm" class="space-y-4" onsubmit="handleMisAsigLogin(event)">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Usuario LDAP</label>
-                                    <input type="text" id="misAsigUser" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="Ej. ac17157">
+                                    <input type="text" id="misAsigUser" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña</label>
@@ -740,7 +740,7 @@
             <form id="loginForm" onsubmit="handleLDAPLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Usuario (AC)</label>
-                    <input type="text" id="ldapUser" required class="glass-input w-full" placeholder="Ej. ac17157">
+                    <input type="text" id="ldapUser" required class="glass-input w-full" placeholder="">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
@@ -1162,7 +1162,7 @@
                 if (res.ok && data.status === 'ok') {
                     // Validar el privilegio devuelto por Django. 
                     // Si no está definido (backend pendiente), cae en el fallback de los dos admins originales.
-                    const isUserAdmin = data.is_admin !== undefined ? data.is_admin : (user === 'ac18958' || user === 'ac17157');
+                    const isUserAdmin = data.is_admin !== undefined ? data.is_admin : (user === 'ac18958' || user === 'ac17157' || user === 'aa05016');
 
                     if (isUserAdmin) {
                         isAdminModo = true;
