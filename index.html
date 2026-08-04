@@ -353,13 +353,20 @@
             <!-- Error State -->
             <div id="error-message"
                 class="hidden glass-panel p-6 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20">
-                <div class="flex items-center gap-3 text-red-700 dark:text-red-400">
-                    <i class="fas fa-exclamation-triangle text-2xl"></i>
-                    <div>
-                        <h3 class="font-bold">Error de conexión</h3>
-                        <p id="error-text">No se pudieron cargar los datos.</p>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-red-700 dark:text-red-400">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-exclamation-triangle text-2xl"></i>
+                        <div>
+                            <h3 class="font-bold">Error de conexión</h3>
+                            <p id="error-text">No se pudieron cargar los datos del servidor.</p>
+                        </div>
                     </div>
+                    <button onclick="cargarDatosDemo()"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium text-xs shadow transition-all flex items-center gap-2">
+                        <i class="fas fa-play"></i> Cargar Datos Demo
+                    </button>
                 </div>
+            </div>
             </div>
 
             <!-- Tabla -->
@@ -764,6 +771,56 @@
         let paginaActual = 1;
         const inspeccionesPorPagina = 30;
         let chartInstances = []; // Para destruir charts previos al re-renderizar
+        let currentChartMode = 'all'; // 'all' | 'kpi' | 'zones' | 'trend'
+
+        // Register Center Text Plugin for Doughnut Charts
+        if (typeof Chart !== 'undefined') {
+            const centerTextPlugin = {
+                id: 'centerTextPlugin',
+                afterDraw(chart) {
+                    if (chart.config.options && chart.config.options.plugins && chart.config.options.plugins.centerText) {
+                        const config = chart.config.options.plugins.centerText;
+                        if (!config.display) return;
+                        const { ctx, width, height } = chart;
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        const isDark = document.documentElement.classList.contains('dark');
+                        
+                        ctx.font = 'bold 22px Inter, sans-serif';
+                        ctx.fillStyle = config.color || (isDark ? '#f8fafc' : '#0f172a');
+                        ctx.fillText(config.text || '', width / 2, height / 2 - (config.subtext ? 8 : 0));
+                        
+                        if (config.subtext) {
+                            ctx.font = '500 11px Inter, sans-serif';
+                            ctx.fillStyle = config.subtextColor || (isDark ? '#94a3b8' : '#64748b');
+                            ctx.fillText(config.subtext, width / 2, height / 2 + 14);
+                        }
+                        ctx.restore();
+                    }
+                }
+            };
+            try { Chart.register(centerTextPlugin); } catch(e) {}
+        }
+
+        // FUNCIÓN DE FALLBACK PARA DEMO
+        window.cargarDatosDemo = function() {
+            inspecciones = [
+                { id: 1, fecha: "2026-08-01", horaInicio: "08:00", horaFin: "09:30", zona: "ASRS 1", equipo: "Robot Prensa 01", owner: "Manuel Rivera", tecnicos: [{estado: "OK"}, {estado: "OK"}, {estado: "OK"}, {estado: "NOK"}], observaciones: "Sensor desalineado", sap_nr_numero: "10029481", sap_nr_status: "ABIE" },
+                { id: 2, fecha: "2026-08-02", horaInicio: "10:00", horaFin: "11:15", zona: "ASRS 1", equipo: "Transelevador 02", owner: "Juan Perez", tecnicos: [{estado: "OK"}, {estado: "OK"}, {estado: "OK"}], observaciones: "Funcionamiento normal", sap_nr_numero: null },
+                { id: 3, fecha: "2026-08-03", horaInicio: "14:00", horaFin: "15:00", zona: "ASRS 2", equipo: "Convector 01", owner: "Carlos Lopez", tecnicos: [{estado: "OK"}, {estado: "NOK"}, {estado: "OK"}], observaciones: "Ruido anormal en rodillo", sap_nr_numero: "10029512", sap_nr_status: "CERR" },
+                { id: 4, fecha: "2026-08-03", horaInicio: "16:00", horaFin: "17:20", zona: "ASRS 2", equipo: "Robot Prensa 02", owner: "Manuel Rivera", tecnicos: [{estado: "OK"}, {estado: "OK"}, {estado: "OK"}, {estado: "OK"}], observaciones: "Sin novedades", sap_nr_numero: null },
+                { id: 5, fecha: "2026-07-28", horaInicio: "09:00", horaFin: "10:00", zona: "Prensa", equipo: "Prensa Vulcanizadora 05", owner: "Pedro Gomez", tecnicos: [{estado: "OK"}, {estado: "OK"}, {estado: "NOK"}], observaciones: "Fuga de aceite hidráulico", sap_nr_numero: "10029300", sap_nr_status: "NOPR" },
+                { id: 6, fecha: "2026-07-29", horaInicio: "11:00", horaFin: "12:00", zona: "Prensa", equipo: "Prensa Vulcanizadora 06", owner: "Pedro Gomez", tecnicos: [{estado: "OK"}, {estado: "OK"}, {estado: "OK"}], observaciones: "Optimización realizada", sap_nr_numero: null },
+                { id: 7, fecha: "2026-08-04", horaInicio: "08:30", horaFin: "09:45", zona: "ASRS 1", equipo: "Robot Prensa 01", owner: "Carlos Lopez", tecnicos: [{estado: "OK"}, {estado: "OK"}, {estado: "OK"}], observaciones: "Ajuste de fotocelda", sap_nr_numero: null }
+            ];
+            els.loading.classList.add('hidden');
+            els.error.classList.add('hidden');
+            els.tablaSection.classList.remove('hidden');
+            els.graficasContainer.classList.remove('hidden');
+            actualizarOpcionesSelects();
+            aplicarFiltros();
+        };
 
         // ASIGNACIONES MODO
         let isAdminModo = false;
@@ -1830,107 +1887,490 @@
             }).join('');
         }
 
-        // CHARTS LOGIC
+        // CHARTS LOGIC MEJORADO
+        window.setChartFilterMode = function(mode) {
+            currentChartMode = mode;
+            renderCharts();
+        };
+
         function renderCharts() {
             // Destruir gráficos anteriores
             chartInstances.forEach(c => c.destroy());
             chartInstances = [];
             els.graficasContainer.innerHTML = '';
 
-            if (inspeccionesFiltradas.length === 0) return;
+            if (inspeccionesFiltradas.length === 0) {
+                els.graficasContainer.innerHTML = `
+                    <div class="glass-panel p-8 text-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-chart-pie text-4xl mb-3 text-gray-400 dark:text-gray-600"></i>
+                        <p class="font-semibold text-lg">No hay datos de inspección disponibles</p>
+                        <p class="text-xs mt-1">Prueba ajustando los filtros de búsqueda para visualizar gráficos</p>
+                    </div>
+                `;
+                return;
+            }
 
             const isDark = document.documentElement.classList.contains('dark');
             const textColor = isDark ? '#cbd5e1' : '#475569';
-            const gridColor = isDark ? '#334155' : '#e2e8f0';
+            const gridColor = isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(226, 232, 240, 0.8)';
+            const tooltipBg = isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)';
+            const tooltipTitleColor = isDark ? '#f8fafc' : '#0f172a';
+            const tooltipBodyColor = isDark ? '#cbd5e1' : '#475569';
 
-            // Agrupar por zona
-            const inspeccionesPorZona = inspeccionesFiltradas.reduce((acc, i) => {
-                if (!acc[i.zona]) acc[i.zona] = [];
-                acc[i.zona].push(i);
-                return acc;
-            }, {});
+            // Common Options for Chart.js
+            const getCommonOptions = (extraPlugins = {}) => ({
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 750, easing: 'easeOutQuart' },
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: textColor,
+                            font: { family: 'Inter', size: 12, weight: '500' },
+                            usePointStyle: true,
+                            padding: 15
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: tooltipBg,
+                        titleColor: tooltipTitleColor,
+                        bodyColor: tooltipBodyColor,
+                        borderColor: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                        borderWidth: 1,
+                        padding: 12,
+                        cornerRadius: 8,
+                        boxPadding: 6,
+                        usePointStyle: true,
+                        titleFont: { family: 'Inter', size: 13, weight: 'bold' },
+                        bodyFont: { family: 'Inter', size: 12 }
+                    },
+                    ...extraPlugins
+                },
+                scales: {
+                    x: {
+                        ticks: { color: textColor, font: { family: 'Inter', size: 11 } },
+                        grid: { display: false }
+                    },
+                    y: {
+                        ticks: { color: textColor, font: { family: 'Inter', size: 11 } },
+                        grid: { color: gridColor },
+                        beginAtZero: true
+                    }
+                }
+            });
 
-            Object.entries(inspeccionesPorZona).forEach(([zona, datos], index) => {
-                // Generar HTML contenedor
-                const idDiv = `zona-chart-${index}`;
-                els.graficasContainer.innerHTML += `
-                    <div class="glass-panel p-6">
-                        <h3 class="text-xl font-bold text-goodyear-blue dark:text-white uppercase mb-6 flex items-center gap-2">
-                            <i class="fas fa-chart-pie text-goodyear-yellow"></i> Zona: ${zona}
+            // 1. RENDERIZAR BARRA DE CONTROL DE VISTAS
+            const navHtml = `
+                <div class="glass-panel p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div class="flex items-center gap-3 w-full sm:w-auto">
+                        <div class="w-10 h-10 rounded-xl bg-goodyear-blue text-goodyear-yellow flex items-center justify-center shadow-md dark:bg-slate-800">
+                            <i class="fas fa-chart-line text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-gray-800 dark:text-white text-base leading-tight">Panel Analítico de Inspecciones</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Indicadores visuales interactivos y métricas por equipo</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs font-semibold w-full sm:w-auto justify-start sm:justify-end">
+                        <button onclick="setChartFilterMode('all')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='all'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                            <i class="fas fa-th-large"></i> Vista Completa
+                        </button>
+                        <button onclick="setChartFilterMode('kpi')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='kpi'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                            <i class="fas fa-pie-chart"></i> Resumen KPIs
+                        </button>
+                        <button onclick="setChartFilterMode('zones')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='zones'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                            <i class="fas fa-layer-group"></i> Detalle Zonas
+                        </button>
+                        <button onclick="setChartFilterMode('trend')" class="px-3 py-2 rounded-lg transition-all flex items-center gap-1.5 ${currentChartMode==='trend'?'bg-goodyear-blue text-white shadow-md':'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-slate-600'}">
+                            <i class="fas fa-chart-area"></i> Tendencia & SAP
+                        </button>
+                    </div>
+                </div>
+            `;
+            els.graficasContainer.innerHTML = navHtml;
+
+            // 2. RESUMEN EJECUTIVO GLOBAL (KPIs)
+            if (currentChartMode === 'all' || currentChartMode === 'kpi' || currentChartMode === 'trend') {
+                let globalOk = 0;
+                let globalNok = 0;
+                let conAvisoCount = 0;
+                let sinAvisoCount = 0;
+
+                const zonaCounts = {};
+                const fechaMap = {};
+
+                inspeccionesFiltradas.forEach(i => {
+                    // Contadores de zona
+                    const z = i.zona || 'Sin Zona';
+                    zonaCounts[z] = (zonaCounts[z] || 0) + 1;
+
+                    // Contadores OK / NOK
+                    (i.tecnicos || []).forEach(t => {
+                        if (t.estado === 'OK') globalOk++;
+                        if (t.estado === 'NOK') globalNok++;
+                    });
+
+                    // Avisos SAP
+                    if (i.sap_nr_numero) conAvisoCount++;
+                    else sinAvisoCount++;
+
+                    // Tendencia fecha (YYYY-MM)
+                    const monthKey = (i.fecha && i.fecha.length >= 7) ? i.fecha.substring(0, 7) : 'Sin fecha';
+                    if (!fechaMap[monthKey]) fechaMap[monthKey] = { total: 0, nok: 0 };
+                    fechaMap[monthKey].total++;
+                    (i.tecnicos || []).forEach(t => { if (t.estado === 'NOK') fechaMap[monthKey].nok++; });
+                });
+
+                const totalPuntos = globalOk + globalNok;
+                const tasaConformidad = totalPuntos > 0 ? ((globalOk / totalPuntos) * 100).toFixed(1) : '100.0';
+
+                const kpiSection = document.createElement('div');
+                kpiSection.className = 'glass-panel p-6 space-y-6';
+                kpiSection.innerHTML = `
+                    <div class="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 pb-4">
+                        <h3 class="text-lg font-bold text-goodyear-blue dark:text-white uppercase flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-goodyear-yellow"></i> Indicadores de Rendimiento Global (KPIs)
                         </h3>
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="h-72 relative"><canvas id="${idDiv}-1"></canvas></div>
-                            <div class="h-72 relative"><canvas id="${idDiv}-2"></canvas></div>
+                        <span class="text-xs px-2.5 py-1 rounded-full font-bold ${tasaConformidad >= 90 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'}">
+                            Salud Global: ${tasaConformidad}% OK
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Chart K1: Salud General -->
+                        <div class="bg-gray-50/70 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 flex flex-col justify-between">
+                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 text-center">Tasa de Conformidad</h4>
+                            <div class="h-48 relative flex items-center justify-center">
+                                <canvas id="kpi-chart-health"></canvas>
+                            </div>
+                            <div class="flex justify-around text-xs mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold"><i class="fas fa-circle text-[9px] mr-1"></i>OK: ${globalOk}</span>
+                                <span class="text-rose-500 font-semibold"><i class="fas fa-circle text-[9px] mr-1"></i>NOK: ${globalNok}</span>
+                            </div>
+                        </div>
+                        <!-- Chart K2: Inspecciones por Zona -->
+                        <div class="bg-gray-50/70 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 flex flex-col justify-between">
+                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 text-center">Volumen por Zona</h4>
+                            <div class="h-48 relative">
+                                <canvas id="kpi-chart-zonas"></canvas>
+                            </div>
+                            <p class="text-[11px] text-center text-gray-500 dark:text-gray-400 mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">Distribución de inspecciones registradas</p>
+                        </div>
+                        <!-- Chart K3: Avisos SAP PM -->
+                        <div class="bg-gray-50/70 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 flex flex-col justify-between">
+                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 text-center">Estado Avisos SAP PM</h4>
+                            <div class="h-48 relative">
+                                <canvas id="kpi-chart-sap"></canvas>
+                            </div>
+                            <div class="flex justify-around text-xs mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">
+                                <span class="text-blue-600 dark:text-blue-400 font-semibold">Sin Aviso: ${sinAvisoCount}</span>
+                                <span class="text-amber-500 font-semibold">Con Aviso: ${conAvisoCount}</span>
+                            </div>
+                        </div>
+                        <!-- Chart K4: Tendencia Temporal -->
+                        <div class="bg-gray-50/70 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 flex flex-col justify-between">
+                            <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 text-center">Evolución Histórica</h4>
+                            <div class="h-48 relative">
+                                <canvas id="kpi-chart-trend"></canvas>
+                            </div>
+                            <p class="text-[11px] text-center text-gray-500 dark:text-gray-400 mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">Tendencia mensual de actividad</p>
                         </div>
                     </div>
                 `;
-            });
+                els.graficasContainer.appendChild(kpiSection);
 
-            // Dibujar gráficos
-            Object.entries(inspeccionesPorZona).forEach(([zona, datos], index) => {
-                const idDiv = `zona-chart-${index}`;
-
-                // Procesar datos
-                const dEquipo = datos.reduce((acc, i) => { acc[i.equipo] = (acc[i.equipo] || 0) + 1; return acc; }, {});
-                const labels1 = Object.keys(dEquipo);
-                const data1 = Object.values(dEquipo);
-
-                const dataOkNokMap = datos.reduce((acc, i) => {
-                    if (!acc[i.equipo]) acc[i.equipo] = { OK: 0, NOK: 0 };
-                    i.tecnicos.forEach((t) => {
-                        if (t.estado === 'OK') acc[i.equipo].OK++;
-                        if (t.estado === 'NOK') acc[i.equipo].NOK++;
-                    });
-                    return acc;
-                }, {});
-                const labels2 = Object.keys(dataOkNokMap);
-                const dataOk = labels2.map(k => dataOkNokMap[k].OK);
-                const dataNok = labels2.map(k => dataOkNokMap[k].NOK);
-
-                // Config común de Chart.js
-                const commonOptions = {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { labels: { color: textColor, font: { family: 'Inter' } } } },
-                    scales: {
-                        x: { ticks: { color: textColor, font: { family: 'Inter' } }, grid: { display: false } },
-                        y: { ticks: { color: textColor, font: { family: 'Inter' } }, grid: { color: gridColor }, beginAtZero: true }
-                    }
-                };
-
-                // Chart 1: Inspecciones por equipo
-                const ctx1 = document.getElementById(`${idDiv}-1`).getContext('2d');
-                chartInstances.push(new Chart(ctx1, {
-                    type: 'bar',
+                // DIBUJAR CHARTS GLOBALES
+                // Chart K1: Doughnut Salud
+                const ctxHealth = document.getElementById('kpi-chart-health').getContext('2d');
+                chartInstances.push(new Chart(ctxHealth, {
+                    type: 'doughnut',
                     data: {
-                        labels: labels1,
+                        labels: ['Puntos OK', 'Hallazgos NOK'],
                         datasets: [{
-                            label: 'Cantidad de Inspecciones',
-                            data: data1,
-                            backgroundColor: '#003399',
-                            borderRadius: 4
+                            data: [globalOk, globalNok],
+                            backgroundColor: ['#10b981', '#f43f5e'],
+                            hoverOffset: 6,
+                            borderWidth: 2,
+                            borderColor: isDark ? '#1e293b' : '#ffffff'
                         }]
                     },
-                    options: commonOptions
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '74%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: getCommonOptions().plugins.tooltip,
+                            centerText: {
+                                display: true,
+                                text: `${tasaConformidad}%`,
+                                subtext: 'Salud Global'
+                            }
+                        }
+                    }
                 }));
 
-                // Chart 2: OK vs NOK
-                const ctx2 = document.getElementById(`${idDiv}-2`).getContext('2d');
-                chartInstances.push(new Chart(ctx2, {
+                // Chart K2: Bar Zonas
+                const ctxZonas = document.getElementById('kpi-chart-zonas').getContext('2d');
+                const gradZonas = ctxZonas.createLinearGradient(0, 0, 0, 200);
+                gradZonas.addColorStop(0, '#003399');
+                gradZonas.addColorStop(1, '#3b82f6');
+
+                chartInstances.push(new Chart(ctxZonas, {
                     type: 'bar',
                     data: {
-                        labels: labels2,
+                        labels: Object.keys(zonaCounts),
+                        datasets: [{
+                            label: 'Inspecciones',
+                            data: Object.values(zonaCounts),
+                            backgroundColor: gradZonas,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: getCommonOptions({ legend: { display: false } })
+                }));
+
+                // Chart K3: Doughnut SAP
+                const ctxSap = document.getElementById('kpi-chart-sap').getContext('2d');
+                const porcSinSap = inspeccionesFiltradas.length > 0 ? Math.round((sinAvisoCount / inspeccionesFiltradas.length) * 100) : 100;
+                chartInstances.push(new Chart(ctxSap, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Sin Aviso SAP', 'Con Aviso SAP'],
+                        datasets: [{
+                            data: [sinAvisoCount, conAvisoCount],
+                            backgroundColor: ['#003399', '#f59e0b'],
+                            borderWidth: 2,
+                            borderColor: isDark ? '#1e293b' : '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '74%',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: getCommonOptions().plugins.tooltip,
+                            centerText: {
+                                display: true,
+                                text: `${porcSinSap}%`,
+                                subtext: 'Sin Aviso'
+                            }
+                        }
+                    }
+                }));
+
+                // Chart K4: Line Trend
+                const sortedMonths = Object.keys(fechaMap).sort();
+                const trendDataTotal = sortedMonths.map(m => fechaMap[m].total);
+                const trendDataNok = sortedMonths.map(m => fechaMap[m].nok);
+
+                const ctxTrend = document.getElementById('kpi-chart-trend').getContext('2d');
+                const gradLine = ctxTrend.createLinearGradient(0, 0, 0, 180);
+                gradLine.addColorStop(0, 'rgba(0, 51, 153, 0.4)');
+                gradLine.addColorStop(1, 'rgba(0, 51, 153, 0.0)');
+
+                chartInstances.push(new Chart(ctxTrend, {
+                    type: 'line',
+                    data: {
+                        labels: sortedMonths.length > 0 ? sortedMonths : ['Actual'],
                         datasets: [
-                            { label: 'OK', data: dataOk, backgroundColor: '#10b981', borderRadius: 4 },
-                            { label: 'NOK', data: dataNok, backgroundColor: '#ef4444', borderRadius: 4 }
+                            {
+                                label: 'Inspecciones',
+                                data: trendDataTotal.length > 0 ? trendDataTotal : [inspeccionesFiltradas.length],
+                                borderColor: '#003399',
+                                backgroundColor: gradLine,
+                                fill: true,
+                                tension: 0.4,
+                                pointBackgroundColor: '#ffd200',
+                                pointRadius: 4
+                            },
+                            {
+                                label: 'Hallazgos NOK',
+                                data: trendDataNok.length > 0 ? trendDataNok : [globalNok],
+                                borderColor: '#f43f5e',
+                                backgroundColor: 'transparent',
+                                borderWidth: 2,
+                                tension: 0.4,
+                                pointRadius: 3
+                            }
                         ]
                     },
-                    options: commonOptions
+                    options: getCommonOptions()
                 }));
-            });
+            }
+
+            // 3. DESGLOSE DETALLADO POR ZONAS
+            if (currentChartMode === 'all' || currentChartMode === 'zones') {
+                const inspeccionesPorZona = inspeccionesFiltradas.reduce((acc, i) => {
+                    const z = i.zona || 'Sin Zona';
+                    if (!acc[z]) acc[z] = [];
+                    acc[z].push(i);
+                    return acc;
+                }, {});
+
+                Object.entries(inspeccionesPorZona).forEach(([zona, datos], index) => {
+                    const idDiv = `zona-chart-${index}`;
+
+                    // Calcular métricas de la zona
+                    let zOk = 0;
+                    let zNok = 0;
+                    let zSap = 0;
+                    datos.forEach(d => {
+                        if (d.sap_nr_numero) zSap++;
+                        (d.tecnicos || []).forEach(t => {
+                            if (t.estado === 'OK') zOk++;
+                            if (t.estado === 'NOK') zNok++;
+                        });
+                    });
+                    const zTotalPts = zOk + zNok;
+                    const zConformidad = zTotalPts > 0 ? ((zOk / zTotalPts) * 100).toFixed(1) : '100.0';
+
+                    const zoneContainer = document.createElement('div');
+                    zoneContainer.className = 'glass-panel p-6 space-y-6';
+                    zoneContainer.innerHTML = `
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-200 dark:border-slate-700 pb-4">
+                            <h3 class="text-xl font-bold text-goodyear-blue dark:text-white uppercase flex items-center gap-2">
+                                <i class="fas fa-industry text-goodyear-yellow"></i> Zona: ${zona}
+                            </h3>
+                            <div class="flex flex-wrap gap-2 text-xs">
+                                <span class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-goodyear-blue dark:text-blue-300 font-semibold rounded-full border border-blue-200 dark:border-blue-800">
+                                    ${datos.length} Inspecciones
+                                </span>
+                                <span class="px-2.5 py-1 font-semibold rounded-full border ${zConformidad >= 90 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800'}">
+                                    Conformidad: ${zConformidad}% OK
+                                </span>
+                                ${zSap > 0 ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-semibold rounded-full border border-amber-200 dark:border-amber-800"><i class="fas fa-exclamation-circle mr-1"></i>${zSap} Avisos SAP</span>` : ''}
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Chart 1: Inspecciones por equipo -->
+                            <div class="bg-gray-50/50 dark:bg-slate-800/40 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50">
+                                <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                                    <i class="fas fa-list-ol text-goodyear-blue dark:text-goodyear-yellow"></i> Volumen por Equipo
+                                </h4>
+                                <div class="h-64 relative"><canvas id="${idDiv}-1"></canvas></div>
+                            </div>
+                            <!-- Chart 2: OK vs NOK por equipo -->
+                            <div class="bg-gray-50/50 dark:bg-slate-800/40 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50">
+                                <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                                    <i class="fas fa-check-double text-emerald-600"></i> Hallazgos OK vs NOK
+                                </h4>
+                                <div class="h-64 relative"><canvas id="${idDiv}-2"></canvas></div>
+                            </div>
+                            <!-- Chart 3: Nivel de Conformidad % -->
+                            <div class="bg-gray-50/50 dark:bg-slate-800/40 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50">
+                                <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+                                    <i class="fas fa-heartbeat text-rose-500"></i> Índice Salud % por Equipo
+                                </h4>
+                                <div class="h-64 relative"><canvas id="${idDiv}-3"></canvas></div>
+                            </div>
+                        </div>
+                    `;
+                    els.graficasContainer.appendChild(zoneContainer);
+
+                    // PROCESAR DATOS DE LA ZONA
+                    const dEquipo = datos.reduce((acc, i) => { acc[i.equipo] = (acc[i.equipo] || 0) + 1; return acc; }, {});
+                    const labels1 = Object.keys(dEquipo);
+                    const data1 = Object.values(dEquipo);
+
+                    const dataOkNokMap = datos.reduce((acc, i) => {
+                        if (!acc[i.equipo]) acc[i.equipo] = { OK: 0, NOK: 0 };
+                        (i.tecnicos || []).forEach((t) => {
+                            if (t.estado === 'OK') acc[i.equipo].OK++;
+                            if (t.estado === 'NOK') acc[i.equipo].NOK++;
+                        });
+                        return acc;
+                    }, {});
+                    const labels2 = Object.keys(dataOkNokMap);
+                    const dataOk = labels2.map(k => dataOkNokMap[k].OK);
+                    const dataNok = labels2.map(k => dataOkNokMap[k].NOK);
+                    const dataHealth = labels2.map(k => {
+                        const tot = dataOkNokMap[k].OK + dataOkNokMap[k].NOK;
+                        return tot > 0 ? parseFloat(((dataOkNokMap[k].OK / tot) * 100).toFixed(1)) : 100;
+                    });
+
+                    // DIBUJAR GRAFICOS DE LA ZONA
+                    // Chart 1: Volume
+                    const ctx1 = document.getElementById(`${idDiv}-1`).getContext('2d');
+                    const grad1 = ctx1.createLinearGradient(0, 0, 0, 240);
+                    grad1.addColorStop(0, '#003399');
+                    grad1.addColorStop(1, '#2563eb');
+
+                    chartInstances.push(new Chart(ctx1, {
+                        type: 'bar',
+                        data: {
+                            labels: labels1,
+                            datasets: [{
+                                label: 'Inspecciones',
+                                data: data1,
+                                backgroundColor: grad1,
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: getCommonOptions({ legend: { display: false } })
+                    }));
+
+                    // Chart 2: OK vs NOK Grouped Bar
+                    const ctx2 = document.getElementById(`${idDiv}-2`).getContext('2d');
+                    const gradOk = ctx2.createLinearGradient(0, 0, 0, 240);
+                    gradOk.addColorStop(0, '#10b981');
+                    gradOk.addColorStop(1, '#059669');
+
+                    const gradNok = ctx2.createLinearGradient(0, 0, 0, 240);
+                    gradNok.addColorStop(0, '#f43f5e');
+                    gradNok.addColorStop(1, '#be123c');
+
+                    chartInstances.push(new Chart(ctx2, {
+                        type: 'bar',
+                        data: {
+                            labels: labels2,
+                            datasets: [
+                                { label: 'OK', data: dataOk, backgroundColor: gradOk, borderRadius: 6, borderSkipped: false },
+                                { label: 'NOK', data: dataNok, backgroundColor: gradNok, borderRadius: 6, borderSkipped: false }
+                            ]
+                        },
+                        options: getCommonOptions()
+                    }));
+
+                    // Chart 3: Health Index Horizontal Bar
+                    const ctx3 = document.getElementById(`${idDiv}-3`).getContext('2d');
+                    chartInstances.push(new Chart(ctx3, {
+                        type: 'bar',
+                        data: {
+                            labels: labels2,
+                            datasets: [{
+                                label: 'Conformidad (%)',
+                                data: dataHealth,
+                                backgroundColor: dataHealth.map(val => val >= 90 ? '#10b981' : val >= 75 ? '#f59e0b' : '#f43f5e'),
+                                borderRadius: 6,
+                                borderSkipped: false
+                            }]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: getCommonOptions({ legend: { display: false } }).plugins,
+                            scales: {
+                                x: {
+                                    max: 100,
+                                    ticks: { color: textColor, font: { family: 'Inter', size: 11 }, callback: v => `${v}%` },
+                                    grid: { color: gridColor }
+                                },
+                                y: {
+                                    ticks: { color: textColor, font: { family: 'Inter', size: 11 } },
+                                    grid: { display: false }
+                                }
+                            }
+                        }
+                    }));
+                });
+            }
         }
 
-        // EXPORTACIÓN A EXCEL
         window.exportarExcel = function () {
             if (inspeccionesFiltradas.length === 0) {
                 alert("No hay datos para exportar.");
