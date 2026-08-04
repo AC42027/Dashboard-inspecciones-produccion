@@ -2032,11 +2032,11 @@
                             <i class="fas fa-chart-pie text-goodyear-yellow"></i> Indicadores de Rendimiento Global (KPIs)
                         </h3>
                         <span class="text-xs px-2.5 py-1 rounded-full font-bold ${tasaConformidad >= 90 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'}">
-                            Salud Global: ${tasaConformidad}% OK
+                            Condición Operativa: ${tasaConformidad}% OK
                         </span>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <!-- Chart K1: Salud General -->
+                        <!-- Chart K1: Condición Operativa -->
                         <div class="bg-gray-50/70 dark:bg-slate-800/50 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50 flex flex-col justify-between">
                             <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 text-center">Tasa de Conformidad</h4>
                             <div class="h-48 relative flex items-center justify-center">
@@ -2079,7 +2079,7 @@
                 els.graficasContainer.appendChild(kpiSection);
 
                 // DIBUJAR CHARTS GLOBALES
-                // Chart K1: Doughnut Salud
+                // Chart K1: Doughnut Condición Operativa
                 const ctxHealth = document.getElementById('kpi-chart-health').getContext('2d');
                 chartInstances.push(new Chart(ctxHealth, {
                     type: 'doughnut',
@@ -2103,7 +2103,7 @@
                             centerText: {
                                 display: true,
                                 text: `${tasaConformidad}%`,
-                                subtext: 'Salud Global'
+                                subtext: 'Condición Operativa'
                             }
                         }
                     }
@@ -2262,7 +2262,7 @@
                             <!-- Chart 3: Nivel de Conformidad % -->
                             <div class="bg-gray-50/50 dark:bg-slate-800/40 p-4 rounded-xl border border-gray-100 dark:border-slate-700/50">
                                 <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider mb-4 flex items-center gap-1.5">
-                                    <i class="fas fa-heartbeat text-rose-500"></i> Índice Salud % por Equipo
+                                    <i class="fas fa-cogs text-goodyear-blue dark:text-goodyear-yellow"></i> Condición Operativa % por Equipo
                                 </h4>
                                 <div class="h-64 relative"><canvas id="${idDiv}-3"></canvas></div>
                             </div>
