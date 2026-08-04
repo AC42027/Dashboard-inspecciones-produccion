@@ -415,6 +415,63 @@
 
         <!-- PESTAÑA ANALÍTICA: PANEL ANALÍTICO DE INSPECCIONES -->
         <div id="view-analitica" class="space-y-8 hidden">
+            <!-- Filtros de Búsqueda del Panel Analítico -->
+            <section class="glass-panel p-6">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-2">
+                        <i class="fas fa-filter text-goodyear-blue dark:text-goodyear-yellow"></i> Filtros de Analítica
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 ml-2">
+                            Total: <span id="metric-total-analitica">0</span>
+                        </span>
+                        <span class="text-xs font-semibold px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50">
+                            Mes: <span id="metric-mes-analitica">0</span>
+                        </span>
+                    </h2>
+                    <div class="flex gap-3 w-full md:w-auto">
+                        <button onclick="limpiarFiltros()"
+                            class="flex-1 md:flex-none px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm">
+                            <i class="fas fa-broom"></i> Limpiar Filtros
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="filtros-analitica-container">
+                    <select id="filtro-analitica-anio" class="glass-input w-full">
+                        <option value="">Año (Todos)</option>
+                    </select>
+                    <select id="filtro-analitica-mes" class="glass-input w-full">
+                        <option value="">Mes (Todos)</option>
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                    <select id="filtro-analitica-owner" class="glass-input w-full">
+                        <option value="">Owner (Todos)</option>
+                    </select>
+                    <select id="filtro-analitica-zona" class="glass-input w-full">
+                        <option value="">Zona (Todas)</option>
+                    </select>
+                    <select id="filtro-analitica-equipo" class="glass-input w-full">
+                        <option value="">Equipo (Todos)</option>
+                    </select>
+                    <select id="filtro-analitica-sap" class="glass-input w-full">
+                        <option value="">Avisos SAP (Todos)</option>
+                        <option value="con_aviso">Con Aviso</option>
+                        <option value="sin_aviso">Sin Aviso</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Contenedor de Gráficas -->
             <section id="graficas-container" class="space-y-8">
                 <!-- Renderizado dinámicamente -->
             </section>
@@ -902,6 +959,14 @@
                 zona: document.getElementById('filtro-zona'),
                 equipo: document.getElementById('filtro-equipo'),
                 sap: document.getElementById('filtro-sap'),
+            },
+            filtrosAnalitica: {
+                anio: document.getElementById('filtro-analitica-anio'),
+                mes: document.getElementById('filtro-analitica-mes'),
+                owner: document.getElementById('filtro-analitica-owner'),
+                zona: document.getElementById('filtro-analitica-zona'),
+                equipo: document.getElementById('filtro-analitica-equipo'),
+                sap: document.getElementById('filtro-analitica-sap'),
             }
         };
 
@@ -1499,12 +1564,30 @@
 
         // EVENT LISTENERS
         function setupEventListeners() {
+            // Event listeners para filtros de la tabla
             Object.keys(els.filtros).forEach(key => {
-                els.filtros[key].addEventListener('change', (e) => {
-                    filtros[key] = e.target.value;
-                    paginaActual = 1;
-                    aplicarFiltros();
-                });
+                const el = els.filtros[key];
+                if (el) {
+                    el.addEventListener('change', (e) => {
+                        filtros[key] = e.target.value;
+                        if (els.filtrosAnalitica[key]) els.filtrosAnalitica[key].value = e.target.value;
+                        paginaActual = 1;
+                        aplicarFiltros();
+                    });
+                }
+            });
+
+            // Event listeners para filtros del panel analítico
+            Object.keys(els.filtrosAnalitica).forEach(key => {
+                const el = els.filtrosAnalitica[key];
+                if (el) {
+                    el.addEventListener('change', (e) => {
+                        filtros[key] = e.target.value;
+                        if (els.filtros[key]) els.filtros[key].value = e.target.value;
+                        paginaActual = 1;
+                        aplicarFiltros();
+                    });
+                }
             });
 
             els.btnPrev.addEventListener('click', () => { if (paginaActual > 1) { paginaActual--; renderTabla(); } });
@@ -1515,12 +1598,12 @@
 
         function limpiarFiltros() {
             Object.keys(filtros).forEach(key => filtros[key] = '');
-            Object.values(els.filtros).forEach(el => el.value = '');
+            Object.values(els.filtros).forEach(el => { if (el) el.value = ''; });
+            Object.values(els.filtrosAnalitica).forEach(el => { if (el) el.value = ''; });
             paginaActual = 1;
             aplicarFiltros();
         }
 
-        // DATA FETCHING
         async function fetchData() {
             try {
                 // Usar la IP directa de la API
@@ -1583,8 +1666,13 @@
 
             const elTotal = document.getElementById('metric-total');
             const elMes = document.getElementById('metric-mes');
+            const elTotalAnalitica = document.getElementById('metric-total-analitica');
+            const elMesAnalitica = document.getElementById('metric-mes-analitica');
+
             if (elTotal) elTotal.textContent = totalCount.toLocaleString();
             if (elMes) elMes.textContent = monthCount.toLocaleString();
+            if (elTotalAnalitica) elTotalAnalitica.textContent = totalCount.toLocaleString();
+            if (elMesAnalitica) elMesAnalitica.textContent = monthCount.toLocaleString();
 
             actualizarOpcionesSelects();
             renderTabla();
@@ -1605,11 +1693,14 @@
                 }).map(i => valorCampo(i, key)))].filter(v => v).sort();
             };
 
-            const populate = (id, options, defaultText) => {
-                const select = els.filtros[id];
-                const val = select.value;
-                select.innerHTML = `<option value="">${defaultText}</option>` +
-                    options.map(o => `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`).join('');
+            const populate = (key, options, defaultText) => {
+                ['filtros', 'filtrosAnalitica'].forEach(groupKey => {
+                    const select = els[groupKey] ? els[groupKey][key] : null;
+                    if (!select) return;
+                    const val = filtros[key];
+                    select.innerHTML = `<option value="">${defaultText}</option>` +
+                        options.map(o => `<option value="${o}" ${o === val ? 'selected' : ''}>${o}</option>`).join('');
+                });
             };
 
             
