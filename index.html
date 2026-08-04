@@ -264,6 +264,10 @@
                 class="pb-3 text-goodyear-blue dark:text-goodyear-yellow font-bold border-b-2 border-goodyear-blue dark:border-goodyear-yellow text-sm sm:text-base transition-colors">
                 <i class="fas fa-search-plus"></i> Historial Inspecciones
             </button>
+            <button id="tab-analitica" onclick="switchTab('analitica')"
+                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                <i class="fas fa-chart-line"></i> Panel Analítico
+            </button>
             <button id="tab-mis-asignaciones" disabled
                 class="pb-3 text-gray-400 font-medium border-b-2 border-transparent text-sm sm:text-base cursor-not-allowed select-none">
                 <i class="fas fa-calendar-check mr-1"></i> Mis Asignaciones
@@ -407,11 +411,13 @@
                 </div>
             </section>
 
-            <!-- Gráficas por Zona -->
-            <section id="graficas-container" class="space-y-8 hidden">
+            </div>
+
+        <!-- PESTAÑA ANALÍTICA: PANEL ANALÍTICO DE INSPECCIONES -->
+        <div id="view-analitica" class="space-y-8 hidden">
+            <section id="graficas-container" class="space-y-8">
                 <!-- Renderizado dinámicamente -->
             </section>
-
         </div>
 
         <!-- PESTAÑA 2: ASIGNACIONES MENSUALES -->
@@ -940,6 +946,8 @@
         function switchTab(tab) {
             if (tab === 'mis-asignaciones') return; // Deshabilitado temporalmente
             document.getElementById('view-inspecciones').classList.toggle('hidden', tab !== 'inspecciones');
+            const viewAnalitica = document.getElementById('view-analitica');
+            if (viewAnalitica) viewAnalitica.classList.toggle('hidden', tab !== 'analitica');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
             document.getElementById('view-equipos-sin-qr').classList.toggle('hidden', tab !== 'equipos-sin-qr');
             document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
@@ -955,6 +963,12 @@
             }
 
             document.getElementById('tab-inspecciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            
+            const tabAnalitica = document.getElementById('tab-analitica');
+            if (tabAnalitica) {
+                tabAnalitica.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'analitica' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            }
+
             const tabAsig = document.getElementById('tab-asignaciones');
             tabAsig.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
             if (!isAdminModo) tabAsig.classList.add('hidden');
@@ -965,6 +979,10 @@
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
                 tabMis.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'mis-asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            }
+
+            if (tab === 'analitica') {
+                renderCharts();
             }
 
             if (tab === 'equipos-sin-qr') {
