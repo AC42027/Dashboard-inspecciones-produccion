@@ -11,7 +11,7 @@ Este proyecto es una aplicación web (Dashboard) para visualizar, filtrar y gest
 *   📋 **Tabla de Historial Detallada:** Visualización premium de registros con filas expandibles. Al hacer clic en una fila, se despliega el detalle completo de hallazgos NOK, observaciones generales y el estado del aviso en SAP PM.
 *   ⚙️ **Acceso Administrador (LDAP):** Autenticación LDAP integrada para activar el Panel de Administración. Permite la edición y generación automática de rutas de inspección.
 *   ⏱️ **Cierre de Sesión por Inactividad:** Por motivos de seguridad y auditoría, la sesión de administrador cuenta con un auto-cierre tras **40 minutos de inactividad**.
-*   📈 **Panel Analítico de Gráficos Avanzados (Chart.js):** Suite interactiva de gráficos modernos con gradientes dinámicos, selector de vistas y soporte para modo oscuro:
+*   📈 **Panel de Gráficas (Chart.js):** Suite interactiva de gráficos modernos con gradientes dinámicos, selector de vistas y soporte para modo oscuro:
     *   **Resumen Ejecutivo (KPIs Globales):** Medidor de Tasa de Conformidad (% OK con indicador central), Volumen por Zona, Estatus de Avisos SAP PM y Evolución Histórica / Tendencia Temporal.
     *   **Detalle por Zonas:** Gráfico de Volumen por Equipo, Comparativo de Hallazgos OK vs NOK por Equipo e Condición Operativa % por Equipo.
     *   **Selector Interactivo de Vistas:** Filtro de vista instantáneo entre *Vista Completa*, *Resumen KPIs*, *Detalle por Zonas* y *Tendencias & SAP*.
