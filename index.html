@@ -308,29 +308,37 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-8 gap-4" id="filtros-container">
-<select id="filtro-zona" class="glass-input w-full">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="filtros-container">
+                    <select id="filtro-anio" class="glass-input w-full">
+                        <option value="">Año (Todos)</option>
+                    </select>
+                    <select id="filtro-mes" class="glass-input w-full">
+                        <option value="">Mes (Todos)</option>
+                        <option value="01">Enero</option>
+                        <option value="02">Febrero</option>
+                        <option value="03">Marzo</option>
+                        <option value="04">Abril</option>
+                        <option value="05">Mayo</option>
+                        <option value="06">Junio</option>
+                        <option value="07">Julio</option>
+                        <option value="08">Agosto</option>
+                        <option value="09">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                    <select id="filtro-owner" class="glass-input w-full">
+                        <option value="">Owner (Todos)</option>
+                    </select>
+                    <select id="filtro-zona" class="glass-input w-full">
                         <option value="">Zona (Todas)</option>
                     </select>
                     <select id="filtro-equipo" class="glass-input w-full">
                         <option value="">Equipo (Todos)</option>
                     </select>
-                    <select id="filtro-fecha" class="glass-input w-full">
-                        <option value="">Fecha (Todas)</option>
-                    </select>
-                    <select id="filtro-owner" class="glass-input w-full">
-                        <option value="">Owner (Todos)</option>
-                    </select>
-                    <select id="filtro-estado" class="glass-input w-full">
-                        <option value="">Estado (Todos)</option>
-                        <option value="OK">OK</option>
-                        <option value="NOK">NOK</option>
-                        <option value="PENDIENTE">PENDIENTE (7 días)</option>
-                    </select>
                     <select id="filtro-sap" class="glass-input w-full">
                         <option value="">Avisos SAP (Todos)</option>
-                        <option value="abierto">Con Aviso Abierto</option>
-                        <option value="cerrado">Con Aviso Cerrado</option>
+                        <option value="con_aviso">Con Aviso</option>
                         <option value="sin_aviso">Sin Aviso</option>
                     </select>
                 </div>
@@ -810,7 +818,7 @@
 
         // FILTROS
         const filtros = {
-            zona: '', equipo: '', fecha: '', owner: '', estado: '', sap: ''
+            anio: '', mes: '', owner: '', zona: '', equipo: '', sap: ''
         };
 
         // ELEMENTOS DOM
@@ -825,11 +833,11 @@
             btnNext: document.getElementById('btn-next'),
             graficasContainer: document.getElementById('graficas-container'),
             filtros: {
+                anio: document.getElementById('filtro-anio'),
+                mes: document.getElementById('filtro-mes'),
+                owner: document.getElementById('filtro-owner'),
                 zona: document.getElementById('filtro-zona'),
                 equipo: document.getElementById('filtro-equipo'),
-                fecha: document.getElementById('filtro-fecha'),
-                owner: document.getElementById('filtro-owner'),
-                estado: document.getElementById('filtro-estado'),
                 sap: document.getElementById('filtro-sap'),
             }
         };
@@ -1460,33 +1468,18 @@
 
         // LÓGICA DE FILTRADO
         function aplicarFiltros() {
-            const hora = new Date();
-            const sieteDiasAntes = new Date();
-            sieteDiasAntes.setDate(hora.getDate() - 7);
-
-            // Calcular última inspección por equipo
-            const ultimaInspeccionPorEquipo = inspecciones.reduce((acc, i) => {
-                const fechaInspeccion = new Date(`${i.fecha}T${i.horaInicio}`);
-                if (!acc[i.equipo] || fechaInspeccion > acc[i.equipo]) {
-                    acc[i.equipo] = fechaInspeccion;
-                }
-                return acc;
-            }, {});
-
             inspeccionesFiltradas = inspecciones.filter(i => {
-                const cumpleEstado = filtros.estado === '' ||
-                    (filtros.estado === 'PENDIENTE' ? ultimaInspeccionPorEquipo[i.equipo] < sieteDiasAntes : i.tecnicos.some((t) => t.estado === filtros.estado));
+                const cumplePeriodo =
+                    (filtros.anio === '' || (i.fecha && i.fecha.substring(0, 4) === filtros.anio)) &&
+                    (filtros.mes === '' || (i.fecha && i.fecha.substring(5, 7) === filtros.mes));
 
                 const cumpleSap = filtros.sap === '' ||
-                    (filtros.sap === 'abierto' ? (i.sap_nr_numero && i.sap_nr_status !== 'cerrada') :
-                     filtros.sap === 'cerrado' ? (i.sap_nr_status === 'cerrada') :
-                     filtros.sap === 'sin_aviso' ? (!i.sap_nr_numero) : true);
+                    (filtros.sap === 'con_aviso' ? (i.sap_nr_numero) : filtros.sap === 'sin_aviso' ? (!i.sap_nr_numero) : true);
 
-                return (filtros.zona === '' || i.zona === filtros.zona) &&
+                return cumplePeriodo &&
+                    (filtros.zona === '' || i.zona === filtros.zona) &&
                     (filtros.equipo === '' || i.equipo === filtros.equipo) &&
-                    (filtros.fecha === '' || i.fecha === filtros.fecha) &&
                     (filtros.owner === '' || i.owner === filtros.owner) &&
-                    cumpleEstado &&
                     cumpleSap;
             });
 
@@ -1501,13 +1494,16 @@
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth(); // 0-11
 
+            const targetYear = filtros.anio ? parseInt(filtros.anio, 10) : currentYear;
+            const targetMonth = filtros.mes ? parseInt(filtros.mes, 10) - 1 : currentMonth;
+
             const monthCount = inspeccionesFiltradas.filter(i => {
                 if (!i.fecha) return false;
                 const parts = i.fecha.split('-'); // YYYY-MM-DD
                 if (parts.length < 2) return false;
                 const year = parseInt(parts[0], 10);
                 const month = parseInt(parts[1], 10) - 1; // Convert to 0-11
-                return year === currentYear && month === currentMonth;
+                return year === targetYear && month === targetMonth;
             }).length;
 
             const elTotal = document.getElementById('metric-total');
@@ -1522,10 +1518,16 @@
 
         function actualizarOpcionesSelects() {
             // Helper para obtener opciones únicas
+            const valorCampo = (i, key) => {
+                if (key === 'anio') return i.fecha ? i.fecha.substring(0, 4) : '';
+                if (key === 'mes') return i.fecha ? i.fecha.substring(5, 7) : '';
+                return i[key];
+            };
+
             const getUnique = (key, dependsOn) => {
                 return [...new Set(inspecciones.filter(i => {
-                    return dependsOn.every(dep => filtros[dep] === '' || i[dep] === filtros[dep]);
-                }).map(i => i[key]))].sort();
+                    return dependsOn.every(dep => filtros[dep] === '' || valorCampo(i, dep) === filtros[dep]);
+                }).map(i => valorCampo(i, key)))].filter(v => v).sort();
             };
 
             const populate = (id, options, defaultText) => {
@@ -1536,10 +1538,10 @@
             };
 
             
-            populate('zona', getUnique('zona', ['equipo', 'fecha', 'owner']), 'Zona (Todas)');
-            populate('equipo', getUnique('equipo', ['zona', 'fecha', 'owner']), 'Equipo (Todos)');
-            populate('fecha', getUnique('fecha', ['zona', 'equipo', 'owner']), 'Fecha (Todas)');
-            populate('owner', getUnique('owner', ['zona', 'equipo', 'fecha']), 'Owner (Todos)');
+            populate('anio', getUnique('anio', ['mes', 'owner', 'zona', 'equipo']), 'Año (Todos)');
+            populate('owner', getUnique('owner', ['anio', 'mes', 'zona', 'equipo']), 'Owner (Todos)');
+            populate('zona', getUnique('zona', ['anio', 'mes', 'owner', 'equipo']), 'Zona (Todas)');
+            populate('equipo', getUnique('equipo', ['anio', 'mes', 'owner', 'zona']), 'Equipo (Todos)');
         }
 
         // RENDERIZADO

@@ -7,7 +7,7 @@ Este proyecto es una aplicación web (Dashboard) para visualizar, filtrar y gest
 ## 🚀 Características Principales
 
 *   📊 **Indicadores de Métricas en Tiempo Real:** Incorpora contadores sutiles y dinámicos de **Inspecciones Totales** e **Inspecciones del Mes** integrados en la cabecera de filtros. Se recalculan automáticamente en el cliente al cambiar cualquier filtro (como el Área, División, Zona, etc.).
-*   🔍 **Filtros Dinámicos e Interactivos:** Filtros combinados por División, Área, Zona, Equipo, Fecha, Owner (Responsable), Estado (OK, NOK, PENDIENTE) y Avisos SAP (Abierto, Cerrado, Sin Aviso).
+*   🔍 **Filtros Dinámicos e Interactivos:** Filtros combinados por Año, Mes, Owner (Responsable), Zona, Equipo y Avisos SAP (Con Aviso / Sin Aviso).
 *   📋 **Tabla de Historial Detallada:** Visualización premium de registros con filas expandibles. Al hacer clic en una fila, se despliega el detalle completo de hallazgos NOK, observaciones generales y el estado del aviso en SAP PM.
 *   ⚙️ **Acceso Administrador (LDAP):** Autenticación LDAP integrada para activar el Panel de Administración. Permite la edición y generación automática de rutas de inspección.
 *   ⏱️ **Cierre de Sesión por Inactividad:** Por motivos de seguridad y auditoría, la sesión de administrador cuenta con un auto-cierre tras **40 minutos de inactividad**.
