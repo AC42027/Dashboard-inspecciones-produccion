@@ -1924,14 +1924,14 @@
                         <td>${i.zona}</td>
                         <td>${i.owner}</td>
                         <td class="text-center font-bold text-xs ${tieneCritico ? 'text-red-600 dark:text-red-400' : (isExpanded ? 'text-blue-600 dark:text-blue-400' : 'text-gray-500')}">
-                            <div class="inline-flex items-center justify-center gap-2">
-                                <span><i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i> ${isExpanded ? 'CERRAR' : 'DETALLES'}</span>
+                            <div class="flex items-center justify-center gap-2">
                                 ${tieneCritico ? `
-                                    <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-red-100 text-red-700 dark:bg-red-900/60 dark:text-red-300 border border-red-300 dark:border-red-800 shadow-sm" title="Hallazgo Crítico">
-                                        <span class="beacon"></span>
+                                    <span class="text-[10px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm">
                                         CRÍTICO
                                     </span>
                                 ` : ''}
+                                ${tieneCritico ? '<div class="beacon" title="Hallazgo Crítico"></div>' : ''}
+                                <span><i class="fas fa-chevron-${isExpanded ? 'up' : 'down'}"></i> ${isExpanded ? 'CERRAR' : 'DETALLES'}</span>
                             </div>
                         </td>
                     </tr>
