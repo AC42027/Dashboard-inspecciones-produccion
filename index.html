@@ -164,6 +164,93 @@
             color: #94a3b8;
         }
 
+        /* Button System */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background-color: #003399;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e40af;
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #16a34a, #10b981);
+            color: white;
+            box-shadow: 0 4px 12px -2px rgba(22, 163, 74, 0.4);
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(90deg, #15803d, #059669);
+            box-shadow: 0 6px 16px -2px rgba(22, 163, 74, 0.5);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background-color: #ffffff;
+            color: #374151;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-secondary:hover {
+            background-color: #f3f4f6;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .dark .btn-secondary {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #e2e8f0;
+        }
+
+        .dark .btn-secondary:hover {
+            background-color: #334155;
+        }
+
+        .btn-disabled {
+            background-color: #9ca3af;
+            color: white;
+            cursor: not-allowed;
+            opacity: 0.85;
+        }
+
+        .btn-sm {
+            padding: 0.375rem 0.875rem;
+            font-size: 0.8125rem;
+        }
+
+        .btn-md {
+            padding: 0.625rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        .btn-lg {
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9375rem;
+        }
+
+        .loader-lg {
+            width: 48px;
+            height: 48px;
+        }
+
+        .brand-bar {
+            height: 4px;
+            background: linear-gradient(90deg, #003399, #3b82f6, #FFD200);
+        }
+
         /* Table Styles */
         .premium-table th {
             background-color: #003399;
@@ -318,7 +405,7 @@
             <button id="tab-mis-asignaciones" disabled
                 class="pb-3 text-gray-400 font-medium border-b-2 border-transparent text-sm sm:text-base cursor-not-allowed select-none">
                 <i class="fas fa-calendar-check mr-1"></i> Mis Asignaciones
-                <span class="ml-1.5 bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">Próximamente</span>
+                <span class="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Próximamente</span>
             </button>
             <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
                 class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
@@ -358,11 +445,11 @@
                     </h2>
                     <div class="flex gap-3 w-full md:w-auto">
                         <button onclick="limpiarFiltros()"
-                            class="flex-1 md:flex-none px-4 py-2.5 bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-all shadow-sm hover:shadow border border-gray-200 dark:border-slate-600 flex items-center justify-center gap-2">
+                            class="flex-1 md:flex-none btn btn-secondary btn-md">
                             <i class="fas fa-broom"></i> Limpiar
                         </button>
                         <button onclick="exportarExcel()"
-                            class="flex-1 md:flex-none px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                            class="flex-1 md:flex-none btn btn-success btn-md">
                             <i class="fas fa-file-excel"></i> Exportar
                         </button>
                     </div>
@@ -519,11 +606,11 @@
                     </h2>
                     <div class="flex gap-3 w-full md:w-auto">
                         <button onclick="limpiarFiltros()"
-                            class="flex-1 md:flex-none px-4 py-2.5 bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-all shadow-sm hover:shadow border border-gray-200 dark:border-slate-600 flex items-center justify-center gap-2 text-sm">
+                            class="flex-1 md:flex-none btn btn-secondary btn-md">
                             <i class="fas fa-broom"></i> Limpiar Filtros
                         </button>
                         <button onclick="exportarExcel()"
-                            class="flex-1 md:flex-none px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm">
+                            class="flex-1 md:flex-none btn btn-success btn-md">
                             <i class="fas fa-file-excel"></i> Exportar
                         </button>
                     </div>
@@ -601,26 +688,33 @@
         <div id="view-asignaciones" class="space-y-8 hidden">
             <section class="glass-panel p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                        <i class="fas fa-calendar-alt text-purple-600"></i> Asignaciones Mensuales ASRS
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+                        <span
+                            class="w-11 h-11 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
+                            <i class="fas fa-calendar-alt text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
+                        </span>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-lg font-extrabold tracking-tight">Asignaciones Mensuales ASRS</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Planificación de rutas</span>
+                        </span>
                     </h2>
                     <button id="btnModoAdmin" onclick="toggleModoAdmin()"
-                        class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded text-sm font-medium transition-colors">
+                        class="btn btn-secondary btn-sm">
                         <i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>
                     </button>
                 </div>
 
                 <!-- Admin Panel (Visible solo para usuarios con privilegios de Django) -->
                 <div id="adminPanel"
-                    class="hidden bg-purple-50 dark:bg-purple-900/20 rounded-lg p-6 mb-8 border border-purple-100 dark:border-purple-800">
-                    <h3 class="text-lg font-bold text-purple-800 dark:text-purple-300 mb-2">Panel de Generación de Rutas
+                    class="hidden bg-blue-50 dark:bg-goodyear-blue/10 rounded-lg p-6 mb-8 border border-blue-100 dark:border-blue-800">
+                    <h3 class="text-lg font-bold text-goodyear-blue dark:text-blue-300 mb-2">Panel de Generación de Rutas
                     </h3>
 
                     <!-- Gestión de Asociados -->
                     <div
-                        class="mb-6 p-4 bg-white dark:bg-slate-800 rounded-lg border border-purple-100 dark:border-purple-800 shadow-sm">
+                        class="mb-6 p-4 bg-white dark:bg-slate-800 rounded-lg border border-blue-100 dark:border-blue-800 shadow-sm">
                         <h4
-                            class="text-sm font-bold text-purple-600 dark:text-purple-400 mb-3 uppercase tracking-wider">
+                            class="text-sm font-bold text-goodyear-blue dark:text-blue-300 mb-3 uppercase tracking-wider">
                             Equipo de Trabajo ASRS</h4>
                         <div class="flex flex-wrap gap-2 mb-4" id="asrsTeamList">
                             <!-- Chips de asociados -->
@@ -629,7 +723,7 @@
                             <input type="text" id="newAssociateName" placeholder="Nombre completo del asociado"
                                 class="glass-input flex-grow text-sm">
                             <button onclick="addAssociate()"
-                                class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-bold transition-transform active:scale-95">
+                                class="btn btn-primary btn-md">
                                 <i class="fas fa-plus"></i> Añadir
                             </button>
                         </div>
@@ -637,22 +731,22 @@
 
                     <!-- Generación Automática (deshabilitada por ahora) -->
                     <div
-                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-purple-100 dark:border-purple-800 opacity-60">
+                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-blue-100 dark:border-blue-800 opacity-60">
                         <div class="flex items-center gap-3 mb-3">
                             <span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-400 rounded text-[10px] font-bold uppercase tracking-wider">Próximamente</span>
                         </div>
-                        <p class="text-sm text-purple-700 dark:text-purple-200 mb-4">
+                        <p class="text-sm text-blue-800 dark:text-blue-200 mb-4">
                             La generación automática de rutas estará disponible pronto.
                             Por ahora, usa la asignación manual.
                         </p>
                         <div class="flex flex-col sm:flex-row gap-4">
                             <div class="flex flex-col gap-1 flex-grow">
-                                <label class="text-xs text-purple-600 dark:text-purple-400 font-bold ml-1">Lunes de la
+                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Lunes de la
                                     semana</label>
                                 <input type="date" id="asigFechaGenerar" class="glass-input w-full" disabled>
                             </div>
                             <button disabled
-                                class="self-end py-2 px-6 bg-gray-400 text-white rounded-lg font-bold cursor-not-allowed flex items-center justify-center gap-2">
+                                class="self-end btn btn-disabled btn-md">
                                 <i class="fas fa-magic"></i> Generar Rutas Automáticas
                             </button>
                         </div>
@@ -660,13 +754,13 @@
 
                     <!-- Asignación Manual (Para pruebas o casos específicos) -->
                     <div
-                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-purple-100 dark:border-purple-800">
+                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-blue-100 dark:border-blue-800">
                         <h4
-                            class="text-xs font-bold text-purple-600 dark:text-purple-400 mb-3 uppercase tracking-wider">
+                            class="text-xs font-bold text-goodyear-blue dark:text-blue-300 mb-3 uppercase tracking-wider">
                             Asignación Manual / Individual</h4>
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="flex-grow">
-                                <label class="text-[10px] text-purple-600 dark:text-purple-400 font-bold ml-1">Buscar
+                                <label class="text-[10px] text-goodyear-blue dark:text-blue-300 font-bold ml-1">Buscar
                                     Equipo</label>
                                 <input type="text" id="manualEqSearch" list="asrsEqList"
                                     placeholder="Escriba para buscar equipo..." class="glass-input w-full text-sm">
@@ -676,14 +770,14 @@
                             </div>
                             <div class="w-full sm:w-48">
                                 <label
-                                    class="text-[10px] text-purple-600 dark:text-purple-400 font-bold ml-1">Asociado</label>
+                                    class="text-[10px] text-goodyear-blue dark:text-blue-300 font-bold ml-1">Asociado</label>
                                 <select id="manualAsoSelect" class="glass-input w-full text-sm">
                                     <option value="PENDIENTE">-- Sin Asignar --</option>
                                     <!-- Se llena por JS -->
                                 </select>
                             </div>
                             <button onclick="agregarAsignacionManual()"
-                                class="self-end py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-colors flex items-center gap-2">
+                                class="self-end btn btn-primary btn-md">
                                 <i class="fas fa-plus-circle"></i> Agregar a Vista Previa
                             </button>
                         </div>
@@ -694,7 +788,7 @@
                         <div class="flex justify-between items-center mb-2">
                             <h4 class="font-bold text-gray-700 dark:text-gray-300">Vista Previa (No guardado aún)</h4>
                             <button onclick="guardarAsignacionesEnDjango()"
-                                class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm shadow flex items-center gap-2">
+                                class="btn btn-primary btn-md shadow">
                                 <i class="fas fa-save"></i> Guardar
                             </button>
                         </div>
@@ -709,25 +803,25 @@
                     <label class="font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">Ver mes:</label>
                     <input type="month" id="verFecha" class="glass-input" onchange="cargarAsignacionesSemanales()">
                     <button onclick="cargarAsignacionesSemanales()"
-                        class="p-2 bg-goodyear-blue text-white rounded hover:bg-blue-800 flex items-center justify-center min-w-[40px]">
+                        class="btn btn-primary btn-sm min-w-[40px]">
                         <i class="fas fa-sync-alt"></i>
                     </button>
                     <button id="btnExportarAsignaciones" onclick="exportarAsignacionExcel()" disabled
-                        class="ml-auto px-4 py-2 bg-gray-400 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2 cursor-not-allowed">
+                        class="ml-auto btn btn-disabled btn-md">
                         <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Exportar</span>
                     </button>
                 </div>
 
                 <!-- Loader -->
                 <div id="asigLoadingPublic" class="hidden flex-col items-center justify-center py-10">
-                    <div class="loader mb-4 border-t-purple-600 dark:border-t-purple-400"></div>
-                    <p class="text-purple-600 dark:text-purple-400 font-medium text-sm">Cargando...</p>
+                    <div class="loader mb-4"></div>
+                    <p class="text-gray-600 dark:text-gray-300 font-medium text-sm">Cargando...</p>
                 </div>
 
                 <!-- Tabla Pública de Asignaciones -->
                 <div class="overflow-x-auto">
                     <table class="w-full text-left premium-table text-sm">
-                        <thead class="bg-gray-100 dark:bg-slate-800">
+                        <thead>
                             <tr>
                                 <th>Asociado</th>
                                 <th>Zona</th>
@@ -751,11 +845,18 @@
         <div id="view-equipos-sin-qr" class="space-y-8 hidden">
             <section class="glass-panel p-6">
                 <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-2">
-                        <i class="fas fa-qrcode text-gray-600"></i> Equipos sin QR
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+                        <span
+                            class="w-11 h-11 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
+                            <i class="fas fa-qrcode text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
+                        </span>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-lg font-extrabold tracking-tight">Equipos sin QR</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Registro de inspecciones</span>
+                        </span>
                     </h2>
                     <button onclick="cargarEquiposSinQR()"
-                        class="px-3 py-1.5 bg-goodyear-blue text-white rounded text-sm font-medium hover:bg-blue-800 transition-colors">
+                        class="btn btn-primary btn-sm">
                         <i class="fas fa-sync-alt"></i> Refrescar
                     </button>
                 </div>
@@ -785,7 +886,7 @@
             <div id="misAsigLogin" class="flex justify-center">
                 <div class="w-full max-w-md mt-12">
                     <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 overflow-hidden">
-                        <div class="h-2 bg-gradient-to-r from-[#003399] to-blue-500"></div>
+                        <div class="brand-bar"></div>
                         <div class="p-8">
                             <div class="text-center mb-6">
                                 <div class="w-16 h-16 bg-[#003399]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -804,7 +905,7 @@
                                     <input type="password" id="misAsigPass" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="••••••••">
                                 </div>
                                 <div id="misAsigError" class="hidden text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2"></div>
-                                <button type="submit" id="misAsigSubmitBtn" class="w-full py-3 bg-[#003399] hover:bg-blue-800 text-white font-bold rounded-xl transition-all shadow-lg shadow-[#003399]/25 flex items-center justify-center gap-2">
+                                <button type="submit" id="misAsigSubmitBtn" class="w-full btn btn-primary btn-lg">
                                     <i class="fas fa-sign-in-alt"></i> Ingresar
                                 </button>
                             </form>
@@ -817,7 +918,7 @@
             <div id="misAsigContent" class="hidden space-y-6">
                 <!-- Header -->
                 <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 overflow-hidden">
-                    <div class="h-2 bg-gradient-to-r from-[#003399] to-blue-500"></div>
+                    <div class="brand-bar"></div>
                     <div class="p-6">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
@@ -828,7 +929,7 @@
                                     <i class="fas fa-user text-[#003399] mr-1"></i> <span id="misAsigUserName"></span>
                                 </p>
                             </div>
-                            <button onclick="cerrarSesionMisAsignaciones()" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-medium text-sm transition-all flex items-center gap-2">
+                            <button onclick="cerrarSesionMisAsignaciones()" class="btn btn-secondary btn-md">
                                 <i class="fas fa-sign-out-alt"></i> Cerrar Sesi&oacute;n
                             </button>
                         </div>
@@ -842,7 +943,7 @@
                         <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-calendar text-[#003399] mr-1.5"></i>Seleccionar Mes</label>
                         <div class="flex gap-2">
                             <input type="month" id="misAsigMes" class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()">
-                            <button onclick="cargarMisAsignaciones()" class="px-4 bg-[#003399] text-white rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center shadow-md shadow-[#003399]/20">
+                            <button onclick="cargarMisAsignaciones()" class="btn btn-primary btn-md">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
@@ -875,7 +976,7 @@
 
                 <!-- Loading -->
                 <div id="misAsigLoading" class="hidden flex-col items-center justify-center py-16">
-                    <div class="w-12 h-12 border-4 border-[#003399]/20 border-t-[#003399] rounded-full animate-spin mb-4"></div>
+                    <div class="loader loader-lg mb-4"></div>
                     <p class="text-[#003399] font-medium text-sm">Cargando tus asignaciones...</p>
                 </div>
 
@@ -938,7 +1039,7 @@
                 </div>
                 <p id="ldapError" class="text-red-500 text-sm hidden font-medium"></p>
                 <button type="submit" id="ldapSubmitBtn"
-                    class="w-full py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-colors mt-2">
+                    class="w-full btn btn-primary btn-lg mt-2">
                     <i class="fas fa-sign-in-alt"></i> Autenticar
                 </button>
             </form>
@@ -1149,23 +1250,23 @@
                 mainCont.classList.remove('max-w-[95%]');
             }
 
-            document.getElementById('tab-inspecciones').className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            document.getElementById('tab-inspecciones').className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
             
             const tabAnalitica = document.getElementById('tab-analitica');
             if (tabAnalitica) {
-                tabAnalitica.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'analitica' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+                tabAnalitica.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'analitica' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
             }
 
             const tabAsig = document.getElementById('tab-asignaciones');
-            tabAsig.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            tabAsig.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
             if (!isAdminModo) tabAsig.classList.add('hidden');
             
             const tabEqSinQR = document.getElementById('tab-equipos-sin-qr');
-            tabEqSinQR.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'equipos-sin-qr' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+            tabEqSinQR.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'equipos-sin-qr' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
             
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
-                tabMis.className = `pb-3 font-bold border-b-2 text-sm sm:text-base transition-colors ${tab === 'mis-asignaciones' ? 'text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent font-medium'}`;
+                tabMis.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'mis-asignaciones' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
             }
 
             if (tab === 'analitica') {
@@ -1477,7 +1578,7 @@
             const container = document.getElementById('asrsTeamList');
             if (!container) return;
             container.innerHTML = asrsTeam.map((name, i) => `
-                <div class="bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-200 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm">
+                <div class="bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-200 px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 shadow-sm">
                     <i class="fas fa-user text-[10px]"></i> ${name}
                     <button onclick="removeAssociate(${i})" class="ml-1 hover:text-red-500 transition-colors p-1" title="Eliminar">
                         <i class="fas fa-times"></i>
@@ -1503,13 +1604,13 @@
                 input.value = '';
                 renderTeamList();
             } else if (name) {
-                alert("Esa persona ya está en la lista.");
+                mostrarAlerta('Atención', 'Esa persona ya está en la lista.', 'fa-info-circle text-blue-500');
             }
         }
 
         async function removeAssociate(index) {
             if (asrsTeam.length <= 5) {
-                alert("Debe haber al menos 5 asociados para cubrir la lógica de Press Robots.");
+                mostrarAlerta('Atención', 'Debe haber al menos 5 asociados para cubrir la lógica de Press Robots.', 'fa-info-circle text-blue-500');
                 return;
             }
             asrsTeam.splice(index, 1);
@@ -1662,11 +1763,11 @@
             const btn = document.getElementById('headerAdminToggle');
             const text = document.getElementById('headerAdminText');
             if (isAdminModo) {
-                btn.classList.add('text-purple-600', 'dark:text-purple-400');
+                btn.classList.add('text-goodyear-blue', 'dark:text-goodyear-yellow');
                 text.textContent = `Admin (${username.toUpperCase()})`;
                 text.classList.remove('hidden');
             } else {
-                btn.classList.remove('text-purple-600', 'dark:text-purple-400');
+                btn.classList.remove('text-goodyear-blue', 'dark:text-goodyear-yellow');
                 text.textContent = 'Acceso Planificación';
                 text.classList.add('hidden', 'md:inline');
             }
@@ -2028,7 +2129,7 @@
             els.btnNext.disabled = end >= inspeccionesFiltradas.length;
 
             if (items.length === 0) {
-                els.tablaBody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-gray-500">No se encontraron inspecciones con los filtros seleccionados.</td></tr>`;
+                els.tablaBody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-gray-500">No se encontraron inspecciones con los filtros seleccionados.</td></tr>`;
                 return;
             }
 
@@ -2047,7 +2148,7 @@
                             <div>${i.equipo}</div>
                             ${i.sap_nr_numero ? `
                                 <span onclick="copiarAlPortapapeles('${i.sap_nr_numero}', event)" class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:hover:bg-blue-900/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800 cursor-pointer transition-all active:scale-95" title="Copiar Aviso SAP PM">
-                                    <i class="fas fa-cogs text-[8px]"></i> ${i.sap_nr_numero} <i class="far fa-copy text-[8px] opacity-60"></i>
+                                    <i class="fas fa-cogs text-[10px]"></i> ${i.sap_nr_numero} <i class="far fa-copy text-[10px] opacity-60"></i>
                                 </span>
                             ` : ''}
                         </td>
@@ -2057,7 +2158,7 @@
                             <div class="grid grid-cols-[1fr_auto_1fr] items-center w-full my-1">
                                 <div class="flex items-center justify-end gap-1.5 whitespace-nowrap pr-2">
                                     ${esCritico ? `
-                                        <span class="text-[9px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm shrink-0">
+                                        <span class="text-[10px] font-extrabold text-red-600 dark:text-red-400 uppercase tracking-wide px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-950/60 border border-red-300 dark:border-red-800 shadow-sm shrink-0">
                                             CRÍTICO
                                         </span>
                                     ` : ''}
@@ -2090,7 +2191,7 @@
 
                     rowHtml += `
                         <tr class="bg-blue-50/50 dark:bg-slate-800/30">
-                            <td colspan="9" class="p-0 border-b border-blue-100 dark:border-slate-700">
+                            <td colspan="7" class="p-0 border-b border-blue-100 dark:border-slate-700">
                                 <div class="p-6">
                                     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                         <h4 class="text-sm font-bold text-goodyear-blue dark:text-blue-400 uppercase flex items-center gap-2">
@@ -2278,8 +2379,8 @@
                                 <canvas id="kpi-chart-health"></canvas>
                             </div>
                             <div class="flex justify-around text-xs mt-3 pt-2 border-t border-gray-200 dark:border-slate-700">
-                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold"><i class="fas fa-circle text-[9px] mr-1"></i>OK: ${globalOk}</span>
-                                <span class="text-rose-500 font-semibold"><i class="fas fa-circle text-[9px] mr-1"></i>NOK: ${globalNok}</span>
+                                <span class="text-emerald-600 dark:text-emerald-400 font-semibold"><i class="fas fa-circle text-[10px] mr-1"></i>OK: ${globalOk}</span>
+                                <span class="text-rose-500 font-semibold"><i class="fas fa-circle text-[10px] mr-1"></i>NOK: ${globalNok}</span>
                             </div>
                         </div>
                         <!-- Chart K2: Inspecciones por Zona -->
@@ -2608,7 +2709,7 @@
 
         window.exportarExcel = function () {
             if (inspeccionesFiltradas.length === 0) {
-                alert("No hay datos para exportar.");
+                mostrarAlerta('Información', 'No hay datos para exportar.', 'fa-info-circle text-blue-500');
                 return;
             }
 
@@ -2745,7 +2846,7 @@
 
         async function generarAsignaciones() {
             const fechaInput = document.getElementById('asigFechaGenerar').value;
-            if (!fechaInput) { alert("Seleccione una fecha de inicio de semana."); return; }
+            if (!fechaInput) { mostrarAlerta('Atención', 'Seleccione una fecha de inicio de semana.', 'fa-exclamation-circle text-amber-500'); return; }
 
             const btn = event.currentTarget;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
@@ -2871,7 +2972,7 @@
                 renderPreview();
 
             } catch (error) {
-                alert("Error generando asignaciones: " + error.message);
+                mostrarAlerta('Error', 'Error generando asignaciones: ' + error.message, 'fa-exclamation-circle text-red-500');
             } finally {
                 btn.innerHTML = '<i class="fas fa-magic"></i> Generar Rutas Automáticas';
                 btn.disabled = false;
@@ -2897,12 +2998,12 @@
             const aso = document.getElementById('manualAsoSelect').value;
             const fecha = document.getElementById('asigFechaGenerar').value;
 
-            if (!fecha) { alert("Seleccione primero una fecha de semana."); return; }
-            if (!eq) { alert("Seleccione o escriba un equipo."); return; }
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero una fecha de semana.', 'fa-exclamation-circle text-amber-500'); return; }
+            if (!eq) { mostrarAlerta('Atención', 'Seleccione o escriba un equipo.', 'fa-exclamation-circle text-amber-500'); return; }
 
             // Verificar si ya está en la vista previa
             if (asignacionesPreview.some(a => a.equipo === eq)) {
-                alert("Este equipo ya está en la vista previa.");
+                mostrarAlerta('Atención', 'Este equipo ya está en la vista previa.', 'fa-info-circle text-blue-500');
                 return;
             }
 
@@ -2955,7 +3056,7 @@
                 <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-md overflow-hidden">
                     <div class="px-5 py-3 ${isPending ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200'} flex justify-between items-center border-b border-gray-200 dark:border-slate-700">
                         <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full ${isPending ? 'bg-white/20' : 'bg-purple-600'} flex items-center justify-center text-sm">
+                            <div class="w-8 h-8 rounded-full ${isPending ? 'bg-white/20' : 'bg-goodyear-blue'} flex items-center justify-center text-sm">
                                 <i class="fas ${isPending ? 'fa-exclamation-triangle' : 'fa-user'}"></i>
                             </div>
                             <span class="font-bold tracking-wide">${isPending ? 'EQUIPOS PENDIENTES SIN ASIGNACIÓN' : aso.toUpperCase()}</span>
@@ -2967,13 +3068,13 @@
                     <div class="p-4">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-3">
                             ${eqs.map(e => `
-                                <div class="group relative p-3 bg-gray-50 dark:bg-slate-900/40 rounded-lg border border-gray-100 dark:border-slate-700 hover:border-purple-300 dark:hover:border-purple-900 transition-all shadow-sm">
+                                <div class="group relative p-3 bg-gray-50 dark:bg-slate-900/40 rounded-lg border border-gray-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-all shadow-sm">
                                     <button onclick="eliminarDeVistaPrevia('${e.equipo}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Descartar">
                                         <i class="fas fa-times-circle"></i>
                                     </button>
                                     <div class="text-[12px] font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight pr-5">${e.equipo}</div>
                                     <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-[10px] text-purple-600 dark:text-purple-400 font-medium bg-purple-50 dark:bg-purple-900/30 px-2 py-0.5 rounded">
+                                        <span class="text-[10px] text-goodyear-blue dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
                                             <i class="fas fa-map-marker-alt"></i> ${e.zona}
                                         </span>
                                     </div>
@@ -2981,7 +3082,7 @@
                                         <div class="flex items-center gap-2">
                                             <i class="fas fa-exchange-alt text-[10px] text-gray-400"></i>
                                             <select onchange="cambiarAsignacion('${e.equipo}', this.value)" 
-                                                class="flex-grow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-[10px] font-medium focus:ring-2 focus:ring-purple-500 outline-none cursor-pointer">
+                                                class="flex-grow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-[10px] font-medium focus:ring-2 focus:ring-goodyear-blue outline-none cursor-pointer">
                                                 <option value="PENDIENTE" ${isPending ? 'selected' : ''}>-- Sin Asignar --</option>
                                                 ${asrsTeam.map(name => `<option value="${name}" ${name === aso ? 'selected' : ''}>${name}</option>`).join('')}
                                             </select>
@@ -3031,7 +3132,7 @@
                 });
 
                 if (res.ok) {
-                    alert("Inspección asignada correctamente");
+                    mostrarAlerta('Éxito', 'Inspección asignada correctamente.', 'fa-check-circle text-green-500');
                     document.getElementById('asigPreviewContainer').classList.add('hidden');
                     document.getElementById('verFecha').value = asignacionesPreview[0].fecha.slice(0, 7);
                     asignacionesGuardadas = true;
@@ -3040,10 +3141,10 @@
                     btnExp.className = 'ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2';
                     cargarAsignacionesSemanales(true);
                 } else {
-                    alert("Aviso: El servidor respondió con error. Revisa que el código en Django esté actualizado para recibir el campo 'fecha'.");
+                    mostrarAlerta('Aviso', "El servidor respondió con error. Revisa que el código en Django esté actualizado para recibir el campo 'fecha'.", 'fa-exclamation-circle text-amber-500');
                 }
             } catch (err) {
-                alert("Error de red. Asegúrate de que el servidor esté disponible.");
+                mostrarAlerta('Error', 'Error de red. Asegúrate de que el servidor esté disponible.', 'fa-exclamation-circle text-red-500');
             } finally {
                 btn.innerHTML = '<i class="fas fa-save"></i> Guardar';
                 btn.disabled = false;
@@ -3077,7 +3178,7 @@
 
         function exportarAsignacionExcel() {
             if (!asignacionesGuardadas || asignacionesActuales.length === 0) {
-                alert("Primero debes guardar las asignaciones antes de exportar.");
+                mostrarAlerta('Atención', 'Primero debes guardar las asignaciones antes de exportar.', 'fa-exclamation-circle text-amber-500');
                 return;
             }
             const list = asignacionesActuales;
@@ -3288,9 +3389,9 @@
             </p>
             <div class="flex justify-end gap-3" id="customModalButtons">
                 <button id="customModalCancel"
-                    class="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-lg font-bold text-xs transition-all uppercase tracking-wider active:scale-95">Cancelar</button>
+                    class="btn btn-secondary btn-md text-xs uppercase tracking-wider active:scale-95">Cancelar</button>
                 <button id="customModalConfirm"
-                    class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-xs transition-all shadow uppercase tracking-wider active:scale-95">Aceptar</button>
+                    class="btn btn-primary btn-md text-xs uppercase tracking-wider active:scale-95">Aceptar</button>
             </div>
         </div>
     </div>
