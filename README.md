@@ -10,7 +10,6 @@ Este proyecto es una aplicación web (Dashboard) para visualizar, filtrar y gest
 *   🔍 **Filtros Dinámicos e Interactivos:** Filtros combinados por Año, Mes, Owner (Responsable), Zona, Equipo, Avisos SAP (Con Aviso / Sin Aviso) y Criticidad (Crítico / No Crítico). Los filtros se presentan en un **banner premium con etiquetas**, indicadores de métricas e íconos, con soporte completo para modo oscuro.
 *   📋 **Tabla de Historial Detallada:** Visualización premium de registros con filas expandibles. Al hacer clic en una fila, se despliega el detalle completo de hallazgos NOK, observaciones generales y el estado del aviso en SAP PM. Los hallazgos **críticos** se resaltan con una baliza roja parpadeante y el distintivo **CRÍTICO**.
 *   ⚙️ **Acceso Administrador (LDAP):** Autenticación LDAP integrada para activar el Panel de Administración. Permite la edición y generación automática de rutas de inspección.
-*   ⏱️ **Cierre de Sesión por Inactividad:** Por motivos de seguridad y auditoría, la sesión de administrador cuenta con un auto-cierre tras **40 minutos de inactividad**.
 *   📈 **Panel de Gráficas (Chart.js):** Suite interactiva de gráficos modernos con gradientes dinámicos, selector de vistas y soporte para modo oscuro:
     *   **Resumen Ejecutivo (KPIs Globales):** Medidor de Tasa de Conformidad (% OK con indicador central), Cantidad por Zona, Estatus de Avisos SAP PM y Evolución Histórica / Tendencia Temporal.
     *   **Detalle por Zonas:** Gráfico de Cantidad por Equipo, Comparativo de Hallazgos OK vs NOK por Equipo y Condición Operativa % por Equipo.
@@ -91,7 +90,6 @@ Al ser un desarrollo basado en tecnologías puras de navegador (HTML/JS/CSS), no
 ## 🔐 Auditoría y Seguridad
 
 *   **Sesiones LDAP:** El token de autenticación y los privilegios de administrador se guardan de forma segura de manera temporal en el cliente.
-*   **Auto-Timeout:** Cualquier inactividad que supere los **40 minutos** gatilla el cierre automático de la sesión de administración para prevenir accesos no autorizados en terminales compartidas de la planta.
 
 ---
 
