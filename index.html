@@ -91,30 +91,77 @@
         }
 
         /* Form Controls */
+        .filter-banner {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-banner::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #003399, #3b82f6, #FFD200);
+        }
+
         .glass-input {
+            appearance: none;
             background: white;
             border: 1px solid #e2e8f0;
             color: #1e293b;
             border-radius: 8px;
-            padding: 0.5rem 1rem;
+            padding: 0.55rem 2.4rem 0.55rem 1rem;
             outline: none;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
             transition: all 0.2s;
+        }
+
+        .glass-input:hover {
+            border-color: #93c5fd;
+            box-shadow: 0 2px 6px rgba(0, 51, 153, 0.08);
         }
 
         .glass-input:focus {
             border-color: #003399;
-            box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.1);
+            box-shadow: 0 0 0 3px rgba(0, 51, 153, 0.12);
         }
 
         .dark .glass-input {
             background: rgba(15, 23, 42, 0.6);
             border-color: #334155;
             color: #f8fafc;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+        }
+
+        .dark .glass-input:hover {
+            border-color: #475569;
         }
 
         .dark .glass-input:focus {
             border-color: #FFD200;
-            box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
+            box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.12);
+        }
+
+        .filter-field label {
+            display: block;
+            font-size: 0.625rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #64748b;
+            margin-bottom: 0.35rem;
+        }
+
+        .dark .filter-field label {
+            color: #94a3b8;
         }
 
         /* Table Styles */
@@ -289,67 +336,97 @@
         <div id="view-inspecciones" class="space-y-8 block">
 
             <!-- Controles y Filtros -->
-            <section class="glass-panel p-6">
+            <section class="glass-panel filter-banner p-6">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-2">
-                        <i class="fas fa-filter text-goodyear-blue dark:text-goodyear-yellow"></i> Filtros de Búsqueda
-                        <span class="text-xs font-semibold px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 ml-2">
-                            Total: <span id="metric-total">0</span>
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-3">
+                        <span
+                            class="w-10 h-10 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
+                            <i class="fas fa-filter text-goodyear-blue dark:text-goodyear-yellow text-sm"></i>
                         </span>
-                        <span class="text-xs font-semibold px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50">
-                            Mes: <span id="metric-mes">0</span>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-base font-extrabold tracking-tight">Filtros de Búsqueda</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Inspecciones técnicas</span>
+                        </span>
+                        <span
+                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 shadow-sm">
+                            <i class="fas fa-clipboard-list"></i> Total: <span id="metric-total">0</span>
+                        </span>
+                        <span
+                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50 shadow-sm">
+                            <i class="fas fa-calendar-days"></i> Mes: <span id="metric-mes">0</span>
                         </span>
                     </h2>
                     <div class="flex gap-3 w-full md:w-auto">
                         <button onclick="limpiarFiltros()"
-                            class="flex-1 md:flex-none px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors flex items-center justify-center gap-2">
+                            class="flex-1 md:flex-none px-4 py-2.5 bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-all shadow-sm hover:shadow border border-gray-200 dark:border-slate-600 flex items-center justify-center gap-2">
                             <i class="fas fa-broom"></i> Limpiar
                         </button>
                         <button onclick="exportarExcel()"
-                            class="flex-1 md:flex-none px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors shadow-md flex items-center justify-center gap-2">
+                            class="flex-1 md:flex-none px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2">
                             <i class="fas fa-file-excel"></i> Exportar
                         </button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4" id="filtros-container">
-                    <select id="filtro-anio" class="glass-input w-full">
-                        <option value="">Año (Todos)</option>
-                    </select>
-                    <select id="filtro-mes" class="glass-input w-full">
-                        <option value="">Mes (Todos)</option>
-                        <option value="01">Enero</option>
-                        <option value="02">Febrero</option>
-                        <option value="03">Marzo</option>
-                        <option value="04">Abril</option>
-                        <option value="05">Mayo</option>
-                        <option value="06">Junio</option>
-                        <option value="07">Julio</option>
-                        <option value="08">Agosto</option>
-                        <option value="09">Septiembre</option>
-                        <option value="10">Octubre</option>
-                        <option value="11">Noviembre</option>
-                        <option value="12">Diciembre</option>
-                    </select>
-                    <select id="filtro-owner" class="glass-input w-full">
-                        <option value="">Owner (Todos)</option>
-                    </select>
-                    <select id="filtro-zona" class="glass-input w-full">
-                        <option value="">Zona (Todas)</option>
-                    </select>
-                    <select id="filtro-equipo" class="glass-input w-full">
-                        <option value="">Equipo (Todos)</option>
-                    </select>
-                    <select id="filtro-sap" class="glass-input w-full">
-                        <option value="">Avisos SAP (Todos)</option>
-                        <option value="con_aviso">Con Aviso</option>
-                        <option value="sin_aviso">Sin Aviso</option>
-                    </select>
-                    <select id="filtro-critico" class="glass-input w-full">
-                        <option value="">Crítico (Todos)</option>
-                        <option value="critico">Crítico</option>
-                        <option value="no_critico">No Crítico</option>
-                    </select>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-anio">Año</label>
+                        <select id="filtro-anio" class="glass-input w-full">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-mes">Mes</label>
+                        <select id="filtro-mes" class="glass-input w-full">
+                            <option value="">Todos</option>
+                            <option value="01">Enero</option>
+                            <option value="02">Febrero</option>
+                            <option value="03">Marzo</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Mayo</option>
+                            <option value="06">Junio</option>
+                            <option value="07">Julio</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-owner">Owner</label>
+                        <select id="filtro-owner" class="glass-input w-full">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-zona">Zona</label>
+                        <select id="filtro-zona" class="glass-input w-full">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-equipo">Equipo</label>
+                        <select id="filtro-equipo" class="glass-input w-full">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-sap">Avisos SAP</label>
+                        <select id="filtro-sap" class="glass-input w-full">
+                            <option value="">Todos</option>
+                            <option value="con_aviso">Con Aviso</option>
+                            <option value="sin_aviso">Sin Aviso</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-critico">Crítico</label>
+                        <select id="filtro-critico" class="glass-input w-full">
+                            <option value="">Todos</option>
+                            <option value="critico">Crítico</option>
+                            <option value="no_critico">No Crítico</option>
+                        </select>
+                    </div>
                 </div>
             </section>
 
@@ -420,63 +497,97 @@
         <!-- PESTAÑA ANALÍTICA: PANEL ANALÍTICO DE INSPECCIONES -->
         <div id="view-analitica" class="space-y-8 hidden">
             <!-- Filtros de Búsqueda del Panel Analítico -->
-            <section class="glass-panel p-6">
+            <section class="glass-panel filter-banner p-6">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-2">
-                        <i class="fas fa-filter text-goodyear-blue dark:text-goodyear-yellow"></i> Filtros de Gráficas
-                        <span class="text-xs font-semibold px-2 py-0.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 ml-2">
-                            Total: <span id="metric-total-analitica">0</span>
+                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-3">
+                        <span
+                            class="w-10 h-10 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
+                            <i class="fas fa-chart-line text-goodyear-blue dark:text-goodyear-yellow text-sm"></i>
                         </span>
-                        <span class="text-xs font-semibold px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50">
-                            Mes: <span id="metric-mes-analitica">0</span>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-base font-extrabold tracking-tight">Filtros de Gráficas</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Panel analítico</span>
+                        </span>
+                        <span
+                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 shadow-sm">
+                            <i class="fas fa-clipboard-list"></i> Total: <span id="metric-total-analitica">0</span>
+                        </span>
+                        <span
+                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50 shadow-sm">
+                            <i class="fas fa-calendar-days"></i> Mes: <span id="metric-mes-analitica">0</span>
                         </span>
                     </h2>
                     <div class="flex gap-3 w-full md:w-auto">
                         <button onclick="limpiarFiltros()"
-                            class="flex-1 md:flex-none px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-colors flex items-center justify-center gap-2 text-sm">
+                            class="flex-1 md:flex-none px-4 py-2.5 bg-white hover:bg-gray-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-gray-700 dark:text-gray-200 rounded-lg font-medium transition-all shadow-sm hover:shadow border border-gray-200 dark:border-slate-600 flex items-center justify-center gap-2 text-sm">
                             <i class="fas fa-broom"></i> Limpiar Filtros
+                        </button>
+                        <button onclick="exportarExcel()"
+                            class="flex-1 md:flex-none px-4 py-2.5 bg-gradient-to-r from-green-600 to-emerald-500 hover:from-green-700 hover:to-emerald-600 text-white rounded-lg font-medium transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 flex items-center justify-center gap-2 text-sm">
+                            <i class="fas fa-file-excel"></i> Exportar
                         </button>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4" id="filtros-analitica-container">
-                    <select id="filtro-analitica-anio" class="glass-input w-full">
-                        <option value="">Año (Todos)</option>
-                    </select>
-                    <select id="filtro-analitica-mes" class="glass-input w-full">
-                        <option value="">Mes (Todos)</option>
-                        <option value="01">Enero</option>
-                        <option value="02">Febrero</option>
-                        <option value="03">Marzo</option>
-                        <option value="04">Abril</option>
-                        <option value="05">Mayo</option>
-                        <option value="06">Junio</option>
-                        <option value="07">Julio</option>
-                        <option value="08">Agosto</option>
-                        <option value="09">Septiembre</option>
-                        <option value="10">Octubre</option>
-                        <option value="11">Noviembre</option>
-                        <option value="12">Diciembre</option>
-                    </select>
-                    <select id="filtro-analitica-owner" class="glass-input w-full">
-                        <option value="">Owner (Todos)</option>
-                    </select>
-                    <select id="filtro-analitica-zona" class="glass-input w-full">
-                        <option value="">Zona (Todas)</option>
-                    </select>
-                    <select id="filtro-analitica-equipo" class="glass-input w-full">
-                        <option value="">Equipo (Todos)</option>
-                    </select>
-                    <select id="filtro-analitica-sap" class="glass-input w-full">
-                        <option value="">Avisos SAP (Todos)</option>
-                        <option value="con_aviso">Con Aviso</option>
-                        <option value="sin_aviso">Sin Aviso</option>
-                    </select>
-                    <select id="filtro-analitica-critico" class="glass-input w-full">
-                        <option value="">Crítico (Todos)</option>
-                        <option value="critico">Crítico</option>
-                        <option value="no_critico">No Crítico</option>
-                    </select>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-anio">Año</label>
+                        <select id="filtro-analitica-anio" class="glass-input w-full">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-mes">Mes</label>
+                        <select id="filtro-analitica-mes" class="glass-input w-full">
+                            <option value="">Todos</option>
+                            <option value="01">Enero</option>
+                            <option value="02">Febrero</option>
+                            <option value="03">Marzo</option>
+                            <option value="04">Abril</option>
+                            <option value="05">Mayo</option>
+                            <option value="06">Junio</option>
+                            <option value="07">Julio</option>
+                            <option value="08">Agosto</option>
+                            <option value="09">Septiembre</option>
+                            <option value="10">Octubre</option>
+                            <option value="11">Noviembre</option>
+                            <option value="12">Diciembre</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-owner">Owner</label>
+                        <select id="filtro-analitica-owner" class="glass-input w-full">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-zona">Zona</label>
+                        <select id="filtro-analitica-zona" class="glass-input w-full">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-equipo">Equipo</label>
+                        <select id="filtro-analitica-equipo" class="glass-input w-full">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-sap">Avisos SAP</label>
+                        <select id="filtro-analitica-sap" class="glass-input w-full">
+                            <option value="">Todos</option>
+                            <option value="con_aviso">Con Aviso</option>
+                            <option value="sin_aviso">Sin Aviso</option>
+                        </select>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="filtro-analitica-critico">Crítico</label>
+                        <select id="filtro-analitica-critico" class="glass-input w-full">
+                            <option value="">Todos</option>
+                            <option value="critico">Crítico</option>
+                            <option value="no_critico">No Crítico</option>
+                        </select>
+                    </div>
                 </div>
             </section>
 
@@ -1721,10 +1832,10 @@
             };
 
             
-            populate('anio', getUnique('anio', ['mes', 'owner', 'zona', 'equipo']), 'Año (Todos)');
-            populate('owner', getUnique('owner', ['anio', 'mes', 'zona', 'equipo']), 'Owner (Todos)');
-            populate('zona', getUnique('zona', ['anio', 'mes', 'owner', 'equipo']), 'Zona (Todas)');
-            populate('equipo', getUnique('equipo', ['anio', 'mes', 'owner', 'zona']), 'Equipo (Todos)');
+            populate('anio', getUnique('anio', ['mes', 'owner', 'zona', 'equipo']), 'Todos');
+            populate('owner', getUnique('owner', ['anio', 'mes', 'zona', 'equipo']), 'Todos');
+            populate('zona', getUnique('zona', ['anio', 'mes', 'owner', 'equipo']), 'Todas');
+            populate('equipo', getUnique('equipo', ['anio', 'mes', 'owner', 'zona']), 'Todos');
         }
 
         // RENDERIZADO
