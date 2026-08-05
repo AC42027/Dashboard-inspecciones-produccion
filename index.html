@@ -312,7 +312,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="filtros-container">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4" id="filtros-container">
                     <select id="filtro-anio" class="glass-input w-full">
                         <option value="">Año (Todos)</option>
                     </select>
@@ -344,6 +344,11 @@
                         <option value="">Avisos SAP (Todos)</option>
                         <option value="con_aviso">Con Aviso</option>
                         <option value="sin_aviso">Sin Aviso</option>
+                    </select>
+                    <select id="filtro-critico" class="glass-input w-full">
+                        <option value="">Crítico (Todos)</option>
+                        <option value="critico">Crítico</option>
+                        <option value="no_critico">No Crítico</option>
                     </select>
                 </div>
             </section>
@@ -434,7 +439,7 @@
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4" id="filtros-analitica-container">
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4" id="filtros-analitica-container">
                     <select id="filtro-analitica-anio" class="glass-input w-full">
                         <option value="">Año (Todos)</option>
                     </select>
@@ -466,6 +471,11 @@
                         <option value="">Avisos SAP (Todos)</option>
                         <option value="con_aviso">Con Aviso</option>
                         <option value="sin_aviso">Sin Aviso</option>
+                    </select>
+                    <select id="filtro-analitica-critico" class="glass-input w-full">
+                        <option value="">Crítico (Todos)</option>
+                        <option value="critico">Crítico</option>
+                        <option value="no_critico">No Crítico</option>
                     </select>
                 </div>
             </section>
@@ -937,7 +947,7 @@
 
         // FILTROS
         const filtros = {
-            anio: '', mes: '', owner: '', zona: '', equipo: '', sap: ''
+            anio: '', mes: '', owner: '', zona: '', equipo: '', sap: '', critico: ''
         };
 
         // ELEMENTOS DOM
@@ -958,6 +968,7 @@
                 zona: document.getElementById('filtro-zona'),
                 equipo: document.getElementById('filtro-equipo'),
                 sap: document.getElementById('filtro-sap'),
+                critico: document.getElementById('filtro-critico'),
             },
             filtrosAnalitica: {
                 anio: document.getElementById('filtro-analitica-anio'),
@@ -966,6 +977,7 @@
                 zona: document.getElementById('filtro-analitica-zona'),
                 equipo: document.getElementById('filtro-analitica-equipo'),
                 sap: document.getElementById('filtro-analitica-sap'),
+                critico: document.getElementById('filtro-analitica-critico'),
             }
         };
 
@@ -1633,11 +1645,17 @@
                 const cumpleSap = filtros.sap === '' ||
                     (filtros.sap === 'con_aviso' ? (i.sap_nr_numero) : filtros.sap === 'sin_aviso' ? (!i.sap_nr_numero) : true);
 
+                const tieneCritico = (i.tecnicos || []).some(t => t.es_critico === true || t.es_critico === 1 || t.es_critico === 'true');
+
+                const cumpleCritico = filtros.critico === '' ||
+                    (filtros.critico === 'critico' ? tieneCritico : filtros.critico === 'no_critico' ? !tieneCritico : true);
+
                 return cumplePeriodo &&
                     (filtros.zona === '' || i.zona === filtros.zona) &&
                     (filtros.equipo === '' || i.equipo === filtros.equipo) &&
                     (filtros.owner === '' || i.owner === filtros.owner) &&
-                    cumpleSap;
+                    cumpleSap &&
+                    cumpleCritico;
             });
 
             // Ordenar por fecha descendente
