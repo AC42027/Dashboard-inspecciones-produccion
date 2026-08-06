@@ -41,6 +41,9 @@
     <!-- FileSaver -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
+    <!-- Mapa de Planta -->
+    <link rel="stylesheet" href="mapa/mapa.css">
+
     <style>
         body {
             background-color: #f1f5f9;
@@ -430,6 +433,10 @@
             <button id="tab-equipos-sin-qr" onclick="switchTab('equipos-sin-qr')"
                 class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
                 <i class="fas fa-qrcode"></i> Equipos sin QR
+            </button>
+            <button id="tab-mapa" onclick="switchTab('mapa')"
+                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
+                <i class="fas fa-map-location-dot"></i> Mapa
             </button>
         </div>
     </header>
@@ -896,6 +903,65 @@
             </section>
         </div>
 
+        <!-- PESTAÑA: MAPA DE PLANTA -->
+        <div id="view-mapa" class="space-y-6 hidden">
+            <section class="glass-panel overflow-hidden">
+                <div class="brand-bar"></div>
+                <div class="p-5 sm:p-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-5">
+                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
+                            <span
+                                class="w-11 h-11 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
+                                <i class="fas fa-map-location-dot text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
+                            </span>
+                            <span class="flex flex-col leading-tight">
+                                <span class="text-lg font-extrabold tracking-tight">Mapa de Planta</span>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Layout ASRS Goodyear · Busca por código (ej. P4440)</span>
+                            </span>
+                        </h2>
+                    </div>
+
+                    <div class="flex flex-col xl:flex-row gap-3 xl:items-center">
+                        <div class="relative flex-1 xl:max-w-md">
+                            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm pointer-events-none"></i>
+                            <input id="mapaSearch" list="mapaCodes" autocomplete="off" spellcheck="false"
+                                placeholder="Buscar equipo o conveyor… (ej. P4440)"
+                                class="mapa-search-input w-full pl-10 pr-10 py-2.5 text-sm font-medium">
+                            <datalist id="mapaCodes"></datalist>
+                            <button id="mapaClearBtn" onclick="limpiarBusquedaMapa()"
+                                class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors p-1">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <div id="mapaFloor" class="mapa-seg flex self-start xl:self-auto rounded-xl border border-gray-200 dark:border-slate-600 overflow-hidden shadow-sm">
+                            <button data-floor="all" class="active"><i class="fas fa-layer-group"></i> Todos</button>
+                            <button data-floor="1"><span class="dot" style="background:#aebccf;"></span> Piso 1</button>
+                            <button data-floor="2"><span class="dot" style="background:#6fce8b;"></span> Piso 2</button>
+                            <button data-floor="3"><span class="dot" style="background:#8db8ef;"></span> Piso 3</button>
+                        </div>
+                    </div>
+
+                    <div id="mapaMsg" class="mapa-msg mt-3"></div>
+                </div>
+            </section>
+
+            <section class="glass-panel overflow-hidden">
+                <div class="brand-bar"></div>
+                <div class="p-3">
+                    <div id="mapaCanvas" class="mapa-canvas">
+                        <div id="mapaStage" class="mapa-stage"></div>
+                        <div id="mapaLoading"
+                            class="absolute inset-0 flex items-center justify-center text-gray-500 dark:text-slate-400 font-medium text-sm">
+                            <span class="flex items-center gap-2">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando plano…
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
         <!-- PESTAÑA 3: MIS ASIGNACIONES -->
         <div id="view-mis-asignaciones" class="space-y-8 hidden">
             <!-- Login Form -->
@@ -1254,11 +1320,12 @@
             if (viewAnalitica) viewAnalitica.classList.toggle('hidden', tab !== 'analitica');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
             document.getElementById('view-equipos-sin-qr').classList.toggle('hidden', tab !== 'equipos-sin-qr');
+            document.getElementById('view-mapa').classList.toggle('hidden', tab !== 'mapa');
             document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
 
-            // Ampliar ancho para la pestaña de asignaciones para mejor visibilidad
+            // Ampliar ancho para las pestañas de mapa y asignaciones para mejor visibilidad
             const mainCont = document.querySelector('main');
-            if (tab === 'asignaciones') {
+            if (tab === 'asignaciones' || tab === 'mapa') {
                 mainCont.classList.remove('max-w-7xl');
                 mainCont.classList.add('max-w-[95%]');
             } else {
@@ -1279,6 +1346,11 @@
             
             const tabEqSinQR = document.getElementById('tab-equipos-sin-qr');
             tabEqSinQR.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'equipos-sin-qr' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+
+            const tabMapa = document.getElementById('tab-mapa');
+            if (tabMapa) {
+                tabMapa.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'mapa' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+            }
             
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
@@ -1291,6 +1363,10 @@
 
             if (tab === 'equipos-sin-qr') {
                 cargarEquiposSinQR();
+            }
+
+            if (tab === 'mapa') {
+                initMapa();
             }
 
             if (tab === 'asignaciones') {
@@ -3395,6 +3471,8 @@
             saveAs(blob, `Rutas_ASRS_${tituloMes.replace(/\s+/g, '_')}.xlsx`);
         }
     </script>
+    <!-- Mapa de Planta -->
+    <script src="mapa/mapa.js"></script>
     <!-- Custom Modal Container -->
     <div id="customModal"
         class="hidden fixed inset-0 z-[110] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-all duration-300">
