@@ -31,7 +31,9 @@
         'Order Assigned': true, 'Layout': true, 'P1550': true,
         'P3970A': true, 'P4100': true, 'P4510': true,
         'Input': true, 'Output': true, 'Input Balance': true,
-        'Last Logs': true
+        'Last Logs': true,
+        '1st Floor': true, '2nd Floor': true, '3rd Floor': true,
+        'Classifier Full': true
     };
 
     function skipItem(it) {
