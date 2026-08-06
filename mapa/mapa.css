@@ -374,13 +374,19 @@
 .dark .mapa-seg button.active {
     background: linear-gradient(90deg, #1d4ed8, #2563eb);
 }
-.mapa-seg .dot {
+.mapa-seg .dot,
+.mapa-leyenda .dot {
     width: 10px;
     height: 10px;
     border-radius: 3px;
     border: 1px solid rgba(0, 0, 0, 0.2);
 }
-.dark .mapa-seg .dot { border-color: rgba(255, 255, 255, 0.35); }
+.dark .mapa-seg .dot,
+.dark .mapa-leyenda .dot { border-color: rgba(255, 255, 255, 0.35); }
+
+.mapa-leyenda {
+    color: #64748b;
+}
 
 .mapa-chip {
     display: inline-flex;

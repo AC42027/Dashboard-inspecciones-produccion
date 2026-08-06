@@ -39,7 +39,7 @@
         if (!showAux && (it.type === 'rack-column' || it.type === 'tire-press')) return true;
         if (it.floor === '1' && !/^p/i.test(it.code || '')) return true;
         if (labelSkip[it.title] || labelSkip[it.text]) return true;
-        if (it.type === 'meter' && (/^S0\d\d$/i.test(it.code || '') || /^S0\d\d$/i.test(it.title || '') || /^(400|500|600)(a|b)$/i.test(it.title || ''))) return true;
+        if (it.type === 'meter' && (/^S0\d\d$/i.test(it.code || '') || /^S0\d\d$/i.test(it.title || '') || /^(400|500|600)(a|b)$/i.test(it.title || '') || /^MCARTBUF$/i.test(it.code || ''))) return true;
         return false;
     }
 
