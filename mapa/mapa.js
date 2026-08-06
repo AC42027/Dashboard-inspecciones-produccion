@@ -296,12 +296,18 @@
         if (labelTimer) clearTimeout(labelTimer);
         var prev = byId('mapaFloatLabel');
         if (prev) prev.remove();
-        items.forEach(function (ix) { ix.el.classList.remove('hl'); });
+        items.forEach(function (ix) {
+            ix.el.classList.remove('hl');
+            var r = ix.el.querySelector('.m-rot');
+            if (r) r.classList.remove('hl');
+        });
     }
 
     function highlight(el, it, pulse) {
         clearHighlight();
         el.classList.add('hl');
+        var rot = el.querySelector('.m-rot');
+        if (rot) rot.classList.add('hl');
         var label = document.createElement('div');
         label.id = 'mapaFloatLabel';
         label.className = 'mapa-float-label';
@@ -313,7 +319,11 @@
         byId('mapaCanvas').appendChild(label);
         var dur = pulse === false ? 0 : 4200;
         if (dur > 0) {
-            hlTimer = setTimeout(function () { el.classList.remove('hl'); }, dur + 1200);
+            hlTimer = setTimeout(function () {
+                el.classList.remove('hl');
+                var rr = el.querySelector('.m-rot');
+                if (rr) rr.classList.remove('hl');
+            }, dur + 1200);
             labelTimer = setTimeout(function () { if (label.parentNode) label.parentNode.removeChild(label); }, dur);
         }
     }
