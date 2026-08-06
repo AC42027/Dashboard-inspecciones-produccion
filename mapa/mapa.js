@@ -17,6 +17,8 @@
     var hlTimer = null;
     var labelTimer = null;
     var showAux = false;
+    var drag = null;
+    var suppressClick = false;
     var skip = { table: true, crane: true, button: true, input: true, range: true, 'crane-range': true, 'control-cabinet': true, 'crane-line': true, 'press-robot': true, 'unload-robot': true };
     var labelSkip = {
         'Crane OK': true, 'AGTW Error': true, 'AGTW Timeout': true,
@@ -392,16 +394,21 @@
         closePop();
     }
 
+    function zoomAround(cx, cy, factor, anchorX, anchorY) {
+        var canvas = byId('mapaCanvas');
+        zoom = Math.min(Math.max(zoom * factor, 0.05), 4);
+        zoomFit = -1;
+        applyZoom();
+        canvas.scrollLeft = cx * zoom - anchorX;
+        canvas.scrollTop = cy * zoom - anchorY;
+        closePop();
+    }
+
     function mapaZoom(dir) {
         var canvas = byId('mapaCanvas');
         var cx = (canvas.scrollLeft + canvas.clientWidth / 2) / zoom;
         var cy = (canvas.scrollTop + canvas.clientHeight / 2) / zoom;
-        zoom = Math.min(Math.max(zoom * (dir > 0 ? 1.28 : 1 / 1.28), 0.02), 4);
-        zoomFit = -1;
-        applyZoom();
-        canvas.scrollLeft = cx * zoom - canvas.clientWidth / 2;
-        canvas.scrollTop = cy * zoom - canvas.clientHeight / 2;
-        closePop();
+        zoomAround(cx, cy, dir > 0 ? 1.28 : 1 / 1.28, canvas.clientWidth / 2, canvas.clientHeight / 2);
     }
 
     function findAux(q) {
@@ -511,10 +518,53 @@
         var canvas = byId('mapaCanvas');
         if (canvas) {
             canvas.addEventListener('click', function () { closePop(); });
-            canvas.addEventListener('wheel', function () {
+            canvas.addEventListener('wheel', function (e) {
+                e.preventDefault();
                 if (byId('mapaPop')) setTimeout(closePop, 50);
-            }, { passive: true });
+                var rect = canvas.getBoundingClientRect();
+                var mx = e.clientX - rect.left;
+                var my = e.clientY - rect.top;
+                var cx = (mx + canvas.scrollLeft) / zoom;
+                var cy = (my + canvas.scrollTop) / zoom;
+                var factor = Math.pow(1.15, -e.deltaY / 100);
+                factor = Math.min(Math.max(factor, 0.5), 2);
+                zoomAround(cx, cy, factor, mx, my);
+            }, { passive: false });
+            canvas.addEventListener('mousedown', function (e) {
+                if (e.button !== 0) return;
+                var rect = canvas.getBoundingClientRect();
+                var mx = e.clientX - rect.left;
+                var my = e.clientY - rect.top;
+                if (mx > canvas.clientWidth || my > canvas.clientHeight) return;
+                drag = { sx: e.clientX, sy: e.clientY, sl: canvas.scrollLeft, st: canvas.scrollTop, moved: false };
+                canvas.classList.add('dragging');
+            });
         }
+        document.addEventListener('mousemove', function (e) {
+            if (!drag) return;
+            var dx = e.clientX - drag.sx;
+            var dy = e.clientY - drag.sy;
+            if (!drag.moved && (Math.abs(dx) + Math.abs(dy) > 5)) drag.moved = true;
+            if (drag.moved) {
+                var cnv = byId('mapaCanvas');
+                cnv.scrollLeft = drag.sl - dx;
+                cnv.scrollTop = drag.st - dy;
+            }
+        });
+        document.addEventListener('mouseup', function () {
+            if (!drag) return;
+            if (drag.moved) suppressClick = true;
+            drag = null;
+            var cnv = byId('mapaCanvas');
+            if (cnv) cnv.classList.remove('dragging');
+        });
+        document.addEventListener('click', function (e) {
+            if (suppressClick) {
+                suppressClick = false;
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
         var seg = byId('mapaFloor');
         if (seg) {
             seg.querySelectorAll('button').forEach(function (b) {
