@@ -41,7 +41,7 @@
     <!-- FileSaver -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 
-    <!-- Mapa de Planta -->
+    <!-- Mapa de ASRS -->
     <link rel="stylesheet" href="mapa/mapa.css">
 
     <style>
@@ -913,7 +913,7 @@
             </section>
         </div>
 
-        <!-- PESTAÑA: MAPA DE PLANTA -->
+        <!-- PESTAÑA: MAPA DE ASRS -->
         <div id="view-mapa" class="space-y-6 hidden">
             <section class="glass-panel overflow-hidden">
                 <div class="brand-bar"></div>
@@ -925,8 +925,8 @@
                                 <i class="fas fa-map-location-dot text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
                             </span>
                             <span class="flex flex-col leading-tight">
-                                <span class="text-lg font-extrabold tracking-tight">Mapa de Planta</span>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Layout ASRS Goodyear · Busca por código (ej. P4440)</span>
+                                <span class="text-lg font-extrabold tracking-tight">Mapa de ASRS</span>
+                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Layout Planta Goodyear · Busca por código (ej. P4440)</span>
                             </span>
                         </h2>
                     </div>
@@ -3481,7 +3481,7 @@
             saveAs(blob, `Rutas_ASRS_${tituloMes.replace(/\s+/g, '_')}.xlsx`);
         }
     </script>
-    <!-- Mapa de Planta -->
+    <!-- Mapa de ASRS -->
     <script src="mapa/mapa.js"></script>
     <!-- Custom Modal Container -->
     <div id="customModal"

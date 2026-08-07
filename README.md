@@ -19,6 +19,10 @@ Este proyecto es una aplicación web (Dashboard) para visualizar, filtrar y gest
 *   📅 **Pestaña de Planificación y Asignaciones ASRS:** 
     *   Visualización pública de asignaciones semanales y estado de cumplimiento ("Realizada" / "Pendiente").
     *   **Algoritmo de Reparto Automático:** Reparte dinámicamente los equipos de la semana entre el equipo de técnicos ASRS, aplicando restricciones lógicas avanzadas (ej. balanceo de carga y rotación de especialistas a cargo de los *Press Robots*).
+*   🗺️ **Mapa de ASRS:** Visualización interactiva del layout de la planta ASRS (piso 1, 2 y 3) con:
+    *   Renderizado estático del plano con zoom (scroll centrado en el cursor) y pan (arrastre).
+    *   Buscador por código de equipo/conveyor (ej. `P4440`) con resaltado automático.
+    *   Vista por pisos y leyenda de colores, con soporte para modo oscuro.
 
 ---
 
@@ -41,8 +45,16 @@ El dashboard está construido con una arquitectura ligera de alto rendimiento si
 ```markdown
 ├── index.html                  # Dashboard principal (Estructura, Estilos Inline y Lógica JS)
 ├── README.md                   # Documentación del proyecto
-└── public/                     # Recursos estáticos
-    └── logo-goodyear.png       # Logotipo corporativo de Goodyear
+├── mapa/                       # Mapa de ASRS (layout interactivo)
+│   ├── layout.json             # Definición del layout de la planta ASRS
+│   ├── mapa.css                # Estilos del mapa interactivo
+│   ├── mapa.js                 # Render, buscador, zoom/pan y pisos
+│   └── images/                 # Recursos gráficos del layout
+├── public/                     # Recursos estáticos
+│   └── logo-goodyear.png       # Logotipo corporativo de Goodyear
+└── .github/
+    └── workflows/
+        └── deploy.yml          # Deploy automático a GitHub Pages
 ```
 
 ---

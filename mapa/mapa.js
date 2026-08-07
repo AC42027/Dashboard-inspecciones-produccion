@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAPA DE PLANTA — Layout ASRS (Goodyear) · vista 34
+   MAPA DE ASRS — Layout ASRS (Goodyear) · vista 34
    Render estático + buscador de equipos (ej. P4440) + zoom/pan + pisos
    ========================================================================== */
 (function () {
