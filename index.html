@@ -3102,7 +3102,7 @@
             btn.disabled = true;
 
             try {
-                // 1. Obtener equipos
+                // 1. Obtener equipos ASRS
                 const res = await fetch(`${API_BASE}/api/equipos/`);
                 const allEquipos = await res.json();
 
@@ -3119,99 +3119,93 @@
                 });
                 const equiposTotal = Array.from(uniqueEqsMap.values());
 
-                // 2. Identificar Press Robots (Constraint: al menos 3 personas deben compartirlos)
-                const pressRobots = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot'));
-                const otrosEquipos = equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot'));
+                // 2. Identificar Press Robots y Equipos Generales
+                const pressRobots = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot')).sort((a, b) => a.equipo.localeCompare(b.equipo));
+                const otrosEquipos = equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
 
-                // 3. Obtener rotación (semana anterior)
-                const fPrev = new Date(fechaInput + "T00:00:00");
-                fPrev.setDate(fPrev.getDate() - 7);
-                const fechaPrevStr = fPrev.toISOString().split('T')[0];
+                // 3. Calcular las 4 semanas (lunes) del mes para distribuir la carga
+                const baseDate = new Date(fechaInput + "T00:00:00");
+                const yr = baseDate.getFullYear();
+                const mo = baseDate.getMonth();
 
-                let historialPrevio = {};
-                try {
-                    const resPrev = await fetch(`${API_BASE}/api/asignaciones/?fecha=${fechaPrevStr}`);
-                    if (resPrev.ok) {
-                        const dataPrev = await resPrev.json();
-                        dataPrev.forEach(a => { historialPrevio[a.asociado] = a.zona; });
+                const lunesMes = [];
+                const tempDate = new Date(yr, mo, 1);
+                while (tempDate.getMonth() === mo) {
+                    if (tempDate.getDay() === 1) {
+                        lunesMes.push(tempDate.toISOString().split('T')[0]);
                     }
-                } catch (e) { console.warn("No se pudo obtener el historial para rotación."); }
+                    tempDate.setDate(tempDate.getDate() + 1);
+                }
+                if (lunesMes.length < 4) {
+                    const firstMonday = lunesMes[0] ? new Date(lunesMes[0] + "T00:00:00") : new Date(yr, mo, 1);
+                    lunesMes.length = 0;
+                    for (let w = 0; w < 4; w++) {
+                        const d = new Date(firstMonday);
+                        d.setDate(d.getDate() + w * 7);
+                        lunesMes.push(d.toISOString().split('T')[0]);
+                    }
+                }
+                const semanasMes = lunesMes.slice(0, 4);
 
-                // 4. Algoritmo de Reparto por Especialización (5 Robots vs Resto)
-                const asociados = [...asrsTeam];
-
-                // Rotación: Intentamos que los que tuvieron robots la semana pasada no repitan si es posible
-                asociados.sort((a, b) => {
-                    const zonaA = historialPrevio[a] || '';
-                    const zonaB = historialPrevio[b] || '';
-                    const tuvoRobotA = zonaA.toLowerCase().includes('robot') || zonaA === 'N/A'; // N/A suele ser de robots en el historial simplificado
-                    const tuvoRobotB = zonaB.toLowerCase().includes('robot') || zonaB === 'N/A';
-                    if (tuvoRobotA && !tuvoRobotB) return 1;
-                    if (!tuvoRobotA && tuvoRobotB) return -1;
-                    return Math.random() - 0.5;
-                });
-
-                const asociadosRobot = asociados.slice(0, 5); // Los 5 "especialistas" de esta semana
-                const asociadosResto = asociados.slice(5);  // El resto del equipo
-
-                // Ordenar equipos para secuencia lógica
-                const pressRobotsSorted = pressRobots.sort((a, b) => {
-                    const matchA = a.equipo.match(/\d{3}[A-Z]/);
-                    const matchB = b.equipo.match(/\d{3}[A-Z]/);
-                    return (matchA?.[0] || 'ZZZ').localeCompare(matchB?.[0] || 'ZZZ') || a.equipo.localeCompare(b.equipo);
-                });
-
-                const otrosEquiposSorted = otrosEquipos.sort((a, b) =>
-                    a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo)
-                );
+                // 4. Dividir catálogo de equipos en 4 bloques semanales equilibrados
+                const chunkRobotsSem = Math.ceil(pressRobots.length / 4);
+                const chunkOtrosSem = Math.ceil(otrosEquipos.length / 4);
 
                 asignacionesPreview = [];
-                const asignacionPorAsociado = {};
 
-                // 4a. Repartir SOLO Robots entre los 5 especialistas
-                const totalRobots = pressRobotsSorted.length;
-                const chunkRobot = Math.floor(totalRobots / 5);
-                let extraRobot = totalRobots % 5;
-                let rIdx = 0;
+                semanasMes.forEach((semFecha, wIdx) => {
+                    const robotsSem = pressRobots.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
+                    const otrosSem = otrosEquipos.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
 
-                asociadosRobot.forEach(aso => {
-                    const cant = chunkRobot + (extraRobot > 0 ? 1 : 0);
-                    extraRobot--;
-                    const items = pressRobotsSorted.slice(rIdx, rIdx + cant);
-                    rIdx += cant;
-                    asignacionPorAsociado[aso] = items;
-                });
+                    // Rotar asociados en cada semana para variar
+                    const asociadosSem = [...asrsTeam];
+                    const shift = (wIdx * 3) % asociadosSem.length;
+                    const asociadosRotados = [...asociadosSem.slice(shift), ...asociadosSem.slice(0, shift)];
 
-                // 4b. Asignar una PEQUEÑA CARGA EXTRA de equipos generales a los especialistas (para no sobrecargar al resto)
-                const cargaExtraEspecialista = 10; // Cantidad de equipos generales que también verán los de robots
-                asociadosRobot.forEach(aso => {
-                    const itemsExtra = otrosEquiposSorted.splice(0, cargaExtraEspecialista);
-                    asignacionPorAsociado[aso].push(...itemsExtra);
-                });
+                    const asociadosRobot = asociadosRotados.slice(0, Math.min(5, asociadosRotados.length));
+                    const asociadosResto = asociadosRotados.slice(Math.min(5, asociadosRotados.length));
 
-                // 4c. Repartir EL RESTO de equipos generales entre los asociados generales (Carga normal)
-                const totalRestante = otrosEquiposSorted.length;
-                const numResto = asociadosResto.length;
-                const chunkResto = Math.floor(totalRestante / numResto);
-                let extraResto = totalRestante % numResto;
-                let oIdx = 0;
+                    const asignacionPorAsociado = {};
+                    asociadosRotados.forEach(a => { asignacionPorAsociado[a] = []; });
 
-                asociadosResto.forEach(aso => {
-                    const cant = chunkResto + (extraResto > 0 ? 1 : 0);
-                    extraResto--;
-                    const items = otrosEquiposSorted.slice(oIdx, oIdx + cant);
-                    oIdx += cant;
-                    asignacionPorAsociado[aso] = items;
-                });
+                    // Repartir robots de esta semana entre los especialistas
+                    if (robotsSem.length > 0 && asociadosRobot.length > 0) {
+                        const chunkR = Math.floor(robotsSem.length / asociadosRobot.length);
+                        let extraR = robotsSem.length % asociadosRobot.length;
+                        let rIdx = 0;
+                        asociadosRobot.forEach(aso => {
+                            const cant = chunkR + (extraR > 0 ? 1 : 0);
+                            extraR--;
+                            const items = robotsSem.slice(rIdx, rIdx + cant);
+                            rIdx += cant;
+                            asignacionPorAsociado[aso].push(...items);
+                        });
+                    }
 
-                // Convertir a formato plano para el preview
-                Object.entries(asignacionPorAsociado).forEach(([aso, eqs]) => {
-                    eqs.forEach(e => {
-                        asignacionesPreview.push({
-                            fecha: fechaInput,
-                            asociado: aso,
-                            equipo: e.equipo,
-                            zona: e.zona
+                    // Repartir otros equipos de esta semana entre el resto del equipo
+                    const equipoDestinoOtros = asociadosResto.length > 0 ? asociadosResto : asociadosRobot;
+                    if (otrosSem.length > 0 && equipoDestinoOtros.length > 0) {
+                        const chunkO = Math.floor(otrosSem.length / equipoDestinoOtros.length);
+                        let extraO = otrosSem.length % equipoDestinoOtros.length;
+                        let oIdx = 0;
+                        equipoDestinoOtros.forEach(aso => {
+                            const cant = chunkO + (extraO > 0 ? 1 : 0);
+                            extraO--;
+                            const items = otrosSem.slice(oIdx, oIdx + cant);
+                            oIdx += cant;
+                            asignacionPorAsociado[aso].push(...items);
+                        });
+                    }
+
+                    // Agregar a asignacionesPreview
+                    Object.entries(asignacionPorAsociado).forEach(([aso, eqs]) => {
+                        eqs.forEach(e => {
+                            asignacionesPreview.push({
+                                fecha: semFecha,
+                                asociado: aso,
+                                equipo: e.equipo,
+                                zona: e.zona
+                            });
                         });
                     });
                 });
@@ -3276,75 +3270,93 @@
 
         function renderPreview() {
             const container = document.getElementById('asigPreviewText');
+            if (!container) return;
             if (asignacionesPreview.length === 0) {
                 container.innerHTML = '<p class="text-gray-500 italic text-center py-4">No hay equipos para mostrar.</p>';
                 return;
             }
 
-            // Agrupar por asociado para mostrar (incluyendo "PENDIENTE")
-            const grouped = asignacionesPreview.reduce((acc, item) => {
+            // Agrupar primero por semana (fecha), luego por asociado
+            const porSemana = asignacionesPreview.reduce((acc, item) => {
+                const f = item.fecha || 'Semana';
+                if (!acc[f]) acc[f] = {};
                 const aso = item.asociado || 'PENDIENTE';
-                if (!acc[aso]) acc[aso] = [];
-                acc[aso].push(item);
+                if (!acc[f][aso]) acc[f][aso] = [];
+                acc[f][aso].push(item);
                 return acc;
             }, {});
 
-            // Ordenar: Pendientes primero, luego especialistas (carga ligera), luego resto
-            const sortedAsos = Object.keys(grouped).sort((a, b) => {
-                if (a === 'PENDIENTE') return -1;
-                if (b === 'PENDIENTE') return 1;
-                return a.localeCompare(b);
-            });
+            let html = '';
+            Object.keys(porSemana).sort().forEach(semFecha => {
+                const fInicio = new Date(semFecha + 'T00:00:00');
+                const fFin = new Date(fInicio.getTime() + 6 * 24 * 60 * 60 * 1000);
+                const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+                const tituloSemana = `Semana del ${fmt(fInicio)} al ${fmt(fFin)}`;
 
-            const asoOptions = asrsTeam.map(name => `<option value="${name}">${name}</option>`).join('');
+                const porAso = porSemana[semFecha];
+                const sortedAsos = Object.keys(porAso).sort((a, b) => a === 'PENDIENTE' ? -1 : b === 'PENDIENTE' ? 1 : a.localeCompare(b));
+                const totalEquiposSemana = Object.values(porAso).flat().length;
 
-            container.innerHTML = sortedAsos.map(aso => {
-                const eqs = grouped[aso];
-                const isPending = aso === 'PENDIENTE';
-
-                return `
-                <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-md overflow-hidden">
-                    <div class="px-5 py-3 ${isPending ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200'} flex justify-between items-center border-b border-gray-200 dark:border-slate-700">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 h-8 rounded-full ${isPending ? 'bg-white/20' : 'bg-goodyear-blue'} flex items-center justify-center text-sm">
-                                <i class="fas ${isPending ? 'fa-exclamation-triangle' : 'fa-user'}"></i>
-                            </div>
-                            <span class="font-bold tracking-wide">${isPending ? 'EQUIPOS PENDIENTES SIN ASIGNACIÓN' : aso.toUpperCase()}</span>
-                        </div>
-                        <div class="px-3 py-1 bg-white/20 rounded-lg text-xs font-bold backdrop-blur-sm">
-                            ${eqs.length} Equipos
-                        </div>
+                html += `<div class="mb-8 border-b-2 border-blue-200 dark:border-blue-800/60 pb-6">
+                    <div class="flex items-center gap-2 mb-4 bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+                        <i class="fas fa-calendar-week text-goodyear-blue dark:text-blue-300"></i>
+                        <h3 class="font-bold text-goodyear-blue dark:text-blue-300 text-sm uppercase tracking-wider">${tituloSemana}</h3>
+                        <span class="ml-auto text-xs font-semibold px-2.5 py-1 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-300 rounded shadow-sm border border-gray-200 dark:border-slate-700">
+                            ${totalEquiposSemana} Equipos distribuídos en esta semana
+                        </span>
                     </div>
-                    <div class="p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-3">
-                            ${eqs.map(e => `
-                                <div class="group relative p-3 bg-gray-50 dark:bg-slate-900/40 rounded-lg border border-gray-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-all shadow-sm">
-                                    <button onclick="eliminarDeVistaPrevia('${e.equipo}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Descartar">
-                                        <i class="fas fa-times-circle"></i>
-                                    </button>
-                                    <div class="text-[12px] font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight pr-5">${e.equipo}</div>
-                                    <div class="flex items-center gap-2 mb-3">
-                                        <span class="text-[10px] text-goodyear-blue dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded">
-                                            <i class="fas fa-map-marker-alt"></i> ${e.zona}
-                                        </span>
-                                    </div>
-                                    <div class="pt-2 border-t border-gray-200 dark:border-slate-700">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-exchange-alt text-[10px] text-gray-400"></i>
-                                            <select onchange="cambiarAsignacion('${e.equipo}', this.value)" 
-                                                class="flex-grow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-2 py-1 text-[10px] font-medium focus:ring-2 focus:ring-goodyear-blue outline-none cursor-pointer">
-                                                <option value="PENDIENTE" ${isPending ? 'selected' : ''}>-- Sin Asignar --</option>
-                                                ${asrsTeam.map(name => `<option value="${name}" ${name === aso ? 'selected' : ''}>${name}</option>`).join('')}
-                                            </select>
+                    <div class="space-y-4">`;
+
+                sortedAsos.forEach(aso => {
+                    const eqs = porAso[aso];
+                    const isPending = aso === 'PENDIENTE';
+
+                    html += `
+                    <div class="bg-white dark:bg-slate-800 rounded-xl border border-gray-200 dark:border-slate-700 shadow-sm overflow-hidden">
+                        <div class="px-4 py-2.5 ${isPending ? 'bg-red-600 text-white' : 'bg-slate-100 dark:bg-slate-900/50 text-slate-800 dark:text-slate-200'} flex justify-between items-center border-b border-gray-200 dark:border-slate-700">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full ${isPending ? 'bg-white/20' : 'bg-goodyear-blue'} flex items-center justify-center text-xs text-white">
+                                    <i class="fas ${isPending ? 'fa-exclamation-triangle' : 'fa-user'}"></i>
+                                </div>
+                                <span class="font-bold text-xs tracking-wide">${isPending ? 'EQUIPOS PENDIENTES SIN ASIGNACIÓN' : aso.toUpperCase()}</span>
+                            </div>
+                            <div class="px-2.5 py-0.5 bg-white/20 rounded text-[11px] font-bold backdrop-blur-sm">
+                                ${eqs.length} Equipos
+                            </div>
+                        </div>
+                        <div class="p-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                                ${eqs.map(e => `
+                                    <div class="group relative p-2.5 bg-gray-50 dark:bg-slate-900/40 rounded-lg border border-gray-100 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-all shadow-sm">
+                                        <button onclick="eliminarDeVistaPrevia('${e.equipo}')" class="absolute top-2 right-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Descartar">
+                                            <i class="fas fa-times-circle"></i>
+                                        </button>
+                                        <div class="text-[11px] font-bold text-slate-800 dark:text-slate-100 mb-1 leading-tight pr-5">${e.equipo}</div>
+                                        <div class="flex items-center gap-1 mb-2">
+                                            <span class="text-[9px] text-goodyear-blue dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
+                                                <i class="fas fa-map-marker-alt"></i> ${e.zona}
+                                            </span>
+                                        </div>
+                                        <div class="pt-1.5 border-t border-gray-200 dark:border-slate-700">
+                                            <div class="flex items-center gap-1.5">
+                                                <i class="fas fa-exchange-alt text-[9px] text-gray-400"></i>
+                                                <select onchange="cambiarAsignacion('${e.equipo}', this.value)" 
+                                                    class="flex-grow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-1.5 py-0.5 text-[9px] font-medium focus:ring-2 focus:ring-goodyear-blue outline-none cursor-pointer">
+                                                    <option value="PENDIENTE" ${isPending ? 'selected' : ''}>-- Sin Asignar --</option>
+                                                    ${asrsTeam.map(name => `<option value="${name}" ${name === aso ? 'selected' : ''}>${name}</option>`).join('')}
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            `).join('')}
+                                `).join('')}
+                            </div>
                         </div>
-                    </div>
-                </div>
-                `;
-            }).join('');
+                    </div>`;
+                });
+                html += `</div></div>`;
+            });
+
+            container.innerHTML = html;
         }
 
         function cambiarAsignacion(equipoNombre, nuevoAsociado) {
