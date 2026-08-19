@@ -3321,12 +3321,31 @@
             btn.disabled = true;
 
             try {
+                const fechaSemana = asignacionesPreview[0].fecha;
+
+                // Combinar asignaciones existentes con la vista previa para no perder datos
+                let payloadAsignaciones = [];
+                if (!esGeneracionAuto && asignacionesActuales && asignacionesActuales.length > 0) {
+                    const mapEq = new Map();
+                    asignacionesActuales.forEach(a => {
+                        if (a.fecha === fechaSemana) {
+                            mapEq.set(a.equipo, { fecha: a.fecha, asociado: a.asociado, equipo: a.equipo, zona: a.zona });
+                        }
+                    });
+                    asignacionesPreview.forEach(a => {
+                        mapEq.set(a.equipo, a);
+                    });
+                    payloadAsignaciones = Array.from(mapEq.values());
+                } else {
+                    payloadAsignaciones = asignacionesPreview;
+                }
+
                 const res = await fetch(`${API_BASE}/api/asignaciones/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        fecha: asignacionesPreview[0].fecha,
-                        asignaciones: asignacionesPreview,
+                        fecha: fechaSemana,
+                        asignaciones: payloadAsignaciones,
                         asignado_por: 'Admin',
                         reemplazar_todo: esGeneracionAuto
                     })
@@ -3335,14 +3354,18 @@
                 if (res.ok) {
                     mostrarAlerta('Éxito', 'Inspección asignada correctamente.', 'fa-check-circle text-green-500');
                     document.getElementById('asigPreviewContainer').classList.add('hidden');
-                    document.getElementById('verFecha').value = asignacionesPreview[0].fecha.slice(0, 7);
+                    document.getElementById('verFecha').value = fechaSemana.slice(0, 7);
                     asignacionesGuardadas = true;
                     const btnExp = document.getElementById('btnExportarAsignaciones');
-                    btnExp.disabled = false;
-                    btnExp.className = 'ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2';
+                    if (btnExp) {
+                        btnExp.disabled = false;
+                        btnExp.className = 'ml-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium text-sm transition-colors flex items-center gap-2';
+                    }
+                    esGeneracionAuto = false;
+                    asignacionesPreview = [];
                     cargarAsignacionesSemanales(true);
                 } else {
-                    mostrarAlerta('Aviso', "El servidor respondió con error. Revisa que el código en Django esté actualizado para recibir el campo 'fecha'.", 'fa-exclamation-circle text-amber-500');
+                    mostrarAlerta('Aviso', "El servidor respondió con error.", 'fa-exclamation-circle text-amber-500');
                 }
             } catch (err) {
                 mostrarAlerta('Error', 'Error de red. Asegúrate de que el servidor esté disponible.', 'fa-exclamation-circle text-red-500');
