@@ -784,7 +784,7 @@
                         <div class="flex flex-col lg:flex-row gap-4 items-end">
                             <div class="flex flex-col gap-1 flex-grow w-full lg:w-auto">
                                 <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Mes a planificar</label>
-                                <input type="month" id="asigMesGenerar" class="glass-input w-full text-sm" onchange="actualizarFechasSemanas()">
+                                <select id="asigMesGenerar" class="glass-input w-full text-sm font-semibold cursor-pointer" onchange="actualizarFechasSemanas()"></select>
                             </div>
 
                             <div class="flex flex-col gap-1 w-full lg:w-auto">
@@ -1424,6 +1424,7 @@
             }
 
             if (tab === 'asignaciones') {
+                poblarSelectMeses();
                 const now = new Date();
                 const mesStr = now.toISOString().slice(0, 7);
                 // Calcular el lunes de esta semana
@@ -1454,6 +1455,26 @@
         // --- HELPER DE VALIDACIÓN DE INSPECCIÓN REALIZADA ---
         function getBaseRobotName(nombre) {
             return (nombre || '').replace(/\s+eje\s+[A-Za-z0-9]+/i, '').replace(/\s*\([^)]*\)/, '').trim();
+        }
+
+        function poblarSelectMeses() {
+            const sel = document.getElementById('asigMesGenerar');
+            if (!sel || sel.options.length > 0) return;
+
+            const now = new Date();
+            const currYr = now.getFullYear();
+            const currMo = now.getMonth();
+
+            let html = '';
+            for (let yr = currYr - 1; yr <= currYr + 1; yr++) {
+                for (let m = 0; m < 12; m++) {
+                    const val = `${yr}-${String(m + 1).padStart(2, '0')}`;
+                    const label = `${MESES_ES[m]} ${yr}`;
+                    const isSelected = (yr === currYr && m === currMo);
+                    html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+                }
+            }
+            sel.innerHTML = html;
         }
 
         const MESES_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
