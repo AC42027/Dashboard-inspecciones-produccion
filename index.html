@@ -1434,6 +1434,10 @@
         }
 
         // --- HELPER DE VALIDACIÓN DE INSPECCIÓN REALIZADA ---
+        function getBaseRobotName(nombre) {
+            return (nombre || '').replace(/\s+eje\s+[A-Za-z0-9]+/i, '').replace(/\s*\([^)]*\)/, '').trim();
+        }
+
         function normalizarTexto(s) {
             return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         }
@@ -3120,8 +3124,18 @@
                 const equiposTotal = Array.from(uniqueEqsMap.values());
 
                 // 2. Identificar Press Robots y Equipos Generales
-                const pressRobots = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot')).sort((a, b) => a.equipo.localeCompare(b.equipo));
+                // 2. Identificar y agrupar Press Robots por UNIDAD COMPLETA (todos sus ejes juntos)
+                const pressRobotsList = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot'));
                 const otrosEquipos = equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
+
+                // Agrupar los ejes por nombre base del robot (ej: "Press Robot 600B" agrupa ejes X, Z, U, W)
+                const robotUnitsMap = new Map();
+                pressRobotsList.forEach(e => {
+                    const baseName = getBaseRobotName(e.equipo);
+                    if (!robotUnitsMap.has(baseName)) robotUnitsMap.set(baseName, []);
+                    robotUnitsMap.get(baseName).push(e);
+                });
+                const pressRobotUnits = Array.from(robotUnitsMap.values()); // Array de robots completos
 
                 // 3. Calcular las 4 semanas (lunes) del mes para distribuir la carga
                 const baseDate = new Date(fechaInput + "T00:00:00");
@@ -3147,17 +3161,17 @@
                 }
                 const semanasMes = lunesMes.slice(0, 4);
 
-                // 4. Dividir catálogo de equipos en 4 bloques semanales equilibrados
-                const chunkRobotsSem = Math.ceil(pressRobots.length / 4);
+                // 4. Dividir unidades de robots completos y otros equipos en 4 bloques semanales
+                const chunkRobotsSem = Math.ceil(pressRobotUnits.length / 4);
                 const chunkOtrosSem = Math.ceil(otrosEquipos.length / 4);
 
                 asignacionesPreview = [];
 
                 semanasMes.forEach((semFecha, wIdx) => {
-                    const robotsSem = pressRobots.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
+                    const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
                     const otrosSem = otrosEquipos.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
 
-                    // Rotar asociados en cada semana para variar
+                    // Rotar asociados en cada semana
                     const asociadosSem = [...asrsTeam];
                     const shift = (wIdx * 3) % asociadosSem.length;
                     const asociadosRotados = [...asociadosSem.slice(shift), ...asociadosSem.slice(0, shift)];
@@ -3168,21 +3182,21 @@
                     const asignacionPorAsociado = {};
                     asociadosRotados.forEach(a => { asignacionPorAsociado[a] = []; });
 
-                    // Repartir robots de esta semana entre los especialistas
-                    if (robotsSem.length > 0 && asociadosRobot.length > 0) {
-                        const chunkR = Math.floor(robotsSem.length / asociadosRobot.length);
-                        let extraR = robotsSem.length % asociadosRobot.length;
+                    // Repartir UNIDADES DE ROBOTS COMPLETOS entre los especialistas
+                    if (robotUnitsSem.length > 0 && asociadosRobot.length > 0) {
+                        const chunkR = Math.floor(robotUnitsSem.length / asociadosRobot.length);
+                        let extraR = robotUnitsSem.length % asociadosRobot.length;
                         let rIdx = 0;
                         asociadosRobot.forEach(aso => {
                             const cant = chunkR + (extraR > 0 ? 1 : 0);
                             extraR--;
-                            const items = robotsSem.slice(rIdx, rIdx + cant);
+                            const units = robotUnitsSem.slice(rIdx, rIdx + cant);
                             rIdx += cant;
-                            asignacionPorAsociado[aso].push(...items);
+                            units.forEach(unit => { asignacionPorAsociado[aso].push(...unit); }); // Todos los ejes juntos
                         });
                     }
 
-                    // Repartir otros equipos de esta semana entre el resto del equipo
+                    // Repartir otros equipos entre el resto
                     const equipoDestinoOtros = asociadosResto.length > 0 ? asociadosResto : asociadosRobot;
                     if (otrosSem.length > 0 && equipoDestinoOtros.length > 0) {
                         const chunkO = Math.floor(otrosSem.length / equipoDestinoOtros.length);
@@ -3245,23 +3259,32 @@
             if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero una fecha de semana.', 'fa-exclamation-circle text-amber-500'); return; }
             if (!eq) { mostrarAlerta('Atención', 'Seleccione o escriba un equipo.', 'fa-exclamation-circle text-amber-500'); return; }
 
-            // Verificar si ya está en la vista previa
-            if (asignacionesPreview.some(a => a.equipo === eq)) {
-                mostrarAlerta('Atención', 'Este equipo ya está en la vista previa.', 'fa-info-circle text-blue-500');
+            const baseName = getBaseRobotName(eq);
+            const datalistOptions = Array.from(document.querySelectorAll('#asrsEqList option')).map(o => o.value);
+            const ejesRelacionados = datalistOptions.filter(opt => opt && getBaseRobotName(opt) === baseName && opt !== eq);
+            const equiposAgregar = [eq, ...ejesRelacionados];
+            let agregadosCount = 0;
+
+            equiposAgregar.forEach(eqItem => {
+                if (!asignacionesPreview.some(a => a.equipo === eqItem)) {
+                    let zona = 'ASRS';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqItem}"]`);
+                    if (option) zona = option.innerText || 'ASRS';
+
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: aso === 'PENDIENTE' ? '' : aso,
+                        equipo: eqItem,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Este equipo (o sus ejes) ya están en la vista previa.', 'fa-info-circle text-blue-500');
                 return;
             }
-
-            // Buscar zona del equipo (opcional)
-            let zona = 'ASRS';
-            const option = document.querySelector(`#asrsEqList option[value="${eq}"]`);
-            if (option) zona = option.innerText || 'ASRS';
-
-            asignacionesPreview.push({
-                fecha: fecha,
-                asociado: aso === 'PENDIENTE' ? '' : aso,
-                equipo: eq,
-                zona: zona
-            });
 
             document.getElementById('manualEqSearch').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
@@ -3360,11 +3383,23 @@
         }
 
         function cambiarAsignacion(equipoNombre, nuevoAsociado) {
-            const item = asignacionesPreview.find(a => a.equipo === equipoNombre);
-            if (item) {
-                item.asociado = nuevoAsociado === 'PENDIENTE' ? '' : nuevoAsociado;
-                renderPreview();
+            const baseName = getBaseRobotName(equipoNombre);
+            const nuevoVal = nuevoAsociado === 'PENDIENTE' ? '' : nuevoAsociado;
+
+            let countUpdated = 0;
+            asignacionesPreview.forEach(a => {
+                if ((baseName && getBaseRobotName(a.equipo) === baseName) || a.equipo === equipoNombre) {
+                    a.asociado = nuevoVal;
+                    countUpdated++;
+                }
+            });
+
+            if (countUpdated === 0) {
+                const item = asignacionesPreview.find(a => a.equipo === equipoNombre);
+                if (item) item.asociado = nuevoVal;
             }
+
+            renderPreview();
         }
 
         function eliminarDeVistaPrevia(equipoNombre) {
