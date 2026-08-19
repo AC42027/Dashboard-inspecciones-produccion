@@ -1434,32 +1434,48 @@
             return oParts.some(p => aParts.includes(p)) || aParts.some(p => oParts.includes(p));
         }
 
-        function esInspeccionRealizada(asig, inspeccionesList, mesStr) {
-            if (!asig || !inspeccionesList || inspeccionesList.length === 0) return false;
+        function evaluarEstadoAsignacion(asig, inspeccionesList, mesStr) {
+            if (!asig || !inspeccionesList || inspeccionesList.length === 0) return 'PENDIENTE';
 
             const eqNorm = normalizarTexto(asig.equipo);
 
-            return inspeccionesList.some(i => {
+            // Buscar inspecciones del equipo realizadas por el asociado asignado
+            const inspeccionesAsociado = inspeccionesList.filter(i => {
                 if (normalizarTexto(i.equipo) !== eqNorm) return false;
-
-                // 1. Validar que el inspector (owner) coincida con el asociado asignado
                 if (i.owner && !matchAsociado(i.owner, asig.asociado)) return false;
-
-                // 2. Validar rango de fecha por semana de asignación (si existe asig.fecha)
-                if (asig.fecha) {
-                    const fAsigStart = new Date(asig.fecha + 'T00:00:00').getTime();
-                    const fAsigEnd = fAsigStart + 7 * 24 * 60 * 60 * 1000;
-                    const fInsp = new Date(i.fecha + 'T00:00:00').getTime();
-                    return fInsp >= fAsigStart && fInsp < fAsigEnd;
-                }
-
-                // 3. Fallback: validar mes
-                if (mesStr && i.fecha) {
-                    return i.fecha.startsWith(mesStr);
-                }
-
                 return true;
             });
+
+            if (inspeccionesAsociado.length === 0) return 'PENDIENTE';
+
+            // 1. Si existe alguna dentro de la semana asignada (si existe asig.fecha) -> REALIZADA
+            if (asig.fecha) {
+                const fAsigStart = new Date(asig.fecha + 'T00:00:00').getTime();
+                const fAsigEnd = fAsigStart + 7 * 24 * 60 * 60 * 1000;
+
+                const aTiempo = inspeccionesAsociado.some(i => {
+                    const fInsp = new Date(i.fecha + 'T00:00:00').getTime();
+                    return fInsp >= fAsigStart && fInsp < fAsigEnd;
+                });
+
+                if (aTiempo) return 'REALIZADA';
+
+                // 2. Si fue inspeccionada por el asociado pero fuera del rango semanal -> FUERA_DE_TIEMPO
+                return 'FUERA_DE_TIEMPO';
+            }
+
+            // Fallback: si coincide el mes
+            if (mesStr) {
+                const enMes = inspeccionesAsociado.some(i => i.fecha && i.fecha.startsWith(mesStr));
+                if (enMes) return 'REALIZADA';
+            }
+
+            return 'PENDIENTE';
+        }
+
+        function esInspeccionRealizada(asig, inspeccionesList, mesStr) {
+            const st = evaluarEstadoAsignacion(asig, inspeccionesList, mesStr);
+            return st === 'REALIZADA' || st === 'FUERA_DE_TIEMPO';
         }
 
         // MIS ASIGNACIONES
@@ -1605,14 +1621,16 @@
                     const fmtFecha = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
                     const rangoSemana = `Semana del ${fmtFecha(fInicio)} al ${fmtFecha(fFin)}`;
 
+                    const st = evaluarEstadoAsignacion(a, inspecciones);
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-100 dark:border-slate-700/50">
                         <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${a.zona || 'N/A'}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${rangoSemana}</td>
                         <td class="text-center px-5 py-3.5">
-                            ${realizada
+                            ${st === 'REALIZADA'
                                 ? '<span class="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-check-circle"></i> Realizada</span>'
-                                : '<span class="bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-times-circle"></i> Pendiente</span>'}
+                                : st === 'FUERA_DE_TIEMPO'
+                                ? '<span class="bg-amber-50 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1" title="Realizada fuera de tiempo"><i class="fas fa-clock text-amber-500"></i> Realizada fuera de tiempo</span>': '<span class="bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-times-circle"></i> Pendiente</span>'}
                         </td>
                     </tr>`;
                 });
@@ -3015,7 +3033,7 @@
 
             Object.entries(porAsociado).sort().forEach(([aso, equiposAso]) => {
                 equiposAso.forEach((asig, index) => {
-                    // Validar si está realizada en el mes
+                    const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     const realizada = esInspeccionRealizada(asig, inspecciones, mesStr);
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
@@ -3026,9 +3044,8 @@
                         <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${asig.zona || 'N/A'}</td>
                         <td class="font-medium text-goodyear-blue dark:text-blue-400 p-2">${asig.equipo}</td>
                         <td class="text-center p-2">
-                            ${realizada
-                            ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-24 mx-auto"><i class="fas fa-check-circle"></i> Realizada</span>'
-                            : '<span class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 w-24 mx-auto"><i class="fas fa-times-circle"></i> Pendiente</span>'}
+                            ${st === 'REALIZADA'
+                                ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[140px] mx-auto"><i class="fas fa-check-circle"></i> Realizada</span>': st === 'FUERA_DE_TIEMPO' ? '<span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[180px] mx-auto" title="Realizada fuera de tiempo"><i class="fas fa-clock"></i> Realizada fuera de tiempo</span>': '<span class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[140px] mx-auto"><i class="fas fa-times-circle"></i> Pendiente</span>'}
                         </td>
                         ${isAdminModo ? `
                         <td class="text-center p-2">
