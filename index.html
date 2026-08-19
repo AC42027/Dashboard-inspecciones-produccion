@@ -431,10 +431,9 @@
                 class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
                 <i class="fas fa-chart-bar"></i> Gráficas
             </button>
-            <button id="tab-mis-asignaciones" disabled
-                class="pb-3 text-gray-400 font-medium border-b-2 border-transparent text-sm sm:text-base cursor-not-allowed select-none">
+            <button id="tab-mis-asignaciones" onclick="switchTab('mis-asignaciones')"
+                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
                 <i class="fas fa-calendar-check mr-1"></i> Mis Asignaciones
-                <span class="ml-1.5 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">Próximamente</span>
             </button>
             <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
                 class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
@@ -977,26 +976,26 @@
             <!-- Login Form -->
             <div id="misAsigLogin" class="flex justify-center">
                 <div class="w-full max-w-md mt-12">
-                    <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 overflow-hidden">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 overflow-hidden">
                         <div class="brand-bar"></div>
                         <div class="p-8">
                             <div class="text-center mb-6">
-                                <div class="w-16 h-16 bg-[#003399]/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <i class="fas fa-clipboard-list text-2xl text-[#003399]"></i>
+                                <div class="w-16 h-16 bg-[#003399]/10 dark:bg-yellow-400/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-clipboard-list text-2xl text-[#003399] dark:text-yellow-400"></i>
                                 </div>
-                                <h2 class="text-2xl font-bold text-gray-900">Mis Asignaciones</h2>
-                                <p class="text-sm text-gray-500 mt-1">Ingresa con tu usuario de red para ver tus equipos asignados.</p>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Mis Asignaciones</h2>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Ingresa con tu usuario de red para ver tus equipos asignados.</p>
                             </div>
                             <form id="misAsigLoginForm" class="space-y-4" onsubmit="handleMisAsigLogin(event)">
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Usuario LDAP</label>
-                                    <input type="text" id="misAsigUser" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="">
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Usuario LDAP</label>
+                                    <input type="text" id="misAsigUser" required class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="usuario.red">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1.5">Contraseña</label>
-                                    <input type="password" id="misAsigPass" required class="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="••••••••">
+                                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Contraseña</label>
+                                    <input type="password" id="misAsigPass" required class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="••••••••">
                                 </div>
-                                <div id="misAsigError" class="hidden text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-xl p-3 flex items-center gap-2"></div>
+                                <div id="misAsigError" class="hidden text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 flex items-center gap-2"></div>
                                 <button type="submit" id="misAsigSubmitBtn" class="w-full btn btn-primary btn-lg">
                                     <i class="fas fa-sign-in-alt"></i> Ingresar
                                 </button>
@@ -1009,16 +1008,16 @@
             <!-- Content (visible after login) -->
             <div id="misAsigContent" class="hidden space-y-6">
                 <!-- Header -->
-                <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 overflow-hidden">
+                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 overflow-hidden">
                     <div class="brand-bar"></div>
                     <div class="p-6">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
-                                    <i class="fas fa-calendar-alt text-[#003399]"></i> Mis Asignaciones
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    <i class="fas fa-calendar-alt text-[#003399] dark:text-yellow-400"></i> Mis Asignaciones
                                 </h2>
-                                <p class="text-sm text-gray-500 mt-1">
-                                    <i class="fas fa-user text-[#003399] mr-1"></i> <span id="misAsigUserName"></span>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                    <i class="fas fa-user text-[#003399] dark:text-yellow-400 mr-1"></i> <span id="misAsigUserName"></span>
                                 </p>
                             </div>
                             <button onclick="cerrarSesionMisAsignaciones()" class="btn btn-secondary btn-md">
@@ -1031,10 +1030,10 @@
                 <!-- Cards Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Month Selector -->
-                    <div class="bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 p-6">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-calendar text-[#003399] mr-1.5"></i>Seleccionar Mes</label>
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-calendar text-[#003399] dark:text-yellow-400 mr-1.5"></i>Seleccionar Mes</label>
                         <div class="flex gap-2">
-                            <input type="month" id="misAsigMes" class="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()">
+                            <input type="month" id="misAsigMes" class="flex-1 border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()">
                             <button onclick="cargarMisAsignaciones()" class="btn btn-primary btn-md">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
@@ -1042,60 +1041,74 @@
                     </div>
 
                     <!-- Monthly Progress -->
-                    <div id="misAsigProgress" class="hidden bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 p-6">
+                    <div id="misAsigProgress" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm font-semibold text-gray-700"><i class="fas fa-check-circle text-emerald-500 mr-1.5"></i>Cumplimiento Mensual</span>
-                            <span id="misAsigProgressPct" class="text-2xl font-bold text-emerald-600">0%</span>
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-check-circle text-emerald-500 mr-1.5"></i>Cumplimiento Mensual</span>
+                            <span id="misAsigProgressPct" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">0%</span>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                        <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                             <div id="misAsigProgressBar" class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2" id="misAsigProgressText">0 de 0 realizados</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2" id="misAsigProgressText">0 de 0 realizados</p>
                     </div>
 
                     <!-- Annual Progress -->
-                    <div id="misAsigProgressAnual" class="hidden bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 p-6">
+                    <div id="misAsigProgressAnual" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
                         <div class="flex items-center justify-between mb-3">
-                            <span class="text-sm font-semibold text-gray-700"><i class="fas fa-calendar-alt text-[#003399] mr-1.5"></i>Cumplimiento Anual</span>
-                            <span id="misAsigProgressAnualPct" class="text-2xl font-bold text-[#003399]">0%</span>
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-calendar-alt text-[#003399] dark:text-yellow-400 mr-1.5"></i>Cumplimiento Anual</span>
+                            <span id="misAsigProgressAnualPct" class="text-2xl font-bold text-[#003399] dark:text-yellow-400">0%</span>
                         </div>
-                        <div class="w-full bg-gray-100 rounded-full h-3 overflow-hidden">
-                            <div id="misAsigProgressAnualBar" class="h-full bg-gradient-to-r from-blue-400 to-[#003399] rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                        <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                            <div id="misAsigProgressAnualBar" class="h-full bg-gradient-to-r from-blue-400 to-[#003399] dark:to-yellow-400 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
                         </div>
-                        <p class="text-xs text-gray-500 mt-2" id="misAsigProgressAnualText">0 de 0 realizados en el a&ntilde;o</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2" id="misAsigProgressAnualText">0 de 0 realizados en el a&ntilde;o</p>
                     </div>
                 </div>
 
                 <!-- Loading -->
                 <div id="misAsigLoading" class="hidden flex-col items-center justify-center py-16">
                     <div class="loader loader-lg mb-4"></div>
-                    <p class="text-[#003399] font-medium text-sm">Cargando tus asignaciones...</p>
+                    <p class="text-[#003399] dark:text-yellow-400 font-medium text-sm">Cargando tus asignaciones...</p>
                 </div>
 
                 <!-- Error -->
-                <div id="misAsigContentError" class="hidden text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3"><i class="fas fa-exclamation-circle text-red-500 flex-shrink-0"></i> <span id="misAsigContentErrorText"></span></div>
+                <div id="misAsigContentError" class="hidden text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3"><i class="fas fa-exclamation-circle text-red-500 flex-shrink-0"></i> <span id="misAsigContentErrorText"></span></div>
 
                 <!-- No Data -->
                 <div id="misAsigNoData" class="hidden text-center py-16">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <i class="fas fa-inbox text-3xl text-gray-400"></i>
+                    <div class="w-20 h-20 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-inbox text-3xl text-gray-400 dark:text-gray-500"></i>
                     </div>
-                    <p class="text-gray-500 font-medium">No tienes equipos asignados para este mes.</p>
+                    <p class="text-gray-500 dark:text-gray-400 font-medium">No tienes equipos asignados para este mes.</p>
                 </div>
 
                 <!-- Table -->
-                <div id="misAsigTableWrapper" class="hidden bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 overflow-hidden">
-                    <div class="px-5 py-4 border-b border-gray-100">
-                        <h3 class="font-semibold text-gray-800 text-sm"><i class="fas fa-list text-[#003399] mr-2"></i>Detalle de Asignaciones</h3>
+                <div id="misAsigTableWrapper" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <h3 class="font-semibold text-gray-800 dark:text-white text-sm flex items-center gap-2">
+                            <i class="fas fa-list text-[#003399] dark:text-yellow-400"></i> Detalle de Asignaciones
+                        </h3>
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                            <div class="relative flex-1 md:w-64">
+                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+                                <input type="text" id="misAsigSearch" oninput="filtrarMisAsignaciones()" placeholder="Buscar equipo o zona..."
+                                    class="w-full pl-8 pr-3 py-1.5 text-xs bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:border-blue-500">
+                            </div>
+                            <div class="flex bg-gray-100 dark:bg-slate-900 p-1 rounded-lg border border-gray-200 dark:border-slate-700 text-xs">
+                                <button onclick="setMisAsigFiltroEstado('todas')" id="btnMisAsigFiltroTodas" class="px-2.5 py-1 rounded-md font-medium transition-colors bg-white dark:bg-slate-800 text-gray-800 dark:text-white shadow-sm">Todas</button>
+                                <button onclick="setMisAsigFiltroEstado('pendientes')" id="btnMisAsigFiltroPendientes" class="px-2.5 py-1 rounded-md font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white">Pendientes</button>
+                                <button onclick="setMisAsigFiltroEstado('realizadas')" id="btnMisAsigFiltroRealizadas" class="px-2.5 py-1 rounded-md font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white">Realizadas</button>
+                            </div>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left mis-asig-table">
                             <thead>
                                 <tr>
-                                    <th class="bg-gray-50 text-gray-700 font-semibold text-xs uppercase tracking-wider px-5 py-3.5">Equipo</th>
-                                    <th class="bg-gray-50 text-gray-700 font-semibold text-xs uppercase tracking-wider px-5 py-3.5">Zona</th>
-                                    <th class="bg-gray-50 text-gray-700 font-semibold text-xs uppercase tracking-wider px-5 py-3.5">Mes</th>
-                                    <th class="bg-gray-50 text-gray-700 font-semibold text-xs uppercase tracking-wider px-5 py-3.5 text-center">Estado</th>
+                                    <th class="bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 font-semibold text-xs uppercase tracking-wider px-5 py-3.5 border-b border-gray-200 dark:border-slate-700">Equipo</th>
+                                    <th class="bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 font-semibold text-xs uppercase tracking-wider px-5 py-3.5 border-b border-gray-200 dark:border-slate-700">Zona</th>
+                                    <th class="bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 font-semibold text-xs uppercase tracking-wider px-5 py-3.5 border-b border-gray-200 dark:border-slate-700">Semana</th>
+                                    <th class="bg-gray-50 dark:bg-slate-900/50 text-gray-700 dark:text-gray-300 font-semibold text-xs uppercase tracking-wider px-5 py-3.5 border-b border-gray-200 dark:border-slate-700 text-center">Estado</th>
                                 </tr>
                             </thead>
                             <tbody id="misAsigTableBody"></tbody>
@@ -1104,8 +1117,6 @@
                 </div>
             </div>
         </div>
-
-    </main>
 
     <!-- Auth Modal (LDAP) -->
     <div id="authModal"
@@ -1315,16 +1326,21 @@
                 }
             }
 
-            // Restaurar sesión de Mis Asignaciones (deshabilitado temporalmente)
-            localStorage.removeItem('misAsigFullName');
-            localStorage.removeItem('misAsigUser');
+            // Restaurar sesión de Mis Asignaciones
+            const storedMisAsigUser = localStorage.getItem('misAsigUser');
+            const storedMisAsigFullName = localStorage.getItem('misAsigFullName');
+            if (storedMisAsigFullName) {
+                loggedUserFullName = storedMisAsigFullName;
+                document.getElementById('misAsigLogin').classList.add('hidden');
+                document.getElementById('misAsigContent').classList.remove('hidden');
+                document.getElementById('misAsigUserName').textContent = loggedUserFullName;
+            }
 
             fetchData();
         });
 
         // TABS LOGIC
         function switchTab(tab) {
-            if (tab === 'mis-asignaciones') return; // Deshabilitado temporalmente
             document.getElementById('view-inspecciones').classList.toggle('hidden', tab !== 'inspecciones');
             const viewAnalitica = document.getElementById('view-analitica');
             if (viewAnalitica) viewAnalitica.classList.toggle('hidden', tab !== 'analitica');
@@ -1408,6 +1424,8 @@
 
         // MIS ASIGNACIONES
         let loggedUserFullName = '';
+        let currentMisAsignaciones = [];
+        let misAsigFiltroEstado = 'todas';
 
         async function handleMisAsigLogin(e) {
             e.preventDefault();
@@ -1429,7 +1447,7 @@
 
                 const data = await res.json();
                 if (res.ok && data.status === 'ok') {
-                    loggedUserFullName = data.full_name || `${data.first_name} ${data.last_name}`.trim() || user;
+                    loggedUserFullName = data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || user;
                     localStorage.setItem('misAsigFullName', loggedUserFullName);
                     localStorage.setItem('misAsigUser', user);
 
@@ -1446,7 +1464,7 @@
                     error.classList.remove('hidden');
                 }
             } catch (err) {
-                error.textContent = "Error de conexión con el servidor LDAP.";
+                error.textContent = "Error de conexión con el servidor LDAP (" + err.message + ").";
                 error.classList.remove('hidden');
             } finally {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
@@ -1459,7 +1477,6 @@
             if (!mes) return;
 
             const loading = document.getElementById('misAsigLoading');
-            const tbody = document.getElementById('misAsigTableBody');
             const wrapper = document.getElementById('misAsigTableWrapper');
             const noData = document.getElementById('misAsigNoData');
             const progress = document.getElementById('misAsigProgress');
@@ -1479,49 +1496,30 @@
                 const data = await res.json();
 
                 // Normalizar para matching flexible
-                const normalizar = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const normalizar = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 const userNorm = normalizar(loggedUserFullName);
 
-                const misAsignaciones = data.filter(a => normalizar(a.asociado) === userNorm);
+                currentMisAsignaciones = data.filter(a => normalizar(a.asociado) === userNorm);
 
-                if (misAsignaciones.length === 0) {
+                if (currentMisAsignaciones.length === 0) {
                     noData.classList.remove('hidden');
                     loading.classList.add('hidden');
                     return;
                 }
 
-                // Agrupar por semana y determinar estado
-                let realizados = 0;
-                let html = '';
-                misAsignaciones.forEach(a => {
-                    const realizada = inspecciones.some(i =>
+                renderTablaMisAsignaciones();
+
+                // Progress bar mensual
+                const realizados = currentMisAsignaciones.filter(a => {
+                    return inspecciones.some(i =>
                         i.equipo === a.equipo &&
                         i.fecha >= a.fecha &&
                         new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
                     );
-                    if (realizada) realizados++;
+                }).length;
 
-                    const fInicio = new Date(a.fecha + 'T00:00:00');
-                    const mesStr = fInicio.toLocaleDateString('es-CL', { month: 'long', year: 'numeric' });
-
-                    html += `<tr class="hover:bg-gray-50 transition-colors border-b border-gray-100">
-                        <td class="font-semibold text-[#003399] px-5 py-3.5">${a.equipo}</td>
-                        <td class="text-sm text-gray-600 px-5 py-3.5">${a.zona || 'N/A'}</td>
-                        <td class="text-sm text-gray-600 px-5 py-3.5">${mesStr}</td>
-                        <td class="text-center px-5 py-3.5">
-                            ${realizada
-                                ? '<span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-check-circle"></i> Realizada</span>'
-                                : '<span class="bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-times-circle"></i> Pendiente</span>'}
-                        </td>
-                    </tr>`;
-                });
-
-                tbody.innerHTML = html;
-                wrapper.classList.remove('hidden');
-
-                // Progress bar mensual
-                const total = misAsignaciones.length;
-                const pct = Math.round((realizados / total) * 100);
+                const total = currentMisAsignaciones.length;
+                const pct = total > 0 ? Math.round((realizados / total) * 100) : 0;
                 document.getElementById('misAsigProgressText').textContent = `${realizados} de ${total} realizados`;
                 document.getElementById('misAsigProgressPct').textContent = `${pct}%`;
                 document.getElementById('misAsigProgressBar').style.width = `${pct}%`;
@@ -1539,26 +1537,98 @@
             }
         }
 
+        function renderTablaMisAsignaciones() {
+            const tbody = document.getElementById('misAsigTableBody');
+            const wrapper = document.getElementById('misAsigTableWrapper');
+            const searchText = (document.getElementById('misAsigSearch')?.value || '').toLowerCase();
+
+            let filtered = currentMisAsignaciones.filter(a => {
+                const eq = (a.equipo || '').toLowerCase();
+                const zona = (a.zona || '').toLowerCase();
+                const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText);
+                if (!matchesSearch) return false;
+
+                const realizada = inspecciones.some(i =>
+                    i.equipo === a.equipo &&
+                    i.fecha >= a.fecha &&
+                    new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
+                );
+
+                if (misAsigFiltroEstado === 'realizadas') return realizada;
+                if (misAsigFiltroEstado === 'pendientes') return !realizada;
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">No se encontraron asignaciones con los filtros seleccionados.</td></tr>`;
+            } else {
+                let html = '';
+                filtered.forEach(a => {
+                    const realizada = inspecciones.some(i =>
+                        i.equipo === a.equipo &&
+                        i.fecha >= a.fecha &&
+                        new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
+                    );
+
+                    const fInicio = new Date(a.fecha + 'T00:00:00');
+                    const fFin = new Date(fInicio.getTime() + 6 * 24 * 60 * 60 * 1000);
+                    
+                    const fmtFecha = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+                    const rangoSemana = `Semana del ${fmtFecha(fInicio)} al ${fmtFecha(fFin)}`;
+
+                    html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-100 dark:border-slate-700/50">
+                        <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}</td>
+                        <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${a.zona || 'N/A'}</td>
+                        <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${rangoSemana}</td>
+                        <td class="text-center px-5 py-3.5">
+                            ${realizada
+                                ? '<span class="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-check-circle"></i> Realizada</span>'
+                                : '<span class="bg-red-50 text-red-700 dark:bg-red-900/40 dark:text-red-300 px-3 py-1 rounded-full text-xs font-bold inline-flex items-center gap-1"><i class="fas fa-times-circle"></i> Pendiente</span>'}
+                        </td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            }
+            wrapper.classList.remove('hidden');
+        }
+
+        function filtrarMisAsignaciones() {
+            renderTablaMisAsignaciones();
+        }
+
+        function setMisAsigFiltroEstado(estado) {
+            misAsigFiltroEstado = estado;
+            ['Todas', 'Pendientes', 'Realizadas'].forEach(st => {
+                const btn = document.getElementById(`btnMisAsigFiltro${st}`);
+                if (btn) {
+                    if (st.toLowerCase() === estado) {
+                        btn.className = "px-2.5 py-1 rounded-md font-medium transition-colors bg-white dark:bg-slate-800 text-gray-800 dark:text-white shadow-sm";
+                    } else {
+                        btn.className = "px-2.5 py-1 rounded-md font-medium transition-colors text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-white";
+                    }
+                }
+            });
+            renderTablaMisAsignaciones();
+        }
+
         async function cargarCumplimientoAnual(anio) {
             const progressAnual = document.getElementById('misAsigProgressAnual');
-            const normalizar = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const normalizar = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             const userNorm = normalizar(loggedUserFullName);
 
             try {
-                // Fetch todos los meses del año en paralelo
                 const meses = Array.from({ length: 12 }, (_, i) =>
                     `${anio}-${String(i + 1).padStart(2, '0')}`
                 );
                 const responses = await Promise.all(
-                    meses.map(m => fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${m}`))
+                    meses.map(m => fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${m}`).catch(() => null))
                 );
 
-                // Acumular asignaciones del usuario de todo el año
                 let totalAnual = 0;
                 let realizadosAnual = 0;
 
                 for (const res of responses) {
-                    if (!res.ok) continue;
+                    if (!res || !res.ok) continue;
                     const data = await res.json();
                     const userAsigs = data.filter(a => normalizar(a.asociado) === userNorm);
                     for (const a of userAsigs) {
@@ -1591,6 +1661,7 @@
 
         function cerrarSesionMisAsignaciones() {
             loggedUserFullName = '';
+            currentMisAsignaciones = [];
             localStorage.removeItem('misAsigFullName');
             localStorage.removeItem('misAsigUser');
             document.getElementById('misAsigContent').classList.add('hidden');
