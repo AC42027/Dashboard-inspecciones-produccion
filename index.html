@@ -1060,7 +1060,7 @@
                     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-calendar text-[#003399] dark:text-yellow-400 mr-1.5"></i>Seleccionar Mes</label>
                         <div class="flex gap-2">
-                            <input type="month" id="misAsigMes" class="flex-1 border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()">
+                            <select id="misAsigMes" class="flex-1 border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()"></select>
                             <button onclick="cargarMisAsignaciones()" class="btn btn-primary btn-md">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
@@ -1441,11 +1441,7 @@
             }
 
             if (tab === 'mis-asignaciones') {
-                const mesInput = document.getElementById('misAsigMes');
-                if (!mesInput.value) {
-                    const ahora = new Date();
-                    mesInput.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
-                }
+                poblarSelectMesMisAsignaciones();
                 if (loggedUserFullName) {
                     cargarMisAsignaciones();
                 }
@@ -1485,6 +1481,23 @@
                 return `${MESES_ES[parts[1] - 1]} de ${parts[0]}`;
             }
             return mesStr;
+        }
+        function poblarSelectMesMisAsignaciones() {
+            const sel = document.getElementById('misAsigMes');
+            if (!sel || sel.options.length > 0) return;
+            const ahora = new Date();
+            const currYr = ahora.getFullYear();
+            const currMo = ahora.getMonth();
+            let html = '';
+            for (let yr = currYr - 1; yr <= currYr + 1; yr++) {
+                for (let m = 0; m < 12; m++) {
+                    const val = `${yr}-${String(m + 1).padStart(2, '0')}`;
+                    const label = `${MESES_ES[m]} ${yr}`;
+                    const isSelected = (yr === currYr && m === currMo);
+                    html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${label}</option>`;
+                }
+            }
+            sel.innerHTML = html;
         }
 
         function get4PeriodsOfMonth(year, monthIndex) {
@@ -1603,9 +1616,7 @@
                     document.getElementById('misAsigContent').classList.remove('hidden');
                     document.getElementById('misAsigUserName').textContent = loggedUserFullName;
 
-                    const ahora = new Date();
-                    const mesInput = document.getElementById('misAsigMes');
-                    mesInput.value = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                    poblarSelectMesMisAsignaciones();
                     cargarMisAsignaciones();
                 } else {
                     error.textContent = data.message || data.error || "Credenciales inválidas o acceso denegado.";
