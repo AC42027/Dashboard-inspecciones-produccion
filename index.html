@@ -1418,6 +1418,49 @@
             }
         }
 
+        // --- HELPER DE VALIDACIÓN DE INSPECCIÓN REALIZADA ---
+        function normalizarTexto(s) {
+            return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        }
+
+        function matchAsociado(owner, asociado) {
+            if (!owner || !asociado) return true;
+            const o = normalizarTexto(owner);
+            const a = normalizarTexto(asociado);
+            if (o === a) return true;
+            const oParts = o.split(/\s+/).filter(p => p.length >= 2);
+            const aParts = a.split(/\s+/).filter(p => p.length >= 2);
+            return oParts.some(p => aParts.includes(p)) || aParts.some(p => oParts.includes(p));
+        }
+
+        function esInspeccionRealizada(asig, inspeccionesList, mesStr) {
+            if (!asig || !inspeccionesList || inspeccionesList.length === 0) return false;
+
+            const eqNorm = normalizarTexto(asig.equipo);
+
+            return inspeccionesList.some(i => {
+                if (normalizarTexto(i.equipo) !== eqNorm) return false;
+
+                // 1. Validar que el inspector (owner) coincida con el asociado asignado
+                if (i.owner && !matchAsociado(i.owner, asig.asociado)) return false;
+
+                // 2. Validar rango de fecha por semana de asignación (si existe asig.fecha)
+                if (asig.fecha) {
+                    const fAsigStart = new Date(asig.fecha + 'T00:00:00').getTime();
+                    const fAsigEnd = fAsigStart + 7 * 24 * 60 * 60 * 1000;
+                    const fInsp = new Date(i.fecha + 'T00:00:00').getTime();
+                    return fInsp >= fAsigStart && fInsp < fAsigEnd;
+                }
+
+                // 3. Fallback: validar mes
+                if (mesStr && i.fecha) {
+                    return i.fecha.startsWith(mesStr);
+                }
+
+                return true;
+            });
+        }
+
         // MIS ASIGNACIONES
         let loggedUserFullName = '';
         let currentMisAsignaciones = [];
@@ -1506,13 +1549,7 @@
                 renderTablaMisAsignaciones();
 
                 // Progress bar mensual
-                const realizados = currentMisAsignaciones.filter(a => {
-                    return inspecciones.some(i =>
-                        i.equipo === a.equipo &&
-                        i.fecha >= a.fecha &&
-                        new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
-                    );
-                }).length;
+                const realizados = currentMisAsignaciones.filter(a => esInspeccionRealizada(a, inspecciones)).length;
 
                 const total = currentMisAsignaciones.length;
                 const pct = total > 0 ? Math.round((realizados / total) * 100) : 0;
@@ -1544,11 +1581,7 @@
                 const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText);
                 if (!matchesSearch) return false;
 
-                const realizada = inspecciones.some(i =>
-                    i.equipo === a.equipo &&
-                    i.fecha >= a.fecha &&
-                    new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
-                );
+                const realizada = esInspeccionRealizada(a, inspecciones);
 
                 if (misAsigFiltroEstado === 'realizadas') return realizada;
                 if (misAsigFiltroEstado === 'pendientes') return !realizada;
@@ -1560,11 +1593,7 @@
             } else {
                 let html = '';
                 filtered.forEach(a => {
-                    const realizada = inspecciones.some(i =>
-                        i.equipo === a.equipo &&
-                        i.fecha >= a.fecha &&
-                        new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
-                    );
+                    const realizada = esInspeccionRealizada(a, inspecciones);
 
                     const fInicio = new Date(a.fecha + 'T00:00:00');
                     const fFin = new Date(fInicio.getTime() + 6 * 24 * 60 * 60 * 1000);
@@ -1628,11 +1657,7 @@
                     const data = await res.json();
                     const userAsigs = data.filter(a => normalizar(a.asociado) === userNorm);
                     for (const a of userAsigs) {
-                        const realizada = inspecciones.some(i =>
-                            i.equipo === a.equipo &&
-                            i.fecha >= a.fecha &&
-                            new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000)
-                        );
+                        const realizada = esInspeccionRealizada(a, inspecciones);
                         if (realizada) realizadosAnual++;
                         totalAnual++;
                     }
@@ -2987,12 +3012,7 @@
             Object.entries(porAsociado).sort().forEach(([aso, equiposAso]) => {
                 equiposAso.forEach((asig, index) => {
                     // Validar si está realizada en el mes
-                    const realizada = inspecciones.some(i => {
-                        if (i.equipo !== asig.equipo) return false;
-                        const parts = i.fecha.split('-');
-                        if (parts.length < 2) return false;
-                        return parseInt(parts[0]) === anio && parseInt(parts[1]) === mesNum;
-                    });
+                    const realizada = esInspeccionRealizada(asig, inspecciones, mesStr);
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
                     if (index === 0) {
@@ -3392,14 +3412,7 @@
                 const equipos = porAso[aso];
                 const esPar = ai % 2 === 0;
                 equipos.forEach(a => {
-                    const realizada = inspecciones.some(i => {
-                        if (i.equipo !== a.equipo) return false;
-                        if (a.fecha) {
-                            return i.fecha >= a.fecha &&
-                                new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000);
-                        }
-                        return true;
-                    });
+                    const realizada = esInspeccionRealizada(a, inspecciones, mesStr);
                     const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
                     if (realizada) totalRealizadas++; else totalPendientes++;
                     datos.push([aso, a.equipo, a.zona || 'N/A', estado]);
@@ -3501,14 +3514,7 @@
                 const bgColor = asociadoColors[aso];
                 const equipos = porAso[aso];
                 equipos.forEach(a => {
-                    const realizada = inspecciones.some(i => {
-                        if (i.equipo !== a.equipo) return false;
-                        if (a.fecha) {
-                            return i.fecha >= a.fecha &&
-                                new Date(i.fecha) < new Date(new Date(a.fecha).getTime() + 7 * 24 * 60 * 60 * 1000);
-                        }
-                        return true;
-                    });
+                    const realizada = esInspeccionRealizada(a, inspecciones, mesStr);
                     const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
 
                     for (let c = 0; c <= ultCol; c++) {
