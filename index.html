@@ -1212,7 +1212,7 @@
         let asignacionesGuardadas = false; // Controla habilitación del botón Exportar
         let asignacionesPreview = []; // Las generadas temporalmente antes de guardar
 
-        const API_BASE = 'http://10.107.194.110:8080';
+        const API_BASE = (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') ? `http://${window.location.hostname}:8080` : 'http://10.107.194.110:8080';
 
         function cargarTeam() {
             const guardado = localStorage.getItem('asrsTeam');
@@ -1478,7 +1478,7 @@
             error.classList.add('hidden');
 
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/login-ldap/', {
+                const res = await fetch(`${API_BASE}/api/login-ldap/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: user, password: pass })
@@ -1530,15 +1530,18 @@
             contentError.classList.add('hidden');
 
             try {
-                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${mes}`);
-                if (!res.ok) throw new Error('Error al cargar asignaciones');
+                const res = await fetch(`${API_BASE}/api/asignaciones/?mes=${mes}`);
+                if (!res.ok) {
+                    const errText = await res.text().catch(() => '');
+                    throw new Error(`HTTP ${res.status}: ${errText || res.statusText || 'Error en servidor'}`);
+                }
                 const data = await res.json();
 
                 // Normalizar para matching flexible
                 const normalizar = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 const userNorm = normalizar(loggedUserFullName);
 
-                currentMisAsignaciones = data.filter(a => normalizar(a.asociado) === userNorm);
+                currentMisAsignaciones = data.filter(a => matchAsociado(loggedUserFullName, a.asociado));
 
                 if (currentMisAsignaciones.length === 0) {
                     noData.classList.remove('hidden');
@@ -1646,7 +1649,7 @@
                     `${anio}-${String(i + 1).padStart(2, '0')}`
                 );
                 const responses = await Promise.all(
-                    meses.map(m => fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${m}`).catch(() => null))
+                    meses.map(m => fetch(`${API_BASE}/api/asignaciones/?mes=${m}`).catch(() => null))
                 );
 
                 let totalAnual = 0;
@@ -1709,7 +1712,7 @@
             error.classList.add('hidden');
 
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/login-ldap/', {
+                const res = await fetch(`${API_BASE}/api/login-ldap/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username: user, password: pass })
@@ -1884,7 +1887,7 @@
             tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8"><div class="loader mx-auto mb-2"></div><p class="text-gray-500">Cargando...</p></td></tr>';
 
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/', {
+                const res = await fetch(`${API_BASE}/api/equipos-sin-qr/`, {
                     headers: { 'X-API-Token': 'fxoNqZPOR7nxwAYrbqFTONNEjUO2I1Hv3Wm34YGrEL4' }
                 });
                 if (!res.ok) throw new Error('Error al cargar datos');
@@ -1936,7 +1939,7 @@
             if (!confirmar) return;
 
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/equipos-sin-qr/' + id + '/', {
+                const res = await fetch(`${API_BASE}/api/equipos-sin-qr/` + id + '/', {
                     method: 'DELETE',
                     headers: { 'X-API-Token': 'fxoNqZPOR7nxwAYrbqFTONNEjUO2I1Hv3Wm34YGrEL4' }
                 });
@@ -2024,7 +2027,7 @@
         async function fetchData() {
             try {
                 // Usar la IP directa de la API
-                const response = await fetch('http://10.107.194.110:8080/api/dashboard/inspecciones/');
+                const response = await fetch(`${API_BASE}/api/dashboard/inspecciones/`);
                 if (!response.ok) throw new Error('Respuesta de red no fue ok');
                 inspecciones = await response.json();
 
@@ -2277,7 +2280,7 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch(`http://10.107.194.110:8080/api/inspecciones/${inspeccionId}/cerrar/`, {
+                const res = await fetch(`${API_BASE}/api/inspecciones/${inspeccionId}/cerrar/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -2966,7 +2969,7 @@
             }
 
             try {
-                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/?mes=${mes}`);
+                const res = await fetch(`${API_BASE}/api/asignaciones/?mes=${mes}`);
                 if (!res.ok) throw new Error("Endpoint no encontrado");
 
                 const data = await res.json();
@@ -3048,7 +3051,7 @@
 
             try {
                 // 1. Obtener equipos
-                const res = await fetch('http://10.107.194.110:8080/api/equipos/');
+                const res = await fetch(`${API_BASE}/api/equipos/`);
                 const allEquipos = await res.json();
 
                 let equiposASRS = allEquipos.filter(e => e.area === "ASRS" || e.area_id === "ASRS" || (e.area && e.area.nombre === "ASRS") || e.division === "ASRS");
@@ -3075,7 +3078,7 @@
 
                 let historialPrevio = {};
                 try {
-                    const resPrev = await fetch(`http://10.107.194.110:8080/api/asignaciones/?fecha=${fechaPrevStr}`);
+                    const resPrev = await fetch(`${API_BASE}/api/asignaciones/?fecha=${fechaPrevStr}`);
                     if (resPrev.ok) {
                         const dataPrev = await resPrev.json();
                         dataPrev.forEach(a => { historialPrevio[a.asociado] = a.zona; });
@@ -3175,7 +3178,7 @@
 
         async function actualizarDataListsAdmin() {
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/equipos/');
+                const res = await fetch(`${API_BASE}/api/equipos/`);
                 const allEquipos = await res.json();
                 const datalist = document.getElementById('asrsEqList');
                 if (datalist) {
@@ -3315,7 +3318,7 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch('http://10.107.194.110:8080/api/asignaciones/', {
+                const res = await fetch(`${API_BASE}/api/asignaciones/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -3354,7 +3357,7 @@
             if (!confirmar) return;
 
             try {
-                const res = await fetch(`http://10.107.194.110:8080/api/asignaciones/${asignacionId}/eliminar/`, {
+                const res = await fetch(`${API_BASE}/api/asignaciones/${asignacionId}/eliminar/`, {
                     method: 'DELETE'
                 });
                 const data = await res.json();
