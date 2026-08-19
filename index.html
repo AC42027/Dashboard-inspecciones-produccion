@@ -1456,6 +1456,16 @@
             return (nombre || '').replace(/\s+eje\s+[A-Za-z0-9]+/i, '').replace(/\s*\([^)]*\)/, '').trim();
         }
 
+        const MESES_ES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        function obtenerNombreMesEspañol(mesStr) {
+            if (!mesStr) return '';
+            const parts = mesStr.split('-').map(Number);
+            if (parts.length >= 2 && parts[1] >= 1 && parts[1] <= 12) {
+                return `${MESES_ES[parts[1] - 1]} de ${parts[0]}`;
+            }
+            return mesStr;
+        }
+
         function normalizarTexto(s) {
             return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         }
@@ -3405,7 +3415,12 @@
                 const fInicio = new Date(semFecha + 'T00:00:00');
                 const fFin = new Date(fInicio.getTime() + 6 * 24 * 60 * 60 * 1000);
                 const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-                const tituloSemana = `Semana del ${fmt(fInicio)} al ${fmt(fFin)}`;
+                const mesIni = MESES_ES[fInicio.getMonth()];
+                const mesFin = MESES_ES[fFin.getMonth()];
+                const fmtDiaMes = (d, m) => `${String(d.getDate()).padStart(2,'0')} de ${m}`;
+                const tituloSemana = mesIni === mesFin
+                    ? `Semana del ${String(fInicio.getDate()).padStart(2,'0')} al ${String(fFin.getDate()).padStart(2,'0')} de ${mesIni} de ${fInicio.getFullYear()}`
+                    : `Semana del ${fmtDiaMes(fInicio, mesIni)} al ${fmtDiaMes(fFin, mesFin)} de ${fInicio.getFullYear()}`;
 
                 const porAso = porSemana[semFecha];
                 const sortedAsos = Object.keys(porAso).sort((a, b) => a === 'PENDIENTE' ? -1 : b === 'PENDIENTE' ? 1 : a.localeCompare(b));
