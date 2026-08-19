@@ -3178,6 +3178,31 @@
                 }
                 const semanasMes = lunesMes.slice(0, 4);
 
+                // 3b. Obtener historial de la semana anterior desde la BD para no repetir a los que tuvieron robots
+                const fPrev = new Date(semanasMes[0] + "T00:00:00");
+                fPrev.setDate(fPrev.getDate() - 7);
+                const fechaPrevStr = fPrev.toISOString().split('T')[0];
+
+                let historialPrevio = {};
+                try {
+                    const resPrev = await fetch(`${API_BASE}/api/asignaciones/?fecha=${fechaPrevStr}`);
+                    if (resPrev.ok) {
+                        const dataPrev = await resPrev.json();
+                        dataPrev.forEach(a => { historialPrevio[a.asociado] = (a.zona || '') + ' ' + (a.equipo || ''); });
+                    }
+                } catch (e) { console.warn("No se pudo obtener el historial previo para rotación."); }
+
+                // Ordenar equipo ASRS base: quienes tuvieron robots la semana previa rotan al final
+                const asociadosBase = [...asrsTeam].sort((a, b) => {
+                    const histA = (historialPrevio[a] || '').toLowerCase();
+                    const histB = (historialPrevio[b] || '').toLowerCase();
+                    const tuvoRobotA = histA.includes('robot');
+                    const tuvoRobotB = histB.includes('robot');
+                    if (tuvoRobotA && !tuvoRobotB) return 1;
+                    if (!tuvoRobotA && tuvoRobotB) return -1;
+                    return 0;
+                });
+
                 // 4. Dividir unidades de robots completos y otros equipos en 4 bloques semanales
                 const chunkRobotsSem = Math.ceil(pressRobotUnits.length / 4);
                 const chunkOtrosSem = Math.ceil(otrosEquipos.length / 4);
@@ -3201,10 +3226,9 @@
                     const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
                     const otrosSem = otrosEquipos.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
 
-                    // Rotar asociados en cada semana
-                    const asociadosSem = [...asrsTeam];
-                    const shift = (wIdx * 3) % asociadosSem.length;
-                    const asociadosRotados = [...asociadosSem.slice(shift), ...asociadosSem.slice(0, shift)];
+                    // Rotar asociados en cada semana a partir de asociadosBase
+                    const shift = (wIdx * 3) % asociadosBase.length;
+                    const asociadosRotados = [...asociadosBase.slice(shift), ...asociadosBase.slice(0, shift)];
 
                     const asociadosRobot = asociadosRotados.slice(0, Math.min(5, asociadosRotados.length));
                     const asociadosResto = asociadosRotados.slice(Math.min(5, asociadosRotados.length));
