@@ -3268,13 +3268,15 @@
                     const shift = (wIdx * 3) % asociadosBase.length;
                     const asociadosRotados = [...asociadosBase.slice(shift), ...asociadosBase.slice(0, shift)];
 
-                    const asociadosRobot = asociadosRotados.slice(0, Math.min(5, asociadosRotados.length));
-                    const asociadosResto = asociadosRotados.slice(Math.min(5, asociadosRotados.length));
+                    // Tomar únicamente como especialistas a quienes realmente reciban robots (máximo 5)
+                    const numEspecialistas = Math.min(robotUnitsSem.length, Math.min(5, asociadosRotados.length));
+                    const asociadosRobot = numEspecialistas > 0 ? asociadosRotados.slice(0, numEspecialistas) : [];
+                    const asociadosResto = asociadosRotados.slice(numEspecialistas);
 
                     const asignacionPorAsociado = {};
                     asociadosRotados.forEach(a => { asignacionPorAsociado[a] = []; });
 
-                    // Repartir UNIDADES DE ROBOTS COMPLETOS entre los especialistas
+                    // Repartir UNIDADES DE ROBOTS COMPLETOS entre los especialistas reales
                     if (robotUnitsSem.length > 0 && asociadosRobot.length > 0) {
                         const chunkR = Math.floor(robotUnitsSem.length / asociadosRobot.length);
                         let extraR = robotUnitsSem.length % asociadosRobot.length;
@@ -3288,8 +3290,8 @@
                         });
                     }
 
-                    // Repartir otros equipos entre el resto
-                    const equipoDestinoOtros = asociadosResto.length > 0 ? asociadosResto : asociadosRobot;
+                    // Repartir otros equipos entre TODOS los demás integrantes
+                    const equipoDestinoOtros = asociadosResto.length > 0 ? asociadosResto : asociadosRotados;
                     if (otrosSem.length > 0 && equipoDestinoOtros.length > 0) {
                         const chunkO = Math.floor(otrosSem.length / equipoDestinoOtros.length);
                         let extraO = otrosSem.length % equipoDestinoOtros.length;
@@ -3302,6 +3304,19 @@
                             asignacionPorAsociado[aso].push(...items);
                         });
                     }
+
+                    // Garantizar que 100% de los integrantes del equipo reciban al menos 1 equipo
+                    asociadosRotados.forEach(aso => {
+                        if (asignacionPorAsociado[aso].length === 0) {
+                            const maxAso = asociadosRotados.reduce((prev, curr) =>
+                                asignacionPorAsociado[curr].length > asignacionPorAsociado[prev].length ? curr : prev
+                            , asociadosRotados[0]);
+                            if (asignacionPorAsociado[maxAso].length > 1) {
+                                const movedItem = asignacionPorAsociado[maxAso].pop();
+                                asignacionPorAsociado[aso].push(movedItem);
+                            }
+                        }
+                    });
 
                     // Agregar a asignacionesPreview
                     Object.entries(asignacionPorAsociado).forEach(([aso, eqs]) => {
