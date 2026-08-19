@@ -1466,6 +1466,31 @@
             return mesStr;
         }
 
+        function getFirstMondayOfMonth(year, monthIndex) {
+            const d = new Date(year, monthIndex, 1, 12, 0, 0);
+            while (d.getDay() !== 1) {
+                d.setDate(d.getDate() + 1);
+            }
+            return d;
+        }
+
+        function get4MondaysOfMonth(year, monthIndex) {
+            const firstMonday = getFirstMondayOfMonth(year, monthIndex);
+            const mondays = [];
+            for (let i = 0; i < 4; i++) {
+                const m = new Date(firstMonday.getFullYear(), firstMonday.getMonth(), firstMonday.getDate() + i * 7, 12, 0, 0);
+                mondays.push(m);
+            }
+            return mondays;
+        }
+
+        function formatDateYYYYMMDD(d) {
+            const yr = d.getFullYear();
+            const mo = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${yr}-${mo}-${day}`;
+        }
+
         function normalizarTexto(s) {
             return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         }
@@ -3132,29 +3157,12 @@
             const yr = parts[0];
             const mo = parts[1] - 1;
 
-            const lunesMes = [];
-            const tempDate = new Date(yr, mo, 1);
-            while (tempDate.getMonth() === mo) {
-                if (tempDate.getDay() === 1) {
-                    lunesMes.push(new Date(tempDate));
-                }
-                tempDate.setDate(tempDate.getDate() + 1);
-            }
-            if (lunesMes.length < 4) {
-                const firstMonday = lunesMes[0] ? new Date(lunesMes[0]) : new Date(yr, mo, 1);
-                lunesMes.length = 0;
-                for (let w = 0; w < 4; w++) {
-                    const d = new Date(firstMonday);
-                    d.setDate(d.getDate() + w * 7);
-                    lunesMes.push(d);
-                }
-            }
-
+            const mondays = get4MondaysOfMonth(yr, mo);
             const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
 
             for (let i = 0; i < 4; i++) {
-                const fIni = lunesMes[i];
-                const fFin = new Date(fIni.getTime() + 6 * 24 * 60 * 60 * 1000);
+                const fIni = mondays[i];
+                const fFin = new Date(fIni.getFullYear(), fIni.getMonth(), fIni.getDate() + 6, 12, 0, 0);
                 const txtEl = document.getElementById(`lblSem${i+1}Text`);
                 if (txtEl) {
                     txtEl.textContent = `Sem. ${i+1} (${fmt(fIni)} - ${fmt(fFin)})`;
@@ -3206,24 +3214,8 @@
                 const pressRobotUnits = Array.from(robotUnitsMap.values());
 
                 // 3. Calcular las 4 semanas (lunes) del mes
-                const lunesMes = [];
-                const tempDate = new Date(yr, mo, 1);
-                while (tempDate.getMonth() === mo) {
-                    if (tempDate.getDay() === 1) {
-                        lunesMes.push(tempDate.toISOString().split('T')[0]);
-                    }
-                    tempDate.setDate(tempDate.getDate() + 1);
-                }
-                if (lunesMes.length < 4) {
-                    const firstMonday = lunesMes[0] ? new Date(lunesMes[0] + "T00:00:00") : new Date(yr, mo, 1);
-                    lunesMes.length = 0;
-                    for (let w = 0; w < 4; w++) {
-                        const d = new Date(firstMonday);
-                        d.setDate(d.getDate() + w * 7);
-                        lunesMes.push(d.toISOString().split('T')[0]);
-                    }
-                }
-                const semanasMes = lunesMes.slice(0, 4);
+                const mondays = get4MondaysOfMonth(yr, mo);
+                const semanasMes = mondays.map(d => formatDateYYYYMMDD(d));
 
                 // 3b. Obtener historial de la semana anterior desde la BD
                 const fPrev = new Date(semanasMes[0] + "T00:00:00");
@@ -3412,8 +3404,9 @@
 
             let html = '';
             Object.keys(porSemana).sort().forEach(semFecha => {
-                const fInicio = new Date(semFecha + 'T00:00:00');
-                const fFin = new Date(fInicio.getTime() + 6 * 24 * 60 * 60 * 1000);
+                const parts = semFecha.split('-').map(Number);
+                const fInicio = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+                const fFin = new Date(parts[0], parts[1] - 1, parts[2] + 6, 12, 0, 0);
                 const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
                 const mesIni = MESES_ES[fInicio.getMonth()];
                 const mesFin = MESES_ES[fFin.getMonth()];
