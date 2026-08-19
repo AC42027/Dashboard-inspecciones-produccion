@@ -1211,6 +1211,7 @@
         let asignacionesActuales = []; // Las obtenidas de la BD para mostrar
         let asignacionesGuardadas = false; // Controla habilitación del botón Exportar
         let asignacionesPreview = []; // Las generadas temporalmente antes de guardar
+        let esGeneracionAuto = false; // Flag para no sobrescribir asignaciones manuales previas
 
         const API_BASE = (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') ? `http://${window.location.hostname}:8080` : 'http://10.107.194.110:8080';
 
@@ -3042,6 +3043,7 @@
         }
 
         async function generarAsignaciones() {
+            esGeneracionAuto = true;
             const fechaInput = document.getElementById('asigFechaGenerar').value;
             if (!fechaInput) { mostrarAlerta('Atención', 'Seleccione una fecha de inicio de semana.', 'fa-exclamation-circle text-amber-500'); return; }
 
@@ -3191,6 +3193,7 @@
         }
 
         function agregarAsignacionManual() {
+            esGeneracionAuto = false;
             const eq = document.getElementById('manualEqSearch').value.trim();
             const aso = document.getElementById('manualAsoSelect').value;
             const fecha = document.getElementById('asigFechaGenerar').value;
@@ -3324,7 +3327,8 @@
                     body: JSON.stringify({
                         fecha: asignacionesPreview[0].fecha,
                         asignaciones: asignacionesPreview,
-                        asignado_por: 'Admin'
+                        asignado_por: 'Admin',
+                        reemplazar_todo: esGeneracionAuto
                     })
                 });
 
