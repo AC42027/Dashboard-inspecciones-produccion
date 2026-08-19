@@ -776,20 +776,37 @@
                     </div>
 
                     <!-- Generación Automática -->
-                    <div
-                        class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-blue-100 dark:border-blue-800">
-                        <h4
-                            class="text-xs font-bold text-goodyear-blue dark:text-blue-300 mb-3 uppercase tracking-wider">
-                            Generación Automática de Rutas y Rotaciones</h4>
-                        <div class="flex flex-col sm:flex-row gap-4">
-                            <div class="flex flex-col gap-1 flex-grow">
-                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Lunes de la
-                                    semana</label>
-                                <input type="date" id="asigFechaGenerar" class="glass-input w-full">
+                    <div class="bg-white/50 dark:bg-black/20 p-5 rounded-xl mb-6 border border-blue-100 dark:border-blue-800 shadow-sm">
+                        <h4 class="text-xs font-bold text-goodyear-blue dark:text-blue-300 mb-4 uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-magic text-goodyear-blue dark:text-blue-400"></i> Generación Automática de Rutas y Rotaciones
+                        </h4>
+                        
+                        <div class="flex flex-col lg:flex-row gap-4 items-end">
+                            <div class="flex flex-col gap-1 flex-grow w-full lg:w-auto">
+                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Fecha inicial (Lunes del mes)</label>
+                                <input type="date" id="asigFechaGenerar" class="glass-input w-full text-sm">
                             </div>
-                            <button onclick="generarAsignaciones()"
-                                class="self-end btn btn-primary btn-md">
-                                <i class="fas fa-magic"></i> Generar Rutas Automáticas
+
+                            <div class="flex flex-col gap-1 w-full lg:w-auto">
+                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Semanas a generar:</label>
+                                <div class="flex flex-wrap gap-2 items-center bg-white dark:bg-slate-800 p-2 rounded-lg border border-gray-200 dark:border-slate-700 shadow-inner">
+                                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
+                                        <input type="checkbox" id="chkSem1" value="0" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 1
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
+                                        <input type="checkbox" id="chkSem2" value="1" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 2
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
+                                        <input type="checkbox" id="chkSem3" value="2" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 3
+                                    </label>
+                                    <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
+                                        <input type="checkbox" id="chkSem4" value="3" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 4
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button onclick="generarAsignaciones()" class="btn btn-primary btn-md w-full lg:w-auto shrink-0">
+                                <i class="fas fa-magic"></i> Generar Rutas
                             </button>
                         </div>
                     </div>
@@ -3167,7 +3184,20 @@
 
                 asignacionesPreview = [];
 
+                // Obtener semanas seleccionadas por el admin
+                const semanasCheckeadas = [];
+                if (document.getElementById('chkSem1')?.checked) semanasCheckeadas.push(0);
+                if (document.getElementById('chkSem2')?.checked) semanasCheckeadas.push(1);
+                if (document.getElementById('chkSem3')?.checked) semanasCheckeadas.push(2);
+                if (document.getElementById('chkSem4')?.checked) semanasCheckeadas.push(3);
+
+                if (semanasCheckeadas.length === 0) {
+                    mostrarAlerta('Atención', 'Seleccione al menos una semana para generar.', 'fa-info-circle text-blue-500');
+                    return;
+                }
+
                 semanasMes.forEach((semFecha, wIdx) => {
+                    if (!semanasCheckeadas.includes(wIdx)) return;
                     const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
                     const otrosSem = otrosEquipos.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
 
