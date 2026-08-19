@@ -783,24 +783,24 @@
                         
                         <div class="flex flex-col lg:flex-row gap-4 items-end">
                             <div class="flex flex-col gap-1 flex-grow w-full lg:w-auto">
-                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Fecha inicial (Lunes del mes)</label>
-                                <input type="date" id="asigFechaGenerar" class="glass-input w-full text-sm">
+                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Mes a planificar</label>
+                                <input type="month" id="asigMesGenerar" class="glass-input w-full text-sm" onchange="actualizarFechasSemanas()">
                             </div>
 
                             <div class="flex flex-col gap-1 w-full lg:w-auto">
-                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Semanas a generar:</label>
+                                <label class="text-xs text-goodyear-blue dark:text-blue-300 font-bold ml-1">Semanas del mes a generar:</label>
                                 <div class="flex flex-wrap gap-2 items-center bg-white dark:bg-slate-800 p-2 rounded-lg border border-gray-200 dark:border-slate-700 shadow-inner">
                                     <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
-                                        <input type="checkbox" id="chkSem1" value="0" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 1
+                                        <input type="checkbox" id="chkSem1" value="0" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> <span id="lblSem1Text">Sem. 1</span>
                                     </label>
                                     <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
-                                        <input type="checkbox" id="chkSem2" value="1" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 2
+                                        <input type="checkbox" id="chkSem2" value="1" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> <span id="lblSem2Text">Sem. 2</span>
                                     </label>
                                     <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
-                                        <input type="checkbox" id="chkSem3" value="2" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 3
+                                        <input type="checkbox" id="chkSem3" value="2" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> <span id="lblSem3Text">Sem. 3</span>
                                     </label>
                                     <label class="inline-flex items-center gap-1.5 text-xs font-semibold cursor-pointer px-2.5 py-1 rounded hover:bg-blue-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-200">
-                                        <input type="checkbox" id="chkSem4" value="3" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> Sem. 4
+                                        <input type="checkbox" id="chkSem4" value="3" checked class="rounded text-goodyear-blue focus:ring-goodyear-blue"> <span id="lblSem4Text">Sem. 4</span>
                                     </label>
                                 </div>
                             </div>
@@ -1432,8 +1432,9 @@
                 const fechaStr = now.toISOString().split('T')[0];
 
                 if (!document.getElementById('verFecha').value) {
-                    document.getElementById('verFecha').value = mesStr;
-                    document.getElementById('asigFechaGenerar').value = fechaStr;
+                document.getElementById('verFecha').value = mesStr;
+                if (document.getElementById('asigMesGenerar')) document.getElementById('asigMesGenerar').value = mesStr;
+                actualizarFechasSemanas();
                     cargarAsignacionesSemanales();
                 }
             }
@@ -3113,14 +3114,56 @@
             tbody.innerHTML = html;
         }
 
+        function actualizarFechasSemanas() {
+            const val = document.getElementById('asigMesGenerar')?.value;
+            if (!val) return;
+
+            const parts = val.split('-').map(Number);
+            const yr = parts[0];
+            const mo = parts[1] - 1;
+
+            const lunesMes = [];
+            const tempDate = new Date(yr, mo, 1);
+            while (tempDate.getMonth() === mo) {
+                if (tempDate.getDay() === 1) {
+                    lunesMes.push(new Date(tempDate));
+                }
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+            if (lunesMes.length < 4) {
+                const firstMonday = lunesMes[0] ? new Date(lunesMes[0]) : new Date(yr, mo, 1);
+                lunesMes.length = 0;
+                for (let w = 0; w < 4; w++) {
+                    const d = new Date(firstMonday);
+                    d.setDate(d.getDate() + w * 7);
+                    lunesMes.push(d);
+                }
+            }
+
+            const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
+
+            for (let i = 0; i < 4; i++) {
+                const fIni = lunesMes[i];
+                const fFin = new Date(fIni.getTime() + 6 * 24 * 60 * 60 * 1000);
+                const txtEl = document.getElementById(`lblSem${i+1}Text`);
+                if (txtEl) {
+                    txtEl.textContent = `Sem. ${i+1} (${fmt(fIni)} - ${fmt(fFin)})`;
+                }
+            }
+        }
+
         async function generarAsignaciones() {
             esGeneracionAuto = true;
-            const fechaInput = document.getElementById('asigFechaGenerar').value;
-            if (!fechaInput) { mostrarAlerta('Atención', 'Seleccione una fecha de inicio de semana.', 'fa-exclamation-circle text-amber-500'); return; }
+            const val = document.getElementById('asigMesGenerar').value;
+            if (!val) { mostrarAlerta('Atención', 'Seleccione un mes a planificar.', 'fa-exclamation-circle text-amber-500'); return; }
 
             const btn = event.currentTarget;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generando...';
             btn.disabled = true;
+
+            const parts = val.split('-').map(Number);
+            const yr = parts[0];
+            const mo = parts[1] - 1;
 
             try {
                 // 1. Obtener equipos ASRS
@@ -3140,25 +3183,19 @@
                 });
                 const equiposTotal = Array.from(uniqueEqsMap.values());
 
-                // 2. Identificar Press Robots y Equipos Generales
-                // 2. Identificar y agrupar Press Robots por UNIDAD COMPLETA (todos sus ejes juntos)
+                // 2. Identificar y agrupar Press Robots por UNIDAD COMPLETA
                 const pressRobotsList = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot'));
                 const otrosEquipos = equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
 
-                // Agrupar los ejes por nombre base del robot (ej: "Press Robot 600B" agrupa ejes X, Z, U, W)
                 const robotUnitsMap = new Map();
                 pressRobotsList.forEach(e => {
                     const baseName = getBaseRobotName(e.equipo);
                     if (!robotUnitsMap.has(baseName)) robotUnitsMap.set(baseName, []);
                     robotUnitsMap.get(baseName).push(e);
                 });
-                const pressRobotUnits = Array.from(robotUnitsMap.values()); // Array de robots completos
+                const pressRobotUnits = Array.from(robotUnitsMap.values());
 
-                // 3. Calcular las 4 semanas (lunes) del mes para distribuir la carga
-                const baseDate = new Date(fechaInput + "T00:00:00");
-                const yr = baseDate.getFullYear();
-                const mo = baseDate.getMonth();
-
+                // 3. Calcular las 4 semanas (lunes) del mes
                 const lunesMes = [];
                 const tempDate = new Date(yr, mo, 1);
                 while (tempDate.getMonth() === mo) {
@@ -3178,7 +3215,7 @@
                 }
                 const semanasMes = lunesMes.slice(0, 4);
 
-                // 3b. Obtener historial de la semana anterior desde la BD para no repetir a los que tuvieron robots
+                // 3b. Obtener historial de la semana anterior desde la BD
                 const fPrev = new Date(semanasMes[0] + "T00:00:00");
                 fPrev.setDate(fPrev.getDate() - 7);
                 const fechaPrevStr = fPrev.toISOString().split('T')[0];
@@ -3246,7 +3283,7 @@
                             extraR--;
                             const units = robotUnitsSem.slice(rIdx, rIdx + cant);
                             rIdx += cant;
-                            units.forEach(unit => { asignacionPorAsociado[aso].push(...unit); }); // Todos los ejes juntos
+                            units.forEach(unit => { asignacionPorAsociado[aso].push(...unit); });
                         });
                     }
 
