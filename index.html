@@ -1466,22 +1466,22 @@
             return mesStr;
         }
 
-        function getFirstMondayOfMonth(year, monthIndex) {
-            const d = new Date(year, monthIndex, 1, 12, 0, 0);
-            while (d.getDay() !== 1) {
-                d.setDate(d.getDate() + 1);
-            }
-            return d;
-        }
-
-        function get4MondaysOfMonth(year, monthIndex) {
-            const firstMonday = getFirstMondayOfMonth(year, monthIndex);
-            const mondays = [];
-            for (let i = 0; i < 4; i++) {
-                const m = new Date(firstMonday.getFullYear(), firstMonday.getMonth(), firstMonday.getDate() + i * 7, 12, 0, 0);
-                mondays.push(m);
-            }
-            return mondays;
+        function get4PeriodsOfMonth(year, monthIndex) {
+            const lastDay = new Date(year, monthIndex + 1, 0, 12, 0, 0).getDate();
+            const p1Start = new Date(year, monthIndex, 1, 12, 0, 0);
+            const p1End   = new Date(year, monthIndex, 7, 12, 0, 0);
+            const p2Start = new Date(year, monthIndex, 8, 12, 0, 0);
+            const p2End   = new Date(year, monthIndex, 14, 12, 0, 0);
+            const p3Start = new Date(year, monthIndex, 15, 12, 0, 0);
+            const p3End   = new Date(year, monthIndex, 21, 12, 0, 0);
+            const p4Start = new Date(year, monthIndex, 22, 12, 0, 0);
+            const p4End   = new Date(year, monthIndex, lastDay, 12, 0, 0);
+            return [
+                { num: 1, start: p1Start, end: p1End, startStr: formatDateYYYYMMDD(p1Start), endStr: formatDateYYYYMMDD(p1End) },
+                { num: 2, start: p2Start, end: p2End, startStr: formatDateYYYYMMDD(p2Start), endStr: formatDateYYYYMMDD(p2End) },
+                { num: 3, start: p3Start, end: p3End, startStr: formatDateYYYYMMDD(p3Start), endStr: formatDateYYYYMMDD(p3End) },
+                { num: 4, start: p4Start, end: p4End, startStr: formatDateYYYYMMDD(p4Start), endStr: formatDateYYYYMMDD(p4End) }
+            ];
         }
 
         function formatDateYYYYMMDD(d) {
@@ -3157,15 +3157,14 @@
             const yr = parts[0];
             const mo = parts[1] - 1;
 
-            const mondays = get4MondaysOfMonth(yr, mo);
+            const periods = get4PeriodsOfMonth(yr, mo);
             const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
 
             for (let i = 0; i < 4; i++) {
-                const fIni = mondays[i];
-                const fFin = new Date(fIni.getFullYear(), fIni.getMonth(), fIni.getDate() + 6, 12, 0, 0);
+                const p = periods[i];
                 const txtEl = document.getElementById(`lblSem${i+1}Text`);
                 if (txtEl) {
-                    txtEl.textContent = `Sem. ${i+1} (${fmt(fIni)} - ${fmt(fFin)})`;
+                    txtEl.textContent = `Sem. ${i+1} (${fmt(p.start)} - ${fmt(p.end)})`;
                 }
             }
         }
@@ -3214,8 +3213,8 @@
                 const pressRobotUnits = Array.from(robotUnitsMap.values());
 
                 // 3. Calcular las 4 semanas (lunes) del mes
-                const mondays = get4MondaysOfMonth(yr, mo);
-                const semanasMes = mondays.map(d => formatDateYYYYMMDD(d));
+                const periods = get4PeriodsOfMonth(yr, mo);
+                const semanasMes = periods.map(p => p.startStr);
 
                 // 3b. Obtener historial de la semana anterior desde la BD
                 const fPrev = new Date(semanasMes[0] + "T00:00:00");
@@ -3405,16 +3404,13 @@
             let html = '';
             Object.keys(porSemana).sort().forEach(semFecha => {
                 const parts = semFecha.split('-').map(Number);
-                const fInicio = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
-                const fFin = new Date(parts[0], parts[1] - 1, parts[2] + 6, 12, 0, 0);
-                const fmt = d => `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}`;
-                const mesIni = MESES_ES[fInicio.getMonth()];
-                const mesFin = MESES_ES[fFin.getMonth()];
-                const fmtDiaMes = (d, m) => `${String(d.getDate()).padStart(2,'0')} de ${m}`;
-                const tituloSemana = mesIni === mesFin
-                    ? `Semana del ${String(fInicio.getDate()).padStart(2,'0')} al ${String(fFin.getDate()).padStart(2,'0')} de ${mesIni} de ${fInicio.getFullYear()}`
-                    : `Semana del ${fmtDiaMes(fInicio, mesIni)} al ${fmtDiaMes(fFin, mesFin)} de ${fInicio.getFullYear()}`;
-
+                const yr = parts[0];
+                const mo = parts[1] - 1;
+                const day = parts[2];
+                const periods = get4PeriodsOfMonth(yr, mo);
+                const pObj = periods.find(p => p.startStr === semFecha) || { start: new Date(yr, mo, day, 12, 0, 0), end: new Date(yr, mo, day + 6, 12, 0, 0) };
+                const mesNombre = MESES_ES[mo];
+                const tituloSemana = `Semana ${periods.findIndex(p => p.startStr === semFecha) + 1}: del ${String(pObj.start.getDate()).padStart(2,'0')} al ${String(pObj.end.getDate()).padStart(2,'0')} de ${mesNombre} de ${yr}`;
                 const porAso = porSemana[semFecha];
                 const sortedAsos = Object.keys(porAso).sort((a, b) => a === 'PENDIENTE' ? -1 : b === 'PENDIENTE' ? 1 : a.localeCompare(b));
                 const totalEquiposSemana = Object.values(porAso).flat().length;
