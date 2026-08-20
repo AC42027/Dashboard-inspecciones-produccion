@@ -850,6 +850,57 @@
                         </div>
                     </div>
 
+                    <!-- Grupo Crane + Conveyors (Inbound / Outbound) -->
+                    <div
+                        class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg mb-6 border border-amber-200 dark:border-amber-800">
+                        <h4
+                            class="text-xs font-bold text-amber-700 dark:text-amber-300 mb-3 uppercase tracking-wider">
+                            <i class="fas fa-project-diagram mr-1"></i> Grupo Crane + Conveyors (Inbound / Outbound)</h4>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="w-full sm:w-48">
+                                <label
+                                    class="text-[10px] text-amber-700 dark:text-amber-300 font-bold ml-1">Grupo SRM</label>
+                                <select id="manualGrupoSRM" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar SRM --</option>
+                                    <option value="SRM1">SRM1 (P01xx)</option>
+                                    <option value="SRM2">SRM2 (P02xx)</option>
+                                    <option value="SRM3">SRM3 (P03xx)</option>
+                                    <option value="SRM4">SRM4 (P04xx)</option>
+                                    <option value="SRM5">SRM5 (P05xx)</option>
+                                    <option value="SRM6">SRM6 (P06xx)</option>
+                                    <option value="SRM7">SRM7 (P07xx)</option>
+                                    <option value="SRM8">SRM8 (P08xx)</option>
+                                    <option value="SRM9">SRM9 (P09xx)</option>
+                                    <option value="SRM10">SRM10 (P10xx)</option>
+                                    <option value="SRM11">SRM11 (P11xx)</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-48">
+                                <label
+                                    class="text-[10px] text-amber-700 dark:text-amber-300 font-bold ml-1">Asociado</label>
+                                <select id="manualGrupoAsoSelect" class="glass-input w-full text-sm">
+                                    <option value="PENDIENTE">-- Sin Asignar --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-56">
+                                <label
+                                    class="text-[10px] text-amber-700 dark:text-amber-300 font-bold ml-1">Semana</label>
+                                <select id="manualGrupoFecha" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar semana --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <button onclick="agregarGrupoSRM()"
+                                class="self-end btn btn-primary btn-md bg-amber-600 hover:bg-amber-700">
+                                <i class="fas fa-layer-group"></i> Agregar Grupo
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-amber-600 dark:text-amber-400 mt-2 ml-1">
+                            Agrega el crane SRM + sus 10 conveyors (5 inbound piso 3 + 5 outbound piso 2) como un solo grupo.
+                        </p>
+                    </div>
+
                     <!-- Previsualización antes de guardar -->
                     <div id="asigPreviewContainer" class="hidden mt-6">
                         <div class="flex justify-between items-center mb-2">
@@ -1259,6 +1310,20 @@
         let esGeneracionAuto = false; // Flag para no sobrescribir asignaciones manuales previas
 
         const API_BASE = (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') ? `http://${window.location.hostname}:8080` : 'http://10.107.194.110:8080';
+
+        const CRANE_INBOUND_SUFFIXES = ['10A', '10B', '20A', '301', '302'];
+        const CRANE_OUTBOUND_SUFFIXES = ['601', '602', '70A', '70B', '80'];
+        const CRANE_GROUPS = {};
+        for (let n = 1; n <= 11; n++) {
+            const prefix = String(n).padStart(2, '0');
+            CRANE_GROUPS[`SRM${n}`] = {
+                inbound: CRANE_INBOUND_SUFFIXES.map(s => `P${prefix}${s}`),
+                outbound: CRANE_OUTBOUND_SUFFIXES.map(s => `P${prefix}${s}`)
+            };
+        }
+        const CRANE_CONVEYOR_CODES = new Set(
+            Object.values(CRANE_GROUPS).flatMap(g => [...g.inbound, ...g.outbound])
+        );
 
         function cargarTeam() {
             const guardado = localStorage.getItem('asrsTeam');
@@ -1927,6 +1992,14 @@
                 const val = sel.value;
                 sel.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
                     asrsTeam.map(name => `<option value="${name}" ${name === val ? 'selected' : ''}>${name}</option>`).join('');
+            }
+
+            // Actualizar select de grupo crane
+            const selGrupo = document.getElementById('manualGrupoAsoSelect');
+            if (selGrupo) {
+                const valG = selGrupo.value;
+                selGrupo.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valG ? 'selected' : ''}>${name}</option>`).join('');
             }
         }
 
@@ -3227,6 +3300,18 @@
                     selFecha.value = periods[0].startStr;
                 }
             }
+
+            const selGrupoFecha = document.getElementById('manualGrupoFecha');
+            if (selGrupoFecha) {
+                const prevValG = selGrupoFecha.value;
+                selGrupoFecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValG && periods.some(p => p.startStr === prevValG)) {
+                    selGrupoFecha.value = prevValG;
+                } else {
+                    selGrupoFecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -3262,7 +3347,37 @@
 
                 // 2. Identificar y agrupar Press Robots por UNIDAD COMPLETA
                 const pressRobotsList = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot'));
-                const otrosEquipos = equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
+
+                // 2b. Separar conveyors de crane y unidades de crane del resto
+                const craneConveyorsList = [];
+                const otrosEquipos = [];
+                equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).forEach(e => {
+                    const code = (e.equipo || '').trim();
+                    if (CRANE_CONVEYOR_CODES.has(code)) {
+                        craneConveyorsList.push(e);
+                    } else {
+                        otrosEquipos.push(e);
+                    }
+                });
+                otrosEquipos.sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
+
+                // 2c. Agrupar conveyors de crane por número de SRM (P{NN}xxx → SRM{NN})
+                const craneConveyorGroups = {};
+                craneConveyorsList.forEach(e => {
+                    const code = (e.equipo || '').trim();
+                    const match = code.match(/^P(\d{2})/);
+                    if (match) {
+                        const srmNum = parseInt(match[1], 10);
+                        const srmKey = `SRM${srmNum}`;
+                        if (!craneConveyorGroups[srmKey]) craneConveyorGroups[srmKey] = [];
+                        craneConveyorGroups[srmKey].push(e);
+                    }
+                });
+
+                // 2d. Crear unidades de crane group = conveyors agrupados (sin unidad física del crane en la lista)
+                const craneGroupUnits = Object.entries(craneConveyorGroups)
+                    .filter(([, eqs]) => eqs.length > 0)
+                    .map(([name, eqs]) => ({ name, items: eqs }));
 
                 const robotUnitsMap = new Map();
                 pressRobotsList.forEach(e => {
@@ -3301,8 +3416,9 @@
                     return 0;
                 });
 
-                // 4. Dividir unidades de robots completos y otros equipos en 4 bloques semanales
+                // 4. Dividir unidades de robots completos, grupos de crane y otros equipos en 4 bloques semanales
                 const chunkRobotsSem = Math.ceil(pressRobotUnits.length / 4);
+                const chunkCraneSem = craneGroupUnits.length > 0 ? Math.ceil(craneGroupUnits.length / 4) : 0;
                 const chunkOtrosSem = Math.ceil(otrosEquipos.length / 4);
 
                 asignacionesPreview = [];
@@ -3322,14 +3438,15 @@
                 semanasMes.forEach((semFecha, wIdx) => {
                     if (!semanasCheckeadas.includes(wIdx)) return;
                     const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
+                    const craneGroupsSem = chunkCraneSem > 0 ? craneGroupUnits.slice(wIdx * chunkCraneSem, (wIdx + 1) * chunkCraneSem) : [];
                     const otrosSem = otrosEquipos.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
 
                     // Rotar asociados en cada semana a partir de asociadosBase
                     const shift = (wIdx * 3) % asociadosBase.length;
                     const asociadosRotados = [...asociadosBase.slice(shift), ...asociadosBase.slice(0, shift)];
 
-                    // Tomar únicamente como especialistas a quienes realmente reciban robots (máximo 5)
-                    const numEspecialistas = Math.min(robotUnitsSem.length, Math.min(5, asociadosRotados.length));
+                    // Tomar únicamente como especialistas a quienes realmente reciban robots o cranes (máximo 5)
+                    const numEspecialistas = Math.min(robotUnitsSem.length + craneGroupsSem.length, Math.min(5, asociadosRotados.length));
                     const asociadosRobot = numEspecialistas > 0 ? asociadosRotados.slice(0, numEspecialistas) : [];
                     const asociadosResto = asociadosRotados.slice(numEspecialistas);
 
@@ -3347,6 +3464,20 @@
                             const units = robotUnitsSem.slice(rIdx, rIdx + cant);
                             rIdx += cant;
                             units.forEach(unit => { asignacionPorAsociado[aso].push(...unit); });
+                        });
+                    }
+
+                    // Repartir GRUPOS DE CRANE entre los especialistas reales
+                    if (craneGroupsSem.length > 0 && asociadosRobot.length > 0) {
+                        const chunkC = Math.floor(craneGroupsSem.length / asociadosRobot.length);
+                        let extraC = craneGroupsSem.length % asociadosRobot.length;
+                        let cIdx = 0;
+                        asociadosRobot.forEach(aso => {
+                            const cant = chunkC + (extraC > 0 ? 1 : 0);
+                            extraC--;
+                            const groups = craneGroupsSem.slice(cIdx, cIdx + cant);
+                            cIdx += cant;
+                            groups.forEach(grp => { asignacionPorAsociado[aso].push(...grp.items); });
                         });
                     }
 
@@ -3465,6 +3596,57 @@
             }
 
             document.getElementById('manualEqSearch').value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+        }
+
+        function agregarGrupoSRM() {
+            esGeneracionAuto = false;
+            const srmKey = document.getElementById('manualGrupoSRM').value;
+            const aso = document.getElementById('manualGrupoAsoSelect').value;
+            const selFecha = document.getElementById('manualGrupoFecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!srmKey) { mostrarAlerta('Atención', 'Seleccione un grupo SRM.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const group = CRANE_GROUPS[srmKey];
+            if (!group) { mostrarAlerta('Error', 'Grupo SRM no encontrado.', 'fa-times-circle text-red-500'); return; }
+
+            const todosLosEqs = [...group.inbound, ...group.outbound];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    const isInbound = group.inbound.includes(eqCode);
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: isInbound ? `${srmKey} Inbound` : `${srmKey} Outbound`
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los conveyors de este grupo ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('manualGrupoSRM').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
         }

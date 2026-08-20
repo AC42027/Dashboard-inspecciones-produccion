@@ -16,9 +16,11 @@ Este proyecto es una aplicación web (Dashboard) para visualizar, filtrar y gest
     *   **Selector Interactivo de Vistas:** Filtro de vista instantáneo entre *Vista Completa*, *Resumen KPIs*, y *Detalle por Zonas*.
 *   📥 **Exportación a Excel:** Descarga directa de los datos filtrados en formato `.xlsx` usando **SheetJS** y **FileSaver**, con auto-ajuste de columnas.
 *   🔎 **Equipos sin QR:** Pestaña para visualizar los equipos detectados sin código QR (fecha, hora, usuario y comentario), con opción de eliminar registros (restringido a administradores).
-*   📅 **Pestaña de Planificación y Asignaciones ASRS:** 
+ *   📅 **Pestaña de Planificación y Asignaciones ASRS:** 
     *   Visualización pública de asignaciones semanales y estado de cumplimiento ("Realizada" / "Pendiente").
     *   **Algoritmo de Reparto Automático:** Reparte dinámicamente los equipos de la semana entre el equipo de técnicos ASRS, aplicando restricciones lógicas avanzadas (ej. balanceo de carga y rotación de especialistas a cargo de los *Press Robots*).
+    *   **Grupos de Crane + Conveyors (SRM1-SRM11):** Cada crane (SRM) se agrupa con sus 10 conveyors asociados (5 inbound en piso 3 + 5 outbound en piso 2). Al generar rutas automáticas, los conveyors de cada crane se asignan al mismo técnico. En modo manual, el selector "Grupo Crane" permite agregar un SRM completo con un solo clic.
+    *   **Modo Manual con Selector de Semana:** Asignación individual de equipos con selector de semana explícito y confirmación de cancelación de vista previa.
 *   🗺️ **Mapa de ASRS:** Visualización interactiva del layout de la planta ASRS (piso 1, 2 y 3) con:
     *   Renderizado estático del plano con zoom (scroll centrado en el cursor) y pan (arrastre).
     *   Buscador por código de equipo/conveyor (ej. `P4440`) con resaltado automático.
