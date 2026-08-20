@@ -1446,9 +1446,11 @@
                 if (day !== 1) now.setHours(-24 * (day - 1));
                 const fechaStr = now.toISOString().split('T')[0];
 
+                if (document.getElementById('asigMesGenerar') && !document.getElementById('asigMesGenerar').value) {
+                    document.getElementById('asigMesGenerar').value = mesStr;
+                }
                 if (!document.getElementById('verFecha').value) {
-                document.getElementById('verFecha').value = mesStr;
-                if (document.getElementById('asigMesGenerar')) document.getElementById('asigMesGenerar').value = mesStr;
+                    document.getElementById('verFecha').value = mesStr;
                     cargarAsignacionesSemanales();
                 }
                 actualizarFechasSemanas();
@@ -3419,9 +3421,20 @@
             esGeneracionAuto = false;
             const eq = document.getElementById('manualEqSearch').value.trim();
             const aso = document.getElementById('manualAsoSelect').value;
-            const fecha = document.getElementById('asigFechaGenerar').value;
+            const selFecha = document.getElementById('asigFechaGenerar');
+            let fecha = selFecha ? selFecha.value : '';
 
-            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero una fecha de semana.', 'fa-exclamation-circle text-amber-500'); return; }
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
             if (!eq) { mostrarAlerta('Atención', 'Seleccione o escriba un equipo.', 'fa-exclamation-circle text-amber-500'); return; }
 
             const baseName = getBaseRobotName(eq);
