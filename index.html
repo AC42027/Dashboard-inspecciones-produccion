@@ -835,6 +835,14 @@
                                     <!-- Se llena por JS -->
                                 </select>
                             </div>
+                            <div class="w-full sm:w-56">
+                                <label
+                                    class="text-[10px] text-goodyear-blue dark:text-blue-300 font-bold ml-1">Semana</label>
+                                <select id="asigFechaGenerar" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar semana --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
                             <button onclick="agregarAsignacionManual()"
                                 class="self-end btn btn-primary btn-md">
                                 <i class="fas fa-plus-circle"></i> Agregar a Vista Previa
@@ -846,10 +854,16 @@
                     <div id="asigPreviewContainer" class="hidden mt-6">
                         <div class="flex justify-between items-center mb-2">
                             <h4 class="font-bold text-gray-700 dark:text-gray-300">Vista Previa (No guardado aún)</h4>
-                            <button onclick="guardarAsignacionesEnDjango()"
-                                class="btn btn-primary btn-md shadow">
-                                <i class="fas fa-save"></i> Guardar
-                            </button>
+                            <div class="flex gap-2">
+                                <button onclick="cancelarVistaPrevia()"
+                                    class="btn btn-secondary btn-md shadow">
+                                    <i class="fas fa-times-circle"></i> Cancelar
+                                </button>
+                                <button onclick="guardarAsignacionesEnDjango()"
+                                    class="btn btn-primary btn-md shadow">
+                                    <i class="fas fa-save"></i> Guardar
+                                </button>
+                            </div>
                         </div>
                         <div class="max-h-[80vh] overflow-y-auto bg-white dark:bg-slate-800 rounded border border-gray-200 dark:border-slate-700 p-2 text-sm"
                             id="asigPreviewText"></div>
@@ -1435,9 +1449,9 @@
                 if (!document.getElementById('verFecha').value) {
                 document.getElementById('verFecha').value = mesStr;
                 if (document.getElementById('asigMesGenerar')) document.getElementById('asigMesGenerar').value = mesStr;
-                actualizarFechasSemanas();
                     cargarAsignacionesSemanales();
                 }
+                actualizarFechasSemanas();
             }
 
             if (tab === 'mis-asignaciones') {
@@ -3199,6 +3213,18 @@
                     txtEl.textContent = `Sem. ${i+1} (${fmt(p.start)} - ${fmt(p.end)})`;
                 }
             }
+
+            const selFecha = document.getElementById('asigFechaGenerar');
+            if (selFecha) {
+                const prevVal = selFecha.value;
+                selFecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevVal && periods.some(p => p.startStr === prevVal)) {
+                    selFecha.value = prevVal;
+                } else {
+                    selFecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -3550,6 +3576,22 @@
                 document.getElementById('asigPreviewContainer').classList.add('hidden');
             }
             renderPreview();
+        }
+
+        async function cancelarVistaPrevia() {
+            if (asignacionesPreview.length === 0) {
+                document.getElementById('asigPreviewContainer').classList.add('hidden');
+                return;
+            }
+            const confirmar = await mostrarConfirmacion(
+                'Cancelar Generación',
+                'Se descartarán todas las asignaciones generadas en la vista previa. ¿Está seguro?',
+                'fa-times-circle text-red-500'
+            );
+            if (!confirmar) return;
+            asignacionesPreview = [];
+            esGeneracionAuto = false;
+            document.getElementById('asigPreviewContainer').classList.add('hidden');
         }
 
         async function guardarAsignacionesEnDjango() {
