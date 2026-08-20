@@ -3624,18 +3624,20 @@
             const group = CRANE_GROUPS[srmKey];
             if (!group) { mostrarAlerta('Error', 'Grupo SRM no encontrado.', 'fa-times-circle text-red-500'); return; }
 
-            const todosLosEqs = [...group.inbound, ...group.outbound];
+            const todosLosEqs = [srmKey, ...group.inbound, ...group.outbound];
             const asoVal = aso === 'PENDIENTE' ? '' : aso;
             let agregadosCount = 0;
 
             todosLosEqs.forEach(eqCode => {
                 if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
-                    const isInbound = group.inbound.includes(eqCode);
+                    let zona = 'ASRS';
+                    if (group.inbound.includes(eqCode)) zona = `${srmKey} Inbound`;
+                    else if (group.outbound.includes(eqCode)) zona = `${srmKey} Outbound`;
                     asignacionesPreview.push({
                         fecha: fecha,
                         asociado: asoVal,
                         equipo: eqCode,
-                        zona: isInbound ? `${srmKey} Inbound` : `${srmKey} Outbound`
+                        zona: zona
                     });
                     agregadosCount++;
                 }
