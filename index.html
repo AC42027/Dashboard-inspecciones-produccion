@@ -3350,13 +3350,20 @@
 
                 // 2b. Separar conveyors de crane y unidades de crane del resto
                 const craneConveyorsList = [];
+                const craneUnitsList = [];
                 const otrosEquipos = [];
                 equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).forEach(e => {
                     const code = (e.equipo || '').trim();
                     if (CRANE_CONVEYOR_CODES.has(code)) {
                         craneConveyorsList.push(e);
                     } else {
-                        otrosEquipos.push(e);
+                        const eqLower = code.toLowerCase();
+                        const srmMatch = eqLower.match(/\bsrm\s*(\d{1,2})\b/) || eqLower.match(/\btranselevador\s*(\d{1,2})\b/);
+                        if (srmMatch) {
+                            craneUnitsList.push({ ...e, _srmNum: parseInt(srmMatch[1], 10) });
+                        } else {
+                            otrosEquipos.push(e);
+                        }
                     }
                 });
                 otrosEquipos.sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
@@ -3374,10 +3381,20 @@
                     }
                 });
 
-                // 2d. Crear unidades de crane group = conveyors agrupados (sin unidad física del crane en la lista)
-                const craneGroupUnits = Object.entries(craneConveyorGroups)
-                    .filter(([, eqs]) => eqs.length > 0)
-                    .map(([name, eqs]) => ({ name, items: eqs }));
+                // 2d. Crear unidades de crane group = crane unit (si existe) + conveyors agrupados
+                const craneUnitsByNum = {};
+                craneUnitsList.forEach(e => {
+                    const key = `SRM${e._srmNum}`;
+                    if (!craneUnitsByNum[key]) craneUnitsByNum[key] = e;
+                });
+                const craneGroupUnits = Object.keys(CRANE_GROUPS).map(srmKey => {
+                    const craneUnit = craneUnitsByNum[srmKey];
+                    const conveyors = craneConveyorGroups[srmKey] || [];
+                    const items = [];
+                    if (craneUnit) items.push({ equipo: craneUnit.equipo, zona: craneUnit.zona || 'ASRS' });
+                    conveyors.forEach(c => items.push({ equipo: c.equipo, zona: c.zona || 'ASRS' }));
+                    return items.length > 0 ? { name: srmKey, items } : null;
+                }).filter(Boolean);
 
                 const robotUnitsMap = new Map();
                 pressRobotsList.forEach(e => {
