@@ -3450,7 +3450,7 @@
                     if (!semanasCheckeadas.includes(wIdx)) return;
                     const semIdx = semanasCheckeadas.indexOf(wIdx);
                     const totalSemCheck = semanasCheckeadas.length;
-                    const robotUnitsSem = pressRobotUnits.slice(semIdx * chunkRobotsSem, (semIdx + 1) * chunkRobotsSem);
+                    const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
                     const craneGroupsSem = chunkCraneSem > 0 ? craneGroupUnits.slice(semIdx * chunkCraneSem, (semIdx + 1) * chunkCraneSem) : [];
                     const otrosSem = otrosFiltrados.slice(semIdx * chunkOtrosSem, (semIdx + 1) * chunkOtrosSem);
 
