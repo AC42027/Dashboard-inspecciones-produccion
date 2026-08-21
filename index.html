@@ -3847,7 +3847,7 @@
                     body: JSON.stringify({
                         fecha: fechaSemana,
                         asignaciones: payloadAsignaciones,
-                        asignado_por: 'Admin',
+                        asignado_por: loggedUserFullName || 'Admin',
                         reemplazar_todo: esGeneracionAuto
                     })
                 });
