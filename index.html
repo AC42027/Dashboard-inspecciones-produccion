@@ -3448,9 +3448,11 @@
 
                 semanasMes.forEach((semFecha, wIdx) => {
                     if (!semanasCheckeadas.includes(wIdx)) return;
-                    const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
-                    const craneGroupsSem = chunkCraneSem > 0 ? craneGroupUnits.slice(wIdx * chunkCraneSem, (wIdx + 1) * chunkCraneSem) : [];
-                    const otrosSem = otrosFiltrados.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
+                    const semIdx = semanasCheckeadas.indexOf(wIdx);
+                    const totalSemCheck = semanasCheckeadas.length;
+                    const robotUnitsSem = pressRobotUnits.slice(semIdx * chunkRobotsSem, (semIdx + 1) * chunkRobotsSem);
+                    const craneGroupsSem = chunkCraneSem > 0 ? craneGroupUnits.slice(semIdx * chunkCraneSem, (semIdx + 1) * chunkCraneSem) : [];
+                    const otrosSem = otrosFiltrados.slice(semIdx * chunkOtrosSem, (semIdx + 1) * chunkOtrosSem);
 
                     // Rotar asociados en cada semana a partir de asociadosBase
                     const shift = (wIdx * 3) % asociadosBase.length;
