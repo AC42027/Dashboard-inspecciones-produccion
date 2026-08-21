@@ -861,18 +861,18 @@
                                 <label
                                     class="text-[10px] text-amber-700 dark:text-amber-300 font-bold ml-1">Grupo SRM</label>
                                 <select id="manualGrupoSRM" class="glass-input w-full text-sm">
-                                    <option value="">-- Seleccionar SRM --</option>
-                                    <option value="SRM1">SRM1 (P01xx)</option>
-                                    <option value="SRM2">SRM2 (P02xx)</option>
-                                    <option value="SRM3">SRM3 (P03xx)</option>
-                                    <option value="SRM4">SRM4 (P04xx)</option>
-                                    <option value="SRM5">SRM5 (P05xx)</option>
-                                    <option value="SRM6">SRM6 (P06xx)</option>
-                                    <option value="SRM7">SRM7 (P07xx)</option>
-                                    <option value="SRM8">SRM8 (P08xx)</option>
-                                    <option value="SRM9">SRM9 (P09xx)</option>
-                                    <option value="SRM10">SRM10 (P10xx)</option>
-                                    <option value="SRM11">SRM11 (P11xx)</option>
+                                    <option value="">-- Seleccionar Crane --</option>
+                                    <option value="Crane 1">Crane 1</option>
+                                    <option value="Crane 2">Crane 2</option>
+                                    <option value="Crane 3">Crane 3</option>
+                                    <option value="Crane 4">Crane 4</option>
+                                    <option value="Crane 5">Crane 5</option>
+                                    <option value="Crane 6">Crane 6</option>
+                                    <option value="Crane 7">Crane 7</option>
+                                    <option value="Crane 8">Crane 8</option>
+                                    <option value="Crane 9">Crane 9</option>
+                                    <option value="Crane 10">Crane 10</option>
+                                    <option value="Crane 11">Crane 11</option>
                                 </select>
                             </div>
                             <div class="w-full sm:w-48">
@@ -1311,19 +1311,30 @@
 
         const API_BASE = (window.location.hostname && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') ? `http://${window.location.hostname}:8080` : 'http://10.107.194.110:8080';
 
-        const CRANE_INBOUND_SUFFIXES = ['10A', '10B', '20A', '301', '302'];
-        const CRANE_OUTBOUND_SUFFIXES = ['601', '602', '70A', '70B', '80'];
-        const CRANE_GROUPS = {};
-        for (let n = 1; n <= 11; n++) {
-            const prefix = String(n).padStart(2, '0');
-            CRANE_GROUPS[`SRM${n}`] = {
-                inbound: CRANE_INBOUND_SUFFIXES.map(s => `P${prefix}${s}`),
-                outbound: CRANE_OUTBOUND_SUFFIXES.map(s => `P${prefix}${s}`)
-            };
+        function buildCraneGroupsFromAPI(equipos) {
+            const cranes = equipos.filter(e => (e.categoria || '').toLowerCase() === 'crane' || /^crane\s+\d+$/i.test(e.nombre || ''));
+            const groups = {};
+            const conveyorCodes = new Set();
+            cranes.forEach(crane => {
+                const match = (crane.nombre || '').match(/Crane\s+(\d+)/i);
+                if (!match) return;
+                const n = parseInt(match[1], 10);
+                const key = `Crane ${n}`;
+                const inbound = [];
+                const outbound = [];
+                equipos.forEach(eq => {
+                    const ubic = (eq.ubicacion || '').toLowerCase();
+                    if (ubic.includes(`inbound crane ${n}`)) inbound.push(eq.nombre || eq.equipo);
+                    else if (ubic.includes(`outbound crane ${n}`)) outbound.push(eq.nombre || eq.equipo);
+                });
+                groups[key] = { crane: crane.nombre, inbound, outbound };
+                inbound.forEach(c => conveyorCodes.add(c));
+                outbound.forEach(c => conveyorCodes.add(c));
+            });
+            return { groups, conveyorCodes };
         }
-        const CRANE_CONVEYOR_CODES = new Set(
-            Object.values(CRANE_GROUPS).flatMap(g => [...g.inbound, ...g.outbound])
-        );
+
+        let craneGroupsCache = null;
 
         function cargarTeam() {
             const guardado = localStorage.getItem('asrsTeam');
@@ -3348,53 +3359,36 @@
                 // 2. Identificar y agrupar Press Robots por UNIDAD COMPLETA
                 const pressRobotsList = equiposTotal.filter(e => e.equipo.toLowerCase().includes('press robot') || e.equipo.toLowerCase().includes('robot'));
 
-                // 2b. Separar conveyors de crane y unidades de crane del resto
-                const craneConveyorsList = [];
-                const craneUnitsList = [];
+                // 2b. Construir grupos de crane dinámicamente desde la API
+                const { groups: craneGroups, conveyorCodes } = buildCraneGroupsFromAPI(allEquipos);
+                craneGroupsCache = craneGroups;
+
+                // 2c. Separar equipos: conveyors de crane, cranes, robots, y el resto
                 const otrosEquipos = [];
                 equiposTotal.filter(e => !e.equipo.toLowerCase().includes('press robot') && !e.equipo.toLowerCase().includes('robot')).forEach(e => {
-                    const code = (e.equipo || '').trim();
-                    if (CRANE_CONVEYOR_CODES.has(code)) {
-                        craneConveyorsList.push(e);
-                    } else {
-                        const eqLower = code.toLowerCase();
-                        const srmMatch = eqLower.match(/\bsrm\s*(\d{1,2})\b/) || eqLower.match(/\btranselevador\s*(\d{1,2})\b/);
-                        if (srmMatch) {
-                            craneUnitsList.push({ ...e, _srmNum: parseInt(srmMatch[1], 10) });
-                        } else {
-                            otrosEquipos.push(e);
-                        }
-                    }
+                    otrosEquipos.push(e);
                 });
                 otrosEquipos.sort((a, b) => a.zona.localeCompare(b.zona) || a.equipo.localeCompare(b.equipo));
 
-                // 2c. Agrupar conveyors de crane por número de SRM (P{NN}xxx → SRM{NN})
-                const craneConveyorGroups = {};
-                craneConveyorsList.forEach(e => {
-                    const code = (e.equipo || '').trim();
-                    const match = code.match(/^P(\d{2})/);
-                    if (match) {
-                        const srmNum = parseInt(match[1], 10);
-                        const srmKey = `SRM${srmNum}`;
-                        if (!craneConveyorGroups[srmKey]) craneConveyorGroups[srmKey] = [];
-                        craneConveyorGroups[srmKey].push(e);
-                    }
-                });
-
-                // 2d. Crear unidades de crane group = crane unit (si existe) + conveyors agrupados
-                const craneUnitsByNum = {};
-                craneUnitsList.forEach(e => {
-                    const key = `SRM${e._srmNum}`;
-                    if (!craneUnitsByNum[key]) craneUnitsByNum[key] = e;
-                });
-                const craneGroupUnits = Object.keys(CRANE_GROUPS).map(srmKey => {
-                    const craneUnit = craneUnitsByNum[srmKey];
-                    const conveyors = craneConveyorGroups[srmKey] || [];
+                // 2d. Crear unidades de crane group = crane + sus conveyors (basado en ubicacion)
+                const craneGroupUnits = Object.entries(craneGroups).map(([key, grp]) => {
                     const items = [];
-                    if (craneUnit) items.push({ equipo: craneUnit.equipo, zona: craneUnit.zona || 'ASRS' });
-                    conveyors.forEach(c => items.push({ equipo: c.equipo, zona: c.zona || 'ASRS' }));
-                    return items.length > 0 ? { name: srmKey, items } : null;
+                    const craneEq = equiposTotal.find(e => e.equipo === grp.crane);
+                    if (craneEq) items.push({ equipo: craneEq.equipo, zona: craneEq.zona || 'ASRS' });
+                    grp.inbound.forEach(name => {
+                        const eq = equiposTotal.find(e => e.equipo === name);
+                        if (eq) items.push({ equipo: eq.equipo, zona: `${key} Inbound` });
+                    });
+                    grp.outbound.forEach(name => {
+                        const eq = equiposTotal.find(e => e.equipo === name);
+                        if (eq) items.push({ equipo: eq.equipo, zona: `${key} Outbound` });
+                    });
+                    return items.length > 0 ? { name: key, items } : null;
                 }).filter(Boolean);
+
+                // Remover conveyors de crane y cranes de otrosEquipos
+                const craneEqNames = new Set(Object.values(craneGroups).flatMap(g => [g.crane, ...g.inbound, ...g.outbound]));
+                const otrosFiltrados = otrosEquipos.filter(e => !craneEqNames.has(e.equipo));
 
                 const robotUnitsMap = new Map();
                 pressRobotsList.forEach(e => {
@@ -3436,7 +3430,7 @@
                 // 4. Dividir unidades de robots completos, grupos de crane y otros equipos en 4 bloques semanales
                 const chunkRobotsSem = Math.ceil(pressRobotUnits.length / 4);
                 const chunkCraneSem = craneGroupUnits.length > 0 ? Math.ceil(craneGroupUnits.length / 4) : 0;
-                const chunkOtrosSem = Math.ceil(otrosEquipos.length / 4);
+                const chunkOtrosSem = Math.ceil(otrosFiltrados.length / 4);
 
                 asignacionesPreview = [];
 
@@ -3456,7 +3450,7 @@
                     if (!semanasCheckeadas.includes(wIdx)) return;
                     const robotUnitsSem = pressRobotUnits.slice(wIdx * chunkRobotsSem, (wIdx + 1) * chunkRobotsSem);
                     const craneGroupsSem = chunkCraneSem > 0 ? craneGroupUnits.slice(wIdx * chunkCraneSem, (wIdx + 1) * chunkCraneSem) : [];
-                    const otrosSem = otrosEquipos.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
+                    const otrosSem = otrosFiltrados.slice(wIdx * chunkOtrosSem, (wIdx + 1) * chunkOtrosSem);
 
                     // Rotar asociados en cada semana a partir de asociadosBase
                     const shift = (wIdx * 3) % asociadosBase.length;
@@ -3617,7 +3611,7 @@
             renderPreview();
         }
 
-        function agregarGrupoSRM() {
+        async function agregarGrupoSRM() {
             esGeneracionAuto = false;
             const srmKey = document.getElementById('manualGrupoSRM').value;
             const aso = document.getElementById('manualGrupoAsoSelect').value;
@@ -3638,10 +3632,19 @@
 
             if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
 
-            const group = CRANE_GROUPS[srmKey];
-            if (!group) { mostrarAlerta('Error', 'Grupo SRM no encontrado.', 'fa-times-circle text-red-500'); return; }
+            let group = craneGroupsCache && craneGroupsCache[srmKey];
+            if (!group) {
+                try {
+                    const res = await fetch(`${API_BASE}/api/equipos/`);
+                    const allEq = await res.json();
+                    const { groups } = buildCraneGroupsFromAPI(allEq);
+                    craneGroupsCache = groups;
+                    group = groups[srmKey];
+                } catch (e) { console.error(e); }
+            }
+            if (!group) { mostrarAlerta('Error', 'Grupo no encontrado.', 'fa-times-circle text-red-500'); return; }
 
-            const todosLosEqs = [srmKey, ...group.inbound, ...group.outbound];
+            const todosLosEqs = [group.crane, ...group.inbound, ...group.outbound];
             const asoVal = aso === 'PENDIENTE' ? '' : aso;
             let agregadosCount = 0;
 
@@ -3650,6 +3653,7 @@
                     let zona = 'ASRS';
                     if (group.inbound.includes(eqCode)) zona = `${srmKey} Inbound`;
                     else if (group.outbound.includes(eqCode)) zona = `${srmKey} Outbound`;
+                    else zona = srmKey;
                     asignacionesPreview.push({
                         fecha: fecha,
                         asociado: asoVal,
