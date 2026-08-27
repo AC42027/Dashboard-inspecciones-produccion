@@ -1941,10 +1941,12 @@
                     if (isUserAdmin) {
                         isAdminModo = true;
                         loggedUser = user;
+                        loggedUserFullName = data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || user;
 
                         // Persistencia de sesión
                         localStorage.setItem('isAdminModo', 'true');
                         localStorage.setItem('loggedUser', user);
+                        localStorage.setItem('misAsigFullName', loggedUserFullName);
 
                         toggleAuthModal();
                         renderTeamList(); // Inicializar lista de asociados
@@ -3257,6 +3259,8 @@
                 equiposAso.forEach((asig, index) => {
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     const realizada = esInspeccionRealizada(asig, inspecciones, mesStr);
+                    const eqValido = Array.from(document.querySelectorAll('#asrsEqList option')).some(opt =>
+                        opt && normalizarTexto(opt.value) === normalizarTexto(asig.equipo));
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
                     if (index === 0) {
@@ -3264,7 +3268,7 @@
                     }
                     html += `
                         <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${asig.zona || 'N/A'}</td>
-                        <td class="font-medium text-goodyear-blue dark:text-blue-400 p-2">${asig.equipo}</td>
+                        <td class="font-medium text-goodyear-blue dark:text-blue-400 p-2">${asig.equipo}${!eqValido ? ' <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Este equipo no existe en el listado ASRS y por eso no se muestra en la planificación"><i class="fas fa-exclamation-triangle"></i> No existe</span>' : ''}</td>
                         <td class="text-center p-2">
                             ${st === 'REALIZADA'
                                 ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[140px] mx-auto"><i class="fas fa-check-circle"></i> Realizada</span>': st === 'FUERA_DE_TIEMPO' ? '<span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[180px] mx-auto" title="Realizada fuera de tiempo"><i class="fas fa-clock"></i> Realizada fuera de tiempo</span>': '<span class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[140px] mx-auto"><i class="fas fa-times-circle"></i> Pendiente</span>'}
@@ -3583,6 +3587,12 @@
 
             const baseName = getBaseRobotName(eq);
             const datalistOptions = Array.from(document.querySelectorAll('#asrsEqList option')).map(o => o.value);
+            if (!datalistOptions.some(opt => opt && normalizarTexto(opt) === normalizarTexto(eq))) {
+                mostrarAlerta('Equipo no válido',
+                    `"${eq}" no existe en el listado de equipos del área ASRS. Escríbalo igual que aparece en la lista (use el buscador) para que la asignación se pueda ver.`,
+                    'fa-exclamation-triangle text-amber-500');
+                return;
+            }
             const ejesRelacionados = datalistOptions.filter(opt => opt && getBaseRobotName(opt) === baseName && opt !== eq);
             const equiposAgregar = [eq, ...ejesRelacionados];
             let agregadosCount = 0;
