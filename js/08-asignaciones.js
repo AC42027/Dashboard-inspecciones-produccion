@@ -61,7 +61,14 @@
                 return acc;
             }, {});
 
-            Object.entries(porAsociado).sort().forEach(([aso, equiposAso]) => {
+            Object.entries(porAsociado).sort((a, b) => {
+                const contRealizadas = (items) => items.reduce((acc, asig) => {
+                    const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
+                    return acc + (st === 'REALIZADA' || st === 'FUERA_DE_TIEMPO' ? 1 : 0);
+                }, 0);
+                const diff = contRealizadas(b[1]) - contRealizadas(a[1]);
+                return diff !== 0 ? diff : a[0].localeCompare(b[0]);
+            }).forEach(([aso, equiposAso]) => {
                 const estadoPrioridad = asig => {
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     return st === 'REALIZADA' ? 0 : st === 'FUERA_DE_TIEMPO' ? 1 : 2;
