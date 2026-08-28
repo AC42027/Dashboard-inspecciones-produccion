@@ -1645,19 +1645,19 @@
 
             if (inspeccionesAsociado.length === 0) return 'PENDIENTE';
 
-            // 1. Si existe alguna dentro de la semana asignada (si existe asig.fecha) -> REALIZADA
+            // 1. Si existe alguna antes o dentro de la semana asignada (si existe asig.fecha) -> REALIZADA
             if (asig.fecha) {
                 const fAsigStart = new Date(asig.fecha + 'T00:00:00').getTime();
                 const fAsigEnd = fAsigStart + 7 * 24 * 60 * 60 * 1000;
 
                 const aTiempo = inspeccionesAsociado.some(i => {
                     const fInsp = new Date(i.fecha + 'T00:00:00').getTime();
-                    return fInsp >= fAsigStart && fInsp < fAsigEnd;
+                    return fInsp < fAsigEnd;
                 });
 
                 if (aTiempo) return 'REALIZADA';
 
-                // 2. Si fue inspeccionada por el asociado pero fuera del rango semanal -> FUERA_DE_TIEMPO
+                // 2. Si fue inspeccionada por el asociado pero después de la semana asignada -> FUERA_DE_TIEMPO
                 return 'FUERA_DE_TIEMPO';
             }
 
