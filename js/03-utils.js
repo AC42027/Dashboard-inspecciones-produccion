@@ -7,17 +7,13 @@
             if (!sel || sel.options.length > 0) return;
 
             const now = new Date();
-            const currYr = now.getFullYear();
-            const currMo = now.getMonth();
-
             let html = '';
-            for (let yr = currYr - 1; yr <= currYr + 1; yr++) {
-                for (let m = 0; m < 12; m++) {
-                    const val = `${yr}-${String(m + 1).padStart(2, '0')}`;
-                    const label = `${MESES_ES[m]} ${yr}`;
-                    const isSelected = (yr === currYr && m === currMo);
-                    html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${label}</option>`;
-                }
+            for (let i = -1; i <= 1; i++) {
+                const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = `${MESES_ES[d.getMonth()]} ${d.getFullYear()}`;
+                const isSelected = (i === 0);
+                html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${label}</option>`;
             }
             sel.innerHTML = html;
         }
