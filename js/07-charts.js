@@ -503,11 +503,17 @@
         }
 
         let avanceRenderToken = 0;
-        const avanceMesFetchCache = {}; // YYYY-MM -> Promise<Array>
+        window.avanceMesFetchCache = {}; // YYYY-MM -> Promise<Array>
         const avanceState = { mes: '' }; // Selector propio del panel (persiste entre renders)
 
+        window.limpiarCacheAvanceAsociados = function() {
+            for (const key in window.avanceMesFetchCache) {
+                delete window.avanceMesFetchCache[key];
+            }
+        };
+
         async function fetchAsigMes(mes) {
-            if (avanceMesFetchCache[mes]) return avanceMesFetchCache[mes];
+            if (window.avanceMesFetchCache[mes]) return window.avanceMesFetchCache[mes];
             const p = (async () => {
                 try {
                     const res = await fetch(`${API_BASE}/api/asignaciones/?mes=${mes}`);
@@ -518,8 +524,8 @@
                     throw e;
                 }
             })();
-            avanceMesFetchCache[mes] = p;
-            p.catch(() => { delete avanceMesFetchCache[mes]; });
+            window.avanceMesFetchCache[mes] = p;
+            p.catch(() => { delete window.avanceMesFetchCache[mes]; });
             return p;
         }
 
@@ -528,17 +534,17 @@
             if (!sel) return;
             const ahora = new Date();
             const currYr = ahora.getFullYear();
-            const currMo = ahora.getMonth();
             let html = '';
-            for (let i = 0; i <= 6; i++) {
-                const d = new Date(currYr, currMo + i, 1);
-                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                html += `<option value="${val}">${MESES_ES[d.getMonth()]} ${d.getFullYear()}</option>`;
+            for (let m = 0; m < 12; m++) {
+                const val = `${currYr}-${String(m + 1).padStart(2, '0')}`;
+                const selAttr = (m === ahora.getMonth() && !avanceState.mes) ? 'selected' : '';
+                html += `<option value="${val}" ${selAttr}>${MESES_ES[m]} ${currYr}</option>`;
             }
             sel.innerHTML = html;
             if (!avanceState.mes) {
-                avanceState.mes = sel.value;
-            } else if ([...sel.options].some(o => o.value === avanceState.mes)) {
+                avanceState.mes = `${currYr}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+            }
+            if ([...sel.options].some(o => o.value === avanceState.mes)) {
                 sel.value = avanceState.mes;
             } else {
                 avanceState.mes = sel.value;
@@ -559,11 +565,12 @@
         function calcularAvance(asignaciones) {
             const porAsociado = {};
             asignaciones.forEach(a => {
-                if (!a.asociado) return;
+                if (!a || !a.asociado || !a.asociado.trim() || a.asociado.trim().toUpperCase() === 'PENDIENTE') return;
+                const asoNombre = a.asociado.trim();
                 const mesAsig = a.fecha ? a.fecha.substring(0, 7) : '';
-                if (!porAsociado[a.asociado]) porAsociado[a.asociado] = { asignadas: 0, realizadas: 0, fueraTiempo: 0, pendientes: 0 };
+                if (!porAsociado[asoNombre]) porAsociado[asoNombre] = { asignadas: 0, realizadas: 0, fueraTiempo: 0, pendientes: 0 };
                 const st = evaluarEstadoAsignacion(a, inspecciones, mesAsig);
-                const acc = porAsociado[a.asociado];
+                const acc = porAsociado[asoNombre];
                 acc.asignadas++;
                 if (st === 'REALIZADA') acc.realizadas++;
                 else if (st === 'FUERA_DE_TIEMPO') acc.fueraTiempo++;
@@ -720,4 +727,6 @@
             const blob = new Blob([excelBuffer], { type: 'application/octet-stream' });
             saveAs(blob, `Inspecciones_${new Date().toISOString().split('T')[0]}.xlsx`);
         };
+
+        window.renderAvanceAsociados = renderAvanceAsociados;
 

@@ -1376,7 +1376,8 @@
                     asignacionesPreview = [];
                     cargarAsignacionesSemanales(true);
                     delete asignacionesMesCache[fechaSemana.slice(0, 7)];
-                    if (typeof avanceMesFetchCache !== 'undefined') delete avanceMesFetchCache[fechaSemana.slice(0, 7)];
+                    if (window.limpiarCacheAvanceAsociados) window.limpiarCacheAvanceAsociados();
+                    if (window.renderAvanceAsociados) window.renderAvanceAsociados();
                     renderBadgesGrupos();
                 } else {
                     mostrarAlerta('Aviso', "El servidor respondió con error.", 'fa-exclamation-circle text-amber-500');
@@ -1404,6 +1405,8 @@
                 const data = await res.json();
                 if (res.ok && data.status === 'ok') {
                     await mostrarAlerta('Eliminada', 'Asignación eliminada correctamente.', 'fa-check-circle text-green-500');
+                    if (window.limpiarCacheAvanceAsociados) window.limpiarCacheAvanceAsociados();
+                    if (window.renderAvanceAsociados) window.renderAvanceAsociados();
                     const fecha = document.getElementById('verFecha').value;
                     if (fecha) cargarAsignacionesSemanales();
                 } else {
@@ -1444,6 +1447,8 @@
 
                 if (exitos > 0) {
                     await mostrarAlerta('Eliminadas', `Se eliminaron ${exitos} de ${ids.length} asignación(es) correctamente.`, 'fa-check-circle text-green-500');
+                    if (window.limpiarCacheAvanceAsociados) window.limpiarCacheAvanceAsociados();
+                    if (window.renderAvanceAsociados) window.renderAvanceAsociados();
                     const fecha = document.getElementById('verFecha').value;
                     if (fecha) cargarAsignacionesSemanales();
                 } else {
