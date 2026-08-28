@@ -224,7 +224,6 @@
             });
         }
 
-        let activeWorkbookQRs = null;
         let mapaEquiposOficialCache = null;
 
         async function cargarMapaEquiposOficial() {
@@ -241,58 +240,6 @@
                 console.warn('No se pudo cargar equipos_oficial_map.json:', e);
             }
             return [];
-        }
-
-        function obtenerListaMaestraDeWorkbook(workbook) {
-            if (!workbook || !workbook.SheetNames) return [];
-            let sheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'equipos') || workbook.SheetNames[0];
-            const sheet = workbook.Sheets[sheetName];
-            if (!sheet) return [];
-
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-            if (!rows || rows.length <= 1) return [];
-
-            let colUrl = -1, colZona = -1, colEquipo = -1, colQr = -1;
-            if (rows[0] && Array.isArray(rows[0])) {
-                rows[0].forEach((cell, idx) => {
-                    const h = String(cell || '').toLowerCase().trim();
-                    if (h.includes('direccion') || h.includes('ip') || h.includes('url')) colUrl = idx; // Col A
-                    else if (h.includes('zona')) colZona = idx; // Col B
-                    else if (h.includes('equipo')) colEquipo = idx; // Col C
-                    else if (h === 'qr' || h.includes('qr')) colQr = idx; // Col D
-                });
-            }
-
-            if (colZona === -1) colZona = 1;
-            if (colEquipo === -1) colEquipo = 2;
-            if (colQr === -1) colQr = 3;
-            if (colUrl === -1) colUrl = 0;
-
-            const master = [];
-            rows.slice(1).forEach(row => {
-                if (!row || !Array.isArray(row)) return;
-
-                const zona = String(row[colZona] || row[colEquipo] || '').trim();
-                const desc = String(row[colEquipo] || '').trim();
-
-                let qrData = String(row[colQr] || '').trim();
-                if (!qrData || qrData.includes('#VALUE!')) {
-                    qrData = String(row[colUrl] || '').trim();
-                }
-                if (!qrData || qrData.includes('#VALUE!')) {
-                    qrData = zona;
-                }
-
-                if (zona && !zona.includes('#VALUE!')) {
-                    master.push({
-                        zona: zona,
-                        equipo: desc !== zona ? desc : '',
-                        url: qrData
-                    });
-                }
-            });
-
-            return master;
         }
 
         async function abrirModalQRsSinQR() {
@@ -313,58 +260,31 @@
                 return;
             }
 
-            // 2. Cargar mapa oficial en JSON + Excel del repositorio para hacer MATCH
-            let masterList = [];
             const mapaOficial = await cargarMapaEquiposOficial();
-            masterList = [...mapaOficial];
-
-            try {
-                if (!activeWorkbookQRs) {
-                    let res = await fetch('public/equipos_qr.xlsx');
-                    if (!res.ok) res = await fetch('equipos_qr.xlsx');
-                    if (res.ok) {
-                        const ab = await res.arrayBuffer();
-                        activeWorkbookQRs = XLSX.read(ab, { type: 'array' });
-                    }
-                }
-                if (activeWorkbookQRs) {
-                    const excelMaster = obtenerListaMaestraDeWorkbook(activeWorkbookQRs);
-                    excelMaster.forEach(item => {
-                        if (!masterList.some(m => normalizarTexto(m.zona) === normalizarTexto(item.zona))) {
-                            masterList.push(item);
-                        }
-                    });
-                }
-            } catch (e) {
-                console.warn('No se pudo cargar el Excel maestro para match:', e);
-            }
-
-            // 3. Hacer MATCH entre los N equipos sin QR reportados y el listado del Excel
             const itemsAMostrar = [];
 
             for (const eq of listaReportados) {
                 const nombreReportado = eq.equipo_nombre || eq.equipo || 'Equipo';
                 const normRep = normalizarTexto(nombreReportado);
 
-                // Coincidencia inteligente por Zona o Nombre de equipo
-                let match = masterList.find(m => {
+                // Match inteligente contra los 411 equipos del mapa oficial
+                let match = mapaOficial.find(m => {
                     const normZona = normalizarTexto(m.zona || '');
-                    const normEquipo = normalizarTexto(m.equipo || '');
-                    return normRep && (normZona.includes(normRep) || normRep.includes(normZona) || normEquipo.includes(normRep) || normRep.includes(normEquipo));
+                    if (!normRep || !normZona) return false;
+                    return normZona === normRep || normZona.endsWith(normRep) || (normRep.length >= 4 && normZona.includes(normRep));
                 });
 
                 if (match) {
-                    const qrContent = match.url || match.zona || nombreReportado;
-                    const nombreMostrar = match.zona || nombreReportado;
-                    const descMostrar = match.equipo || eq.comentario || '';
                     itemsAMostrar.push({
-                        nombre: nombreMostrar,
-                        subtitulo: descMostrar,
-                        qrText: qrContent,
+                        id: eq.id,
+                        nombre: match.zona,
+                        subtitulo: eq.comentario ? `Reportado: ${nombreReportado} (${eq.comentario})` : `Reportado: ${nombreReportado}`,
+                        qrText: match.url,
                         matchEncontrado: true
                     });
                 } else {
                     itemsAMostrar.push({
+                        id: eq.id,
                         nombre: nombreReportado,
                         subtitulo: eq.comentario || 'Reportado sin QR',
                         qrText: nombreReportado,
@@ -374,139 +294,9 @@
             }
 
             const totalMatches = itemsAMostrar.filter(i => i.matchEncontrado).length;
-            const origenStr = `Equipos Faltantes (${itemsAMostrar.length}) · ${totalMatches} Match(es) con Excel`;
-
-            const containerHojas = document.getElementById('containerHojasExcel');
-            if (containerHojas) containerHojas.classList.add('hidden');
+            const origenStr = `Equipos Faltantes (${itemsAMostrar.length}) · ${totalMatches} Encontrados`;
 
             await generarYMostrarModalQRs(itemsAMostrar, origenStr);
-        }
-
-        async function cargarQRsDesdeExcelLocal(event) {
-            if (!isAdminModo) return;
-            const file = event.target.files[0];
-            if (!file) return;
-
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                activeWorkbookQRs = XLSX.read(arrayBuffer, { type: 'array' });
-                procesarWorkbookYSheet(activeWorkbookQRs, null, file.name);
-
-            } catch (err) {
-                console.error(err);
-                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel. Asegúrate de seleccionar un archivo .xlsx, .xls o .csv válido.', 'fa-times-circle text-red-500');
-            } finally {
-                event.target.value = '';
-            }
-        }
-
-        function procesarWorkbookYSheet(workbook, targetSheetName = null, origenStr = 'Excel') {
-            if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) return;
-
-            const containerHojas = document.getElementById('containerHojasExcel');
-            const selectHojas = document.getElementById('selectHojaExcel');
-
-            if (workbook.SheetNames.length > 1) {
-                if (selectHojas) {
-                    selectHojas.innerHTML = workbook.SheetNames.map(name => `<option value="${name}" ${name === targetSheetName ? 'selected' : ''}>${name}</option>`).join('');
-                }
-                if (containerHojas) containerHojas.classList.remove('hidden');
-            } else {
-                if (containerHojas) containerHojas.classList.add('hidden');
-            }
-
-            let sheetToUse = targetSheetName;
-            if (!sheetToUse) {
-                const sheetPriority = ['SinQR', 'Sheet1', 'Equipos'];
-                for (const name of sheetPriority) {
-                    if (workbook.SheetNames.includes(name)) {
-                        sheetToUse = name;
-                        break;
-                    }
-                }
-                if (!sheetToUse) sheetToUse = workbook.SheetNames[0];
-            }
-
-            if (selectHojas) selectHojas.value = sheetToUse;
-
-            const items = extraerEquiposDeSheet(workbook.Sheets[sheetToUse]);
-            if (items.length === 0) {
-                mostrarAlerta('Pestaña vacía', `La pestaña "${sheetToUse}" no contiene registros válidos.`, 'fa-exclamation-circle text-amber-500');
-                return;
-            }
-
-            generarYMostrarModalQRs(items, `${origenStr} [${sheetToUse}]`);
-        }
-
-        function cambiarHojaExcelQRs(sheetName) {
-            if (!activeWorkbookQRs) return;
-            procesarWorkbookYSheet(activeWorkbookQRs, sheetName, 'Excel');
-        }
-
-        function extraerEquiposDeSheet(sheet) {
-            if (!sheet) return [];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
-            if (!rows || rows.length === 0) return [];
-
-            let colEquipo = -1;
-            let colZona = -1;
-            let colUrl = -1;
-            let colComentario = -1;
-
-            if (rows[0] && Array.isArray(rows[0])) {
-                rows[0].forEach((cell, idx) => {
-                    const h = String(cell || '').toLowerCase().trim();
-                    if (h.includes('zona')) colZona = idx;
-                    else if (h.includes('equipo')) colEquipo = idx;
-                    else if (h.includes('direccion') || h.includes('ip') || h.includes('url')) colUrl = idx;
-                    else if (h.includes('comentario') || h.includes('descrip')) colComentario = idx;
-                });
-            }
-
-            const headersToIgnore = ['equipo', 'equipos', 'qr', 'qrs', 'codigo', 'código', 'nombre', 'tag', 'id', 'direccion ip', 'fecha', 'hora', 'usuario', 'comentario', 'acción', 'accion'];
-            const items = [];
-
-            rows.forEach(row => {
-                if (!row || !Array.isArray(row)) return;
-
-                let nombre = '';
-                let subtitulo = '';
-                let qrText = '';
-
-                if (colUrl !== -1 && row[colUrl] && !String(row[colUrl]).includes('#VALUE!')) {
-                    qrText = String(row[colUrl]).trim();
-                }
-
-                if (colZona !== -1 && row[colZona]) {
-                    nombre = String(row[colZona]).trim();
-                    if (colEquipo !== -1 && row[colEquipo]) subtitulo = String(row[colEquipo]).trim();
-                } else if (colEquipo !== -1 && row[colEquipo]) {
-                    nombre = String(row[colEquipo]).trim();
-                    if (colComentario !== -1 && row[colComentario]) subtitulo = String(row[colComentario]).trim();
-                } else if (colUrl !== -1 && row[colUrl]) {
-                    nombre = String(row[colUrl]).trim();
-                } else {
-                    for (let c = 0; c < row.length; c++) {
-                        const val = String(row[c] || '').trim();
-                        if (val && !headersToIgnore.includes(val.toLowerCase()) && !val.includes('#VALUE!') && val.length < 200) {
-                            if (!nombre) nombre = val;
-                            else if (!subtitulo) { subtitulo = val; break; }
-                        }
-                    }
-                }
-
-                if (nombre && !headersToIgnore.includes(nombre.toLowerCase()) && !nombre.includes('#VALUE!')) {
-                    if (!items.some(item => item.nombre === nombre)) {
-                        items.push({
-                            nombre: nombre,
-                            subtitulo: subtitulo && !subtitulo.includes('#VALUE!') ? subtitulo : '',
-                            qrText: qrText || nombre
-                        });
-                    }
-                }
-            });
-
-            return items;
         }
 
         async function generarYMostrarModalQRs(items, origenStr = 'Dashboard') {

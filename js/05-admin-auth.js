@@ -312,12 +312,6 @@
             const btnExpQR = document.getElementById('btnExportarQRsSinQR');
             if (btnExpQR) btnExpQR.classList.toggle('hidden', !isAdminModo);
 
-            const btnQRsRepo = document.getElementById('btnQRsRepo');
-            if (btnQRsRepo) btnQRsRepo.classList.toggle('hidden', !isAdminModo);
-
-            const btnExcelPC = document.getElementById('btnCargarExcelPC');
-            if (btnExcelPC) btnExcelPC.classList.toggle('hidden', !isAdminModo);
-
             const btnBulk = document.getElementById('btnBorrarEquiposSinQRSeleccionados');
             if (btnBulk && !isAdminModo) btnBulk.classList.add('hidden');
 
