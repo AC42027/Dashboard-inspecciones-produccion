@@ -182,7 +182,7 @@
                 avancePanel.innerHTML = `
                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-200 dark:border-slate-700 pb-4 mb-4">
                         <h3 class="text-lg font-bold text-goodyear-blue dark:text-white uppercase flex items-center gap-2">
-                            <i class="fas fa-user-check text-goodyear-yellow"></i> Avance de Asociados (ASRS)
+                            <i class="fas fa-user-check text-goodyear-yellow"></i> Cumplimiento de Asociados (ASRS)
                         </h3>
                         <div class="flex flex-wrap gap-2 text-xs items-center">
                             <span id="avance-asociados-periodo" class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-goodyear-blue dark:text-blue-300 font-bold rounded-full border border-blue-200 dark:border-blue-800"></span>
@@ -192,11 +192,11 @@
                     <div class="flex flex-wrap items-center gap-3 mb-4">
                         <label for="avanceAsoMes" class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Mes</label>
                         <select id="avanceAsoMes" class="glass-input w-48 text-sm font-semibold" onchange="cambiarAvanceMes(this)"></select>
-                        <span class="text-[10px] text-gray-400 dark:text-gray-500">La tabla mensual responde a este selector; abajo se muestra el avance del año actual.</span>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500">El % mensual responde a este selector; abajo se muestra el cumplimiento del año actual.</span>
                     </div>
                     <div id="avance-asociados-body">
                         <div class="flex items-center justify-center gap-2 py-8 text-gray-400 dark:text-gray-500 text-sm">
-                            <i class="fas fa-spinner fa-spin"></i> Calculando avance...
+                            <i class="fas fa-spinner fa-spin"></i> Calculando cumplimiento...
                         </div>
                     </div>
                 `;
@@ -530,7 +530,7 @@
             const currYr = ahora.getFullYear();
             const currMo = ahora.getMonth();
             let html = '';
-            for (let i = -6; i <= 6; i++) {
+            for (let i = 0; i <= 6; i++) {
                 const d = new Date(currYr, currMo + i, 1);
                 const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 html += `<option value="${val}">${MESES_ES[d.getMonth()]} ${d.getFullYear()}</option>`;
@@ -578,48 +578,24 @@
             return { filas, totalAsig, totalReal, pctGlobal: totalAsig > 0 ? Math.round((totalReal / totalAsig) * 100) : 0 };
         }
 
-        const estadoPill = (tex, bs) => `<span class="${bs}">${tex}</span>`;
-
         function renderAvanceTabla(filas) {
             if (filas.length === 0) {
                 return `<div class="flex items-center justify-center gap-2 py-6 text-gray-500 dark:text-gray-400 text-sm"><i class="fas fa-inbox"></i> Sin asignaciones en el período.</div>`;
             }
-            return `<div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="text-left text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
-                                    <th class="px-3 py-2.5 font-bold">Asociado</th>
-                                    <th class="px-3 py-2.5 font-bold text-center">Asignados</th>
-                                    <th class="px-3 py-2.5 font-bold text-center">Realizadas</th>
-                                    <th class="px-3 py-2.5 font-bold text-center">Fuera de tiempo</th>
-                                    <th class="px-3 py-2.5 font-bold text-center">Pendientes</th>
-                                    <th class="px-3 py-2.5 font-bold text-left min-w-[220px]">% Avance</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${filas.map(f => {
-                                    const barCls = f.pct >= 90 ? 'bg-green-500' : f.pct >= 75 ? 'bg-amber-500' : 'bg-rose-500';
-                                    const pctCls = f.pct >= 90 ? 'text-emerald-600 dark:text-emerald-400' : f.pct >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
-                                    return `
-                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors border-b border-gray-100 dark:border-slate-700/50">
-                                        <td class="font-bold text-goodyear-blue dark:text-blue-400 px-3 py-2.5">${f.aso}</td>
-                                        <td class="text-center text-gray-700 dark:text-gray-300 px-3 py-2.5">${f.c.asignadas}</td>
-                                        <td class="text-center px-3 py-2.5">${estadoPill(f.c.realizadas, 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-800')}</td>
-                                        <td class="text-center px-3 py-2.5">${estadoPill(f.c.fueraTiempo, 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800')}</td>
-                                        <td class="text-center px-3 py-2.5">${estadoPill(f.c.pendientes, 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-800')}</td>
-                                        <td class="px-3 py-2.5">
-                                            <div class="flex items-center gap-2">
-                                                <div class="flex-1 h-2 rounded-full bg-gray-100 dark:bg-slate-700 relative overflow-hidden">
-                                                    <div class="${barCls} h-full rounded-full transition-all duration-700" style="width:${f.pct}%"></div>
-                                                </div>
-                                                <span class="w-14 text-right font-extrabold text-xs ${pctCls}">${f.pct}%</span>
-                                            </div>
-                                        </td>
-                                    </tr>`;
-                                }).join('')}
-                            </tbody>
-                        </table>
+            return `<div class="space-y-2.5">
+                ${filas.map(f => {
+                    const barCls = f.pct >= 90 ? 'bg-green-500' : f.pct >= 75 ? 'bg-amber-500' : 'bg-rose-500';
+                    const pctCls = f.pct >= 90 ? 'text-emerald-600 dark:text-emerald-400' : f.pct >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
+                    return `
+                    <div class="flex items-center gap-3">
+                        <span class="w-40 sm:w-48 shrink-0 font-bold text-goodyear-blue dark:text-blue-400 text-sm truncate" title="${f.aso}">${f.aso}</span>
+                        <div class="flex-1 h-3 rounded-full bg-gray-100 dark:bg-slate-700 relative overflow-hidden">
+                            <div class="${barCls} h-full rounded-full transition-all duration-700" style="width:${f.pct}%"></div>
+                        </div>
+                        <span class="w-14 shrink-0 text-right font-extrabold text-sm ${pctCls}">${f.pct}%</span>
                     </div>`;
+                }).join('')}
+            </div>`;
         }
 
         async function renderAvanceAsociados() {
@@ -678,7 +654,7 @@
                     <div>
                         <div class="flex items-center justify-between mb-2">
                             <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fas fa-calendar-day text-goodyear-blue dark:text-goodyear-yellow"></i> Avance Mensual ${obtenerNombreMesEspañol(avanceState.mes)}
+                                <i class="fas fa-calendar-day text-goodyear-blue dark:text-goodyear-yellow"></i> Cumplimiento Mensual ${obtenerNombreMesEspañol(avanceState.mes)}
                             </h4>
                         </div>
                         ${renderAvanceTabla(mensual.filas)}
@@ -686,14 +662,14 @@
                     <div class="mt-8 pt-4 border-t border-gray-200 dark:border-slate-700">
                         <div class="flex items-center justify-between gap-2 mb-2">
                             <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
-                                <i class="fas fa-calendar-week text-goodyear-yellow"></i> Avance Anual ${anioAnual}
+                                <i class="fas fa-calendar-week text-goodyear-yellow"></i> Cumplimiento Anual ${anioAnual}
                             </h4>
                             ${badgeAnual}
                         </div>
                         ${renderAvanceTabla(anual.filas)}
                     </div>
                     <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-4">
-                        Avance = equipos asignados que ya fueron inspeccionados (Realizadas + Fuera de tiempo) sobre el total asignado. El % anual agrega los 12 meses del año.
+                        Cumplimiento = equipos asignados que ya fueron inspeccionados (Realizadas + Fuera de tiempo) sobre el total asignado. El % anual agrega los 12 meses del año.
                     </p>`;
             } catch (err) {
                 console.error('[AvanceAsociados] error:', err);
