@@ -224,72 +224,120 @@
             });
         }
 
+        let activeWorkbookQRs = null;
+
+        function obtenerListaMaestraDeWorkbook(workbook) {
+            if (!workbook || !workbook.SheetNames) return [];
+            let sheetName = workbook.SheetNames.find(n => n.toLowerCase() === 'equipos') || workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            if (!sheet) return [];
+
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            if (!rows || rows.length <= 1) return [];
+
+            let colUrl = -1, colZona = -1, colEquipo = -1;
+            if (rows[0] && Array.isArray(rows[0])) {
+                rows[0].forEach((cell, idx) => {
+                    const h = String(cell || '').toLowerCase().trim();
+                    if (h.includes('direccion') || h.includes('ip') || h.includes('url')) colUrl = idx;
+                    else if (h.includes('zona')) colZona = idx;
+                    else if (h.includes('equipo')) colEquipo = idx;
+                });
+            }
+
+            const master = [];
+            rows.slice(1).forEach(row => {
+                if (!row || !Array.isArray(row)) return;
+                const url = colUrl !== -1 ? String(row[colUrl] || '').trim() : String(row[0] || '').trim();
+                const zona = colZona !== -1 ? String(row[colZona] || '').trim() : String(row[1] || '').trim();
+                const equipo = colEquipo !== -1 ? String(row[colEquipo] || '').trim() : String(row[2] || '').trim();
+
+                if ((zona || equipo || url) && !url.includes('#VALUE!')) {
+                    master.push({ url, zona, equipo });
+                }
+            });
+
+            return master;
+        }
+
         async function abrirModalQRsSinQR() {
             if (!isAdminModo) return;
 
+            // 1. Obtener la lista de equipos sin QR a procesar (seleccionados o todos los reportados)
             const selectedChks = document.querySelectorAll('.chk-sin-qr:checked');
-            let lista = [];
+            let listaReportados = [];
 
             if (selectedChks.length > 0) {
                 const ids = Array.from(selectedChks).map(c => c.getAttribute('data-id'));
-                lista = equiposSinQR.filter(eq => ids.includes(String(eq.id)));
+                listaReportados = equiposSinQR.filter(eq => ids.includes(String(eq.id)));
             } else {
-                lista = equiposSinQR;
+                listaReportados = equiposSinQR;
             }
 
-            if (lista.length === 0) {
-                await mostrarAlerta('Atención', 'No hay equipos sin QR para generar.', 'fa-exclamation-circle text-amber-500');
+            if (listaReportados.length === 0) {
+                await mostrarAlerta('Atención', 'No hay equipos sin QR registrados o seleccionados.', 'fa-exclamation-circle text-amber-500');
                 return;
             }
 
-            const items = lista.map(eq => ({
-                nombre: eq.equipo_nombre || eq.equipo || 'Equipo',
-                fecha: eq.fecha || ''
-            }));
-
-            await generarYMostrarModalQRs(items, 'Dashboard');
-        }
-
-        let activeWorkbookQRs = null;
-
-        async function cargarQRsDesdeExcelRepo() {
-            if (!isAdminModo) return;
+            // 2. Cargar Excel maestro del repositorio para hacer MATCH
+            let masterList = [];
             try {
-                let response = null;
-                let fileUsed = '';
-                const possiblePaths = [
-                    'public/equipos_qr.xlsx',
-                    'equipos_qr.xlsx',
-                    'public/equipos_qr.csv',
-                    'equipos_qr.csv'
-                ];
-
-                for (const path of possiblePaths) {
-                    const res = await fetch(path);
+                if (!activeWorkbookQRs) {
+                    let res = await fetch('public/equipos_qr.xlsx');
+                    if (!res.ok) res = await fetch('equipos_qr.xlsx');
                     if (res.ok) {
-                        response = res;
-                        fileUsed = path.split('/').pop();
-                        break;
+                        const ab = await res.arrayBuffer();
+                        activeWorkbookQRs = XLSX.read(ab, { type: 'array' });
                     }
                 }
-
-                if (!response) {
-                    await mostrarAlerta(
-                        'Archivo no encontrado',
-                        'No se encontró el archivo "equipos_qr.xlsx" en la carpeta public/ ni en la raíz del repositorio.',
-                        'fa-exclamation-triangle text-amber-500'
-                    );
-                    return;
+                if (activeWorkbookQRs) {
+                    masterList = obtenerListaMaestraDeWorkbook(activeWorkbookQRs);
                 }
-
-                const arrayBuffer = await response.arrayBuffer();
-                activeWorkbookQRs = XLSX.read(arrayBuffer, { type: 'array' });
-                procesarWorkbookYSheet(activeWorkbookQRs, null, `Excel del Repo (${fileUsed})`);
-
-            } catch (err) {
-                console.error(err);
-                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel del repositorio.', 'fa-times-circle text-red-500');
+            } catch (e) {
+                console.warn('No se pudo cargar el Excel maestro para match:', e);
             }
+
+            // 3. Hacer MATCH entre los N equipos sin QR reportados y el listado del Excel
+            const itemsAMostrar = [];
+
+            for (const eq of listaReportados) {
+                const nombreReportado = eq.equipo_nombre || eq.equipo || 'Equipo';
+                const normRep = normalizarTexto(nombreReportado);
+
+                // Coincidencia inteligente por Zona o Nombre de equipo
+                let match = masterList.find(m => {
+                    const normZona = normalizarTexto(m.zona || '');
+                    const normEquipo = normalizarTexto(m.equipo || '');
+                    return normRep && (normZona.includes(normRep) || normRep.includes(normZona) || normEquipo.includes(normRep) || normRep.includes(normEquipo));
+                });
+
+                if (match) {
+                    const qrContent = match.url || match.zona || nombreReportado;
+                    const nombreMostrar = match.zona || nombreReportado;
+                    const descMostrar = match.equipo || eq.comentario || '';
+                    itemsAMostrar.push({
+                        nombre: nombreMostrar,
+                        subtitulo: descMostrar,
+                        qrText: qrContent,
+                        matchEncontrado: true
+                    });
+                } else {
+                    itemsAMostrar.push({
+                        nombre: nombreReportado,
+                        subtitulo: eq.comentario || 'Reportado sin QR',
+                        qrText: nombreReportado,
+                        matchEncontrado: false
+                    });
+                }
+            }
+
+            const totalMatches = itemsAMostrar.filter(i => i.matchEncontrado).length;
+            const origenStr = `Equipos Faltantes (${itemsAMostrar.length}) · ${totalMatches} Match(es) con Excel`;
+
+            const containerHojas = document.getElementById('containerHojasExcel');
+            if (containerHojas) containerHojas.classList.add('hidden');
+
+            await generarYMostrarModalQRs(itemsAMostrar, origenStr);
         }
 
         async function cargarQRsDesdeExcelLocal(event) {
