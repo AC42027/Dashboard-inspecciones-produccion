@@ -206,6 +206,18 @@
                 }
             }
 
+            const selHSFecha = document.getElementById('manualHSFecha');
+            if (selHSFecha) {
+                const prevValH = selHSFecha.value;
+                selHSFecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValH && periods.some(p => p.startStr === prevValH)) {
+                    selHSFecha.value = prevValH;
+                } else {
+                    selHSFecha.value = periods[0].startStr;
+                }
+            }
+
             renderBadgesGrupos();
         }
 
@@ -943,6 +955,66 @@
             renderBadgesGrupos();
         }
 
+        // Grupos HorseShoe: 9 conveyors por cada robot de prensa (600B, 600A, 500B, 500A, 400B)
+        const GRUPOS_HS = {
+            '600B': ['P2655A','P2660','P2665C','P2665B','P2665A','P2670B','P2670A','P2675','P2680'],
+            '600A': ['P2605A','P2610','P2615C','P2615B','P2615A','P2620B','P2620A','P2625','P2630'],
+            '500B': ['P2555A','P2560','P2565C','P2565B','P"565A','P2570B','P2579A','P2575','P2580'],
+            '500A': ['P2505A','P2510','P2515C','P2515B','P2515A','P2520B','P2520A','P2525','P2530'],
+            '400B': ['P2455A','P2460','P2465C','P2465B','P2465A','P2470B','P2470A','P2475','P2485']
+        };
+
+        async function agregarGrupoHS() {
+            esGeneracionAuto = false;
+            const robot = document.getElementById('manualHSSelect').value;
+            const aso = document.getElementById('manualHSAsoSelect').value;
+            const selFecha = document.getElementById('manualHSFecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!robot) { mostrarAlerta('Atención', 'Seleccione un robot HorseShoe.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_HS[robot] || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'Horseshoes';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'Horseshoes';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos de este HorseShoe ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('manualHSSelect').value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+            renderBadgesGrupos();
+        }
+
         // ===== INDICADOR DE GRUPOS PLANIFICADOS EN EL MES =====
         // Un grupo cuenta como planificado si TODOS sus equipos ya tienen
         // asignación en el mes seleccionado (backend guardado + vista previa).
@@ -1003,7 +1075,8 @@
                 CC01: { container: 'badgesCC01', grupos: Object.entries(GRUPOS_CC01).map(([k, v]) => ({ clave: k, etiqueta: 'Sector ' + k.replace('G', ''), equipos: v })) },
                 CC03: { container: 'badgesCC03', grupos: Object.entries(GRUPOS_CC03).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
                 Z12: { container: 'badgesZ12', grupos: Object.entries(GRUPOS_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
-                Z13: { container: 'badgesZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) }
+                Z13: { container: 'badgesZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                HS: { container: 'badgesHS', grupos: Object.entries(GRUPOS_HS).map(([k, v]) => ({ clave: k, etiqueta: 'HS ' + k, equipos: v })) }
             };
         }
 

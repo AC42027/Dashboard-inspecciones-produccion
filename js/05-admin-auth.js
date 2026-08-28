@@ -145,6 +145,14 @@
                 selZ13.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
                     asrsTeam.map(name => `<option value="${name}" ${name === valZ2 ? 'selected' : ''}>${name}</option>`).join('');
             }
+
+            // Actualizar select de grupo HorseShoe
+            const selHS = document.getElementById('manualHSAsoSelect');
+            if (selHS) {
+                const valH = selHS.value;
+                selHS.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valH ? 'selected' : ''}>${name}</option>`).join('');
+            }
         }
 
         async function addAssociate() {

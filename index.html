@@ -785,6 +785,54 @@
                         </div>
                     </div>
 
+                    <!-- Grupo HorseShoe (5 robots de prensa) -->
+                    <div
+                        class="bg-cyan-50 dark:bg-cyan-900/20 p-4 rounded-lg mb-6 border border-cyan-200 dark:border-cyan-800">
+                        <h4
+                            class="text-xs font-bold text-cyan-700 dark:text-cyan-300 mb-3 uppercase tracking-wider">
+                            <i class="fas fa-horseshoe mr-1"></i> Grupo HorseShoe (9 equipos por robot)</h4>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="w-full sm:w-64">
+                                <label
+                                    class="text-[10px] text-cyan-700 dark:text-cyan-300 font-bold ml-1">HorseShoe</label>
+                                <select id="manualHSSelect" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar Robot --</option>
+                                    <option value="600B">HorseShoe 600B (9)</option>
+                                    <option value="600A">HorseShoe 600A (9)</option>
+                                    <option value="500B">HorseShoe 500B (9)</option>
+                                    <option value="500A">HorseShoe 500A (9)</option>
+                                    <option value="400B">HorseShoe 400B (9)</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-48">
+                                <label
+                                    class="text-[10px] text-cyan-700 dark:text-cyan-300 font-bold ml-1">Asociado</label>
+                                <select id="manualHSAsoSelect" class="glass-input w-full text-sm">
+                                    <option value="PENDIENTE">-- Sin Asignar --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-56">
+                                <label
+                                    class="text-[10px] text-cyan-700 dark:text-cyan-300 font-bold ml-1">Semana</label>
+                                <select id="manualHSFecha" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar semana --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <button onclick="agregarGrupoHS()"
+                                class="self-end btn btn-primary btn-md bg-cyan-600 hover:bg-cyan-700">
+                                <i class="fas fa-layer-group"></i> Agregar Grupo
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-cyan-600 dark:text-cyan-400 mt-2 ml-1">
+                            Agrega los 9 conveyors del horseShoe de un robot de prensa (600B a 400B) para asignar de una sola vez.
+                        </p>
+                        <div id="badgesHS" class="mt-2 flex flex-wrap gap-1.5 ml-1">
+                            <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
+                        </div>
+                    </div>
+
                     <!-- Previsualización antes de guardar -->
                     <div id="asigPreviewContainer" class="hidden mt-6">
                         <div class="flex justify-between items-center mb-2">
