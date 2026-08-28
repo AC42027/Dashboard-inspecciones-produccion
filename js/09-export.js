@@ -235,25 +235,45 @@
             const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
             if (!rows || rows.length <= 1) return [];
 
-            let colUrl = -1, colZona = -1, colEquipo = -1;
+            let colUrl = -1, colZona = -1, colEquipo = -1, colQr = -1;
             if (rows[0] && Array.isArray(rows[0])) {
                 rows[0].forEach((cell, idx) => {
                     const h = String(cell || '').toLowerCase().trim();
-                    if (h.includes('direccion') || h.includes('ip') || h.includes('url')) colUrl = idx;
-                    else if (h.includes('zona')) colZona = idx;
-                    else if (h.includes('equipo')) colEquipo = idx;
+                    if (h.includes('direccion') || h.includes('ip') || h.includes('url')) colUrl = idx; // Col A
+                    else if (h.includes('zona')) colZona = idx; // Col B
+                    else if (h.includes('equipo')) colEquipo = idx; // Col C
+                    else if (h === 'qr' || h.includes('qr')) colQr = idx; // Col D
                 });
             }
+
+            if (colZona === -1) colZona = 1; // Columna B por defecto
+            if (colEquipo === -1) colEquipo = 2; // Columna C por defecto
+            if (colQr === -1) colQr = 3; // Columna D por defecto
+            if (colUrl === -1) colUrl = 0; // Columna A por defecto
 
             const master = [];
             rows.slice(1).forEach(row => {
                 if (!row || !Array.isArray(row)) return;
-                const url = colUrl !== -1 ? String(row[colUrl] || '').trim() : String(row[0] || '').trim();
-                const zona = colZona !== -1 ? String(row[colZona] || '').trim() : String(row[1] || '').trim();
-                const equipo = colEquipo !== -1 ? String(row[colEquipo] || '').trim() : String(row[2] || '').trim();
 
-                if ((zona || equipo || url) && !url.includes('#VALUE!')) {
-                    master.push({ url, zona, equipo });
+                // Nombre del equipo en Columna B (Zona) o C (Equipo)
+                const zona = String(row[colZona] || row[colEquipo] || '').trim();
+                const desc = String(row[colEquipo] || '').trim();
+
+                // Contenido del QR en Columna D o Columna A
+                let qrData = String(row[colQr] || '').trim();
+                if (!qrData || qrData.includes('#VALUE!')) {
+                    qrData = String(row[colUrl] || '').trim();
+                }
+                if (!qrData || qrData.includes('#VALUE!')) {
+                    qrData = zona;
+                }
+
+                if (zona && !zona.includes('#VALUE!')) {
+                    master.push({
+                        zona: zona,
+                        equipo: desc !== zona ? desc : '',
+                        url: qrData
+                    });
                 }
             });
 
