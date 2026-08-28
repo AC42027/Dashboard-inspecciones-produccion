@@ -280,6 +280,28 @@
             }
         }
 
+        function toggleSelectAllSinQR(checked) {
+            const checkboxes = document.querySelectorAll('.chk-sin-qr');
+            checkboxes.forEach(chk => chk.checked = checked);
+            actualizarSeleccionSinQR();
+        }
+
+        function actualizarSeleccionSinQR() {
+            const selected = document.querySelectorAll('.chk-sin-qr:checked');
+            const all = document.querySelectorAll('.chk-sin-qr');
+            const countSpan = document.getElementById('countSinQRSeleccionados');
+            const btnBulk = document.getElementById('btnBorrarEquiposSinQRSeleccionados');
+            const selectAllChk = document.getElementById('selectAllSinQR');
+
+            if (countSpan) countSpan.textContent = selected.length;
+            if (btnBulk && isAdminModo) {
+                btnBulk.classList.toggle('hidden', selected.length === 0);
+            }
+            if (selectAllChk && all.length > 0) {
+                selectAllChk.checked = selected.length === all.length;
+            }
+        }
+
         function renderEquiposSinQR() {
             const tbody = document.getElementById('tabla-equipos-sin-qr');
             if (!tbody) return;
@@ -287,13 +309,31 @@
             const headerAccion = document.getElementById('sinQrAccionHeader');
             if (headerAccion) headerAccion.classList.toggle('hidden', !isAdminModo);
 
+            const headerSelect = document.getElementById('sinQrSelectHeader');
+            if (headerSelect) headerSelect.classList.toggle('hidden', !isAdminModo);
+
+            const btnBulk = document.getElementById('btnBorrarEquiposSinQRSeleccionados');
+            if (btnBulk && !isAdminModo) btnBulk.classList.add('hidden');
+
+            const selectAllChk = document.getElementById('selectAllSinQR');
+            if (selectAllChk) selectAllChk.checked = false;
+
+            actualizarSeleccionSinQR();
+
+            const totalCols = 5 + (isAdminModo ? 2 : 0);
+
             if (equiposSinQR.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 text-gray-500 font-medium">No hay equipos sin QR registrados.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="${totalCols}" class="text-center py-8 text-gray-500 font-medium">No hay equipos sin QR registrados.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = equiposSinQR.map(eq => `
-                <tr>
+                <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">
+                    ${isAdminModo ? `
+                    <td class="text-center">
+                        <input type="checkbox" class="chk-sin-qr rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer"
+                               data-id="${eq.id}" onchange="actualizarSeleccionSinQR()">
+                    </td>` : ''}
                     <td>${eq.fecha || '-'}</td>
                     <td>${eq.hora || '-'}</td>
                     <td>${eq.usuario_nombre || eq.usuario || '-'}</td>
@@ -315,7 +355,7 @@
             if (!isAdminModo) return;
             const confirmar = await mostrarConfirmacion(
                 'Eliminar Equipo sin QR',
-                '¿Seguro que ya se coloc\u00f3 el QR? Se eliminar\u00e1 este registro.',
+                '¿Seguro que ya se colocó el QR? Se eliminará este registro.',
                 'fa-check-circle text-green-500'
             );
             if (!confirmar) return;
@@ -334,6 +374,51 @@
                 }
             } catch (err) {
                 await mostrarAlerta('Error', 'No se pudo conectar con el servidor.', 'fa-exclamation-circle text-red-500');
+            }
+        }
+
+        async function eliminarEquiposSinQRSeleccionados() {
+            if (!isAdminModo) return;
+            const selected = document.querySelectorAll('.chk-sin-qr:checked');
+            const ids = Array.from(selected).map(chk => chk.getAttribute('data-id'));
+            if (ids.length === 0) return;
+
+            const confirmar = await mostrarConfirmacion(
+                'Eliminar Equipos sin QR',
+                `¿Seguro que deseas eliminar los ${ids.length} equipos sin QR seleccionados?`,
+                'fa-trash-alt text-red-500'
+            );
+            if (!confirmar) return;
+
+            const btnBulk = document.getElementById('btnBorrarEquiposSinQRSeleccionados');
+            if (btnBulk) {
+                btnBulk.disabled = true;
+                btnBulk.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+            }
+
+            try {
+                const fetchPromises = ids.map(id =>
+                    fetch(`${API_BASE}/api/equipos-sin-qr/${id}/`, {
+                        method: 'DELETE',
+                        headers: { 'X-API-Token': 'fxoNqZPOR7nxwAYrbqFTONNEjUO2I1Hv3Wm34YGrEL4' }
+                    })
+                );
+                const results = await Promise.all(fetchPromises);
+                const exitos = results.filter(r => r.ok).length;
+
+                if (exitos > 0) {
+                    await mostrarAlerta('Eliminados', `Se eliminaron ${exitos} de ${ids.length} registro(s) correctamente.`, 'fa-check-circle text-green-500');
+                    cargarEquiposSinQR();
+                } else {
+                    await mostrarAlerta('Error', 'No se pudo eliminar ninguno de los registros seleccionados.', 'fa-times-circle text-red-500');
+                }
+            } catch (err) {
+                await mostrarAlerta('Error', 'No se pudo conectar con el servidor.', 'fa-exclamation-circle text-red-500');
+            } finally {
+                if (btnBulk) {
+                    btnBulk.disabled = false;
+                    btnBulk.innerHTML = `<i class="fas fa-trash-alt"></i> <span>Eliminar seleccionados (<span id="countSinQRSeleccionados">0</span>)</span>`;
+                }
             }
         }
         // FIN EQUIPOS SIN QR

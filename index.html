@@ -931,10 +931,16 @@
                         class="btn btn-primary btn-sm min-w-[40px]">
                         <i class="fas fa-sync-alt"></i>
                     </button>
-                    <button id="btnExportarAsignaciones" onclick="exportarAsignacionExcel()" disabled
-                        class="ml-auto btn btn-disabled btn-md">
-                        <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Exportar</span>
-                    </button>
+                    <div class="ml-auto flex items-center gap-2">
+                        <button id="btnBorrarAsignacionesSeleccionadas" onclick="eliminarAsignacionesSeleccionadas()"
+                            class="btn bg-red-600 hover:bg-red-700 text-white btn-md hidden flex items-center gap-2">
+                            <i class="fas fa-trash-alt"></i> <span>Eliminar seleccionadas (<span id="countAsigSeleccionadas">0</span>)</span>
+                        </button>
+                        <button id="btnExportarAsignaciones" onclick="exportarAsignacionExcel()" disabled
+                            class="btn btn-disabled btn-md">
+                            <i class="fas fa-file-excel"></i> <span class="hidden sm:inline">Exportar</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Loader -->
@@ -948,6 +954,9 @@
                     <table class="w-full text-left premium-table text-sm">
                         <thead>
                             <tr>
+                                <th id="asigAdminSelectHeader" class="text-center w-10 hidden">
+                                    <input type="checkbox" id="selectAllAsig" onchange="toggleSelectAllAsig(this.checked)" title="Seleccionar todas" class="rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer">
+                                </th>
                                 <th>Asociado</th>
                                 <th>Zona</th>
                                 <th>Equipo Asignado</th>
@@ -980,15 +989,24 @@
                             <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Registro de inspecciones</span>
                         </span>
                     </h2>
-                    <button onclick="cargarEquiposSinQR()"
-                        class="btn btn-primary btn-sm">
-                        <i class="fas fa-sync-alt"></i> Refrescar
-                    </button>
+                    <div class="flex items-center gap-2">
+                        <button id="btnBorrarEquiposSinQRSeleccionados" onclick="eliminarEquiposSinQRSeleccionados()"
+                            class="btn bg-red-600 hover:bg-red-700 text-white btn-sm hidden flex items-center gap-2">
+                            <i class="fas fa-trash-alt"></i> <span>Eliminar seleccionados (<span id="countSinQRSeleccionados">0</span>)</span>
+                        </button>
+                        <button onclick="cargarEquiposSinQR()"
+                            class="btn btn-primary btn-sm">
+                            <i class="fas fa-sync-alt"></i> Refrescar
+                        </button>
+                    </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left premium-table text-sm">
                         <thead>
                             <tr>
+                                <th id="sinQrSelectHeader" class="text-center w-10 hidden">
+                                    <input type="checkbox" id="selectAllSinQR" onchange="toggleSelectAllSinQR(this.checked)" title="Seleccionar todos" class="rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer">
+                                </th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Usuario</th>

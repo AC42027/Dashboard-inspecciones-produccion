@@ -38,7 +38,8 @@
                 asignacionesActuales = data;
 
                 if (data.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 font-medium">Sin inspecciones asignadas</td></tr>`;
+                    const colspan = isAdminModo ? 6 : 4;
+                    tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-8 text-gray-500 font-medium">Sin inspecciones asignadas</td></tr>`;
                     return;
                 }
 
@@ -52,17 +53,50 @@
             }
         }
 
+        function toggleSelectAllAsig(checked) {
+            const checkboxes = document.querySelectorAll('.chk-asig-publica');
+            checkboxes.forEach(chk => chk.checked = checked);
+            actualizarSeleccionAsignaciones();
+        }
+
+        function actualizarSeleccionAsignaciones() {
+            const selected = document.querySelectorAll('.chk-asig-publica:checked');
+            const all = document.querySelectorAll('.chk-asig-publica');
+            const countSpan = document.getElementById('countAsigSeleccionadas');
+            const btnBulk = document.getElementById('btnBorrarAsignacionesSeleccionadas');
+            const selectAllChk = document.getElementById('selectAllAsig');
+
+            if (countSpan) countSpan.textContent = selected.length;
+            if (btnBulk && isAdminModo) {
+                btnBulk.classList.toggle('hidden', selected.length === 0);
+            }
+            if (selectAllChk && all.length > 0) {
+                selectAllChk.checked = selected.length === all.length;
+            }
+        }
+
         function renderTablaAsignacionesPublica(mesStr) {
             const tbody = document.getElementById('tabla-asignaciones-publica');
             const accionHeader = document.getElementById('asigAdminAccionHeader');
+            const selectHeader = document.getElementById('asigAdminSelectHeader');
             let html = '';
 
-            // Mostrar columna de acción solo en modo admin
+            // Mostrar columna de selección y acción solo en modo admin
             if (isAdminModo) {
-                accionHeader.classList.remove('hidden');
+                if (accionHeader) accionHeader.classList.remove('hidden');
+                if (selectHeader) selectHeader.classList.remove('hidden');
             } else {
-                accionHeader.classList.add('hidden');
+                if (accionHeader) accionHeader.classList.add('hidden');
+                if (selectHeader) selectHeader.classList.add('hidden');
             }
+
+            const btnBulk = document.getElementById('btnBorrarAsignacionesSeleccionadas');
+            if (btnBulk && !isAdminModo) btnBulk.classList.add('hidden');
+
+            const selectAllChk = document.getElementById('selectAllAsig');
+            if (selectAllChk) selectAllChk.checked = false;
+
+            actualizarSeleccionAsignaciones();
 
             // Extraer año y mes para filtrar inspecciones del mes
             const [anio, mesNum] = mesStr.split('-').map(Number);
@@ -94,6 +128,9 @@
                         opt && normalizarTexto(opt.value) === normalizarTexto(asig.equipo));
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
+                    if (isAdminModo) {
+                        html += `<td class="text-center p-2"><input type="checkbox" class="chk-asig-publica rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer" data-id="${asig.id}" onchange="actualizarSeleccionAsignaciones()"></td>`;
+                    }
                     if (index === 0) {
                         html += `<td rowspan="${equiposAso.length}" class="font-bold text-gray-800 dark:text-gray-200 align-top pt-4 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">${aso}</td>`;
                     }
@@ -1379,4 +1416,50 @@
                 await mostrarAlerta('Error de Red', 'No se pudo conectar con el servidor.', 'fa-wifi text-red-500');
             }
         }
+
+        async function eliminarAsignacionesSeleccionadas() {
+            if (!isAdminModo) return;
+            const selected = document.querySelectorAll('.chk-asig-publica:checked');
+            const ids = Array.from(selected).map(chk => chk.getAttribute('data-id'));
+            if (ids.length === 0) return;
+
+            const confirmar = await mostrarConfirmacion(
+                'Eliminar Asignaciones',
+                `¿Estás seguro de eliminar las ${ids.length} asignaciones seleccionadas? No se podrá deshacer.`,
+                'fa-trash-alt text-red-500'
+            );
+            if (!confirmar) return;
+
+            const btnBulk = document.getElementById('btnBorrarAsignacionesSeleccionadas');
+            if (btnBulk) {
+                btnBulk.disabled = true;
+                btnBulk.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+            }
+
+            try {
+                const fetchPromises = ids.map(id =>
+                    fetch(`${API_BASE}/api/asignaciones/${id}/eliminar/`, {
+                        method: 'DELETE'
+                    })
+                );
+                const results = await Promise.all(fetchPromises);
+                const exitos = results.filter(r => r.ok).length;
+
+                if (exitos > 0) {
+                    await mostrarAlerta('Eliminadas', `Se eliminaron ${exitos} de ${ids.length} asignación(es) correctamente.`, 'fa-check-circle text-green-500');
+                    const fecha = document.getElementById('verFecha').value;
+                    if (fecha) cargarAsignacionesSemanales();
+                } else {
+                    await mostrarAlerta('Error', 'No se pudo eliminar ninguna de las asignaciones seleccionadas.', 'fa-times-circle text-red-500');
+                }
+            } catch (err) {
+                await mostrarAlerta('Error de Red', 'No se pudo conectar con el servidor.', 'fa-wifi text-red-500');
+            } finally {
+                if (btnBulk) {
+                    btnBulk.disabled = false;
+                    btnBulk.innerHTML = `<i class="fas fa-trash-alt"></i> <span>Eliminar seleccionadas (<span id="countAsigSeleccionadas">0</span>)</span>`;
+                }
+            }
+        }
+
 
