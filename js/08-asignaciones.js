@@ -169,6 +169,18 @@
                     selCC03Fecha.value = periods[0].startStr;
                 }
             }
+
+            const selZ12Fecha = document.getElementById('manualZ12Fecha');
+            if (selZ12Fecha) {
+                const prevValZ = selZ12Fecha.value;
+                selZ12Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValZ && periods.some(p => p.startStr === prevValZ)) {
+                    selZ12Fecha.value = prevValZ;
+                } else {
+                    selZ12Fecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -760,6 +772,73 @@
             }
 
             document.getElementById('manualCC03Select').value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+        }
+
+        // Grupos Zona 12: mesas de inspeccion Q1-Q6 hasta entradas de Plummer
+        // y salidas de Plummer hasta Zona 13.
+        const GRUPOS_Z12 = {
+            1: [
+                'Z12_CV149','Z12_CV158','Z12_CV166','Z12_CV169','Z12_CV170','Z12_CV171',
+                'Z12_CV172','Z12_CV173','Z12_CV174','Z12_CV175','Z12_CV194','Z12_CV203',
+                'Z12_CV211','Z12_CV214','Z12_CV217','Z12_CV218','Z12_CV219','Z12_CV221',
+                'Z12_CV222','Z12_CV223','Z12_CV224','Z12_CV225','Z12_CV226','Z12_CV227',
+                'Z12_CV228'
+            ],
+            2: [
+                'Z12_CV229','Z12_CV234','Z12_CV235','Z12_CV236','Z12_CV237','Z12_CV238',
+                'Z12_CV239','Z12_CV242','Z12_CV243','Z12_CV244','Z12_CV245','Z12_CV246',
+                'Z12_CV247','Z12_CV249'
+            ]
+        };
+
+        async function agregarGrupoZ12() {
+            esGeneracionAuto = false;
+            const tramo = document.getElementById('manualZ12Select').value;
+            const aso = document.getElementById('manualZ12AsoSelect').value;
+            const selFecha = document.getElementById('manualZ12Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!tramo) { mostrarAlerta('Atención', 'Seleccione un tramo de Zona 12.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_Z12[tramo] || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'Zona 12';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'Zona 12';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos de este tramo ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('manualZ12Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
         }

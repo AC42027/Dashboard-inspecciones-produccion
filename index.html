@@ -683,6 +683,48 @@
                         </p>
                     </div>
 
+                    <!-- Grupo Zona 12 (2 tramos) -->
+                    <div
+                        class="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg mb-6 border border-teal-200 dark:border-teal-800">
+                        <h4
+                            class="text-xs font-bold text-teal-700 dark:text-teal-300 mb-3 uppercase tracking-wider">
+                            <i class="fas fa-route mr-1"></i> Grupo Zona 12 (2 tramos)</h4>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="w-full sm:w-64">
+                                <label
+                                    class="text-[10px] text-teal-700 dark:text-teal-300 font-bold ml-1">Tramo Zona 12</label>
+                                <select id="manualZ12Select" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar Tramo --</option>
+                                    <option value="1">Tramo 1 · Mesas Q1-Q6 hasta entradas Plummer (25)</option>
+                                    <option value="2">Tramo 2 · Salidas Plummer hasta Zona 13 (14)</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-48">
+                                <label
+                                    class="text-[10px] text-teal-700 dark:text-teal-300 font-bold ml-1">Asociado</label>
+                                <select id="manualZ12AsoSelect" class="glass-input w-full text-sm">
+                                    <option value="PENDIENTE">-- Sin Asignar --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-56">
+                                <label
+                                    class="text-[10px] text-teal-700 dark:text-teal-300 font-bold ml-1">Semana</label>
+                                <select id="manualZ12Fecha" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar semana --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <button onclick="agregarGrupoZ12()"
+                                class="self-end btn btn-primary btn-md bg-teal-600 hover:bg-teal-700">
+                                <i class="fas fa-layer-group"></i> Agregar Grupo
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-teal-600 dark:text-teal-400 mt-2 ml-1">
+                            Agrega el tramo de mesas de inspeccion o el de salidas de Plummer hacia Zona 13.
+                        </p>
+                    </div>
+
                     <!-- Previsualización antes de guardar -->
                     <div id="asigPreviewContainer" class="hidden mt-6">
                         <div class="flex justify-between items-center mb-2">
