@@ -137,6 +137,14 @@
                 selZ12.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
                     asrsTeam.map(name => `<option value="${name}" ${name === valZ ? 'selected' : ''}>${name}</option>`).join('');
             }
+
+            // Actualizar select de grupo Zona 13
+            const selZ13 = document.getElementById('manualZ13AsoSelect');
+            if (selZ13) {
+                const valZ2 = selZ13.value;
+                selZ13.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valZ2 ? 'selected' : ''}>${name}</option>`).join('');
+            }
         }
 
         async function addAssociate() {

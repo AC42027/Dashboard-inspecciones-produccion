@@ -181,6 +181,18 @@
                     selZ12Fecha.value = periods[0].startStr;
                 }
             }
+
+            const selZ13Fecha = document.getElementById('manualZ13Fecha');
+            if (selZ13Fecha) {
+                const prevValZ2 = selZ13Fecha.value;
+                selZ13Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValZ2 && periods.some(p => p.startStr === prevValZ2)) {
+                    selZ13Fecha.value = prevValZ2;
+                } else {
+                    selZ13Fecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -839,6 +851,72 @@
             }
 
             document.getElementById('manualZ12Select').value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+        }
+
+        // Grupos Zona 13: entrada + centrador + robot de carga, y
+        // bypass ASRS + robot de descarga + manual car hacia CC01.
+        const GRUPOS_Z13 = {
+            1: [
+                'Z13_CV01','Z13_CV02','Z13_CV03','Z13_CV04','Z13_CV05','Z13_CV06',
+                'Z13_CV07','Z13_CV08','Z13_CV09','Z13_CV10','Z13_CV11','Z13_CV12',
+                'Z13_CV13','Z13_CV14','Z13_CV15','Z13_CV16','Z13_CV17','Z13_CV18',
+                'Z13_CV19','Z13_CV20','Z13_CV21','Z13_CV22'
+            ],
+            2: [
+                'Z13_CV23Z1','Z13_CV23Z2','Z13_CV23Z3','Z13_CV24Z1','Z13_CV24Z2','Z13_CV24Z3',
+                'Z13_CV25Z4','Z13_CV26Z3','Z13_CV26Z4','Z13_CV28Z5','Z13_CV28Z6','Z13_CV28Z7',
+                'Z13_CV29','Z13_CV31','Z13_CV34','Z13_CV35','Z13_CV36','CV38Z2'
+            ]
+        };
+
+        async function agregarGrupoZ13() {
+            esGeneracionAuto = false;
+            const tramo = document.getElementById('manualZ13Select').value;
+            const aso = document.getElementById('manualZ13AsoSelect').value;
+            const selFecha = document.getElementById('manualZ13Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!tramo) { mostrarAlerta('Atención', 'Seleccione un tramo de Zona 13.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_Z13[tramo] || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'Zona 13';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'Zona 13';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos de este tramo ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('manualZ13Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
         }
