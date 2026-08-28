@@ -145,6 +145,18 @@
                     selRobotFecha.value = periods[0].startStr;
                 }
             }
+
+            const selCC01Fecha = document.getElementById('manualCC01Fecha');
+            if (selCC01Fecha) {
+                const prevValC = selCC01Fecha.value;
+                selCC01Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValC && periods.some(p => p.startStr === prevValC)) {
+                    selCC01Fecha.value = prevValC;
+                } else {
+                    selCC01Fecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -587,6 +599,86 @@
             }
 
             baseSel.value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+        }
+
+        // Grupos CC01: 5 sectores de 18 conveyors siguiendo el recorrido físico del transportador
+        // (excluye inbound/outbound de los cranes: NBS90 P0020-P0070 y posiciones CH-01..CH-11).
+        const GRUPOS_CC01 = {
+            G1: [
+                'CC01_P3910','CC01_P3925','CC01_P3950','CC01_P3955','CC01_P3957','CC01_P3960',
+                'CC01_P3965','CC01_P3970','CC01_P3975','CC01_P3980','CC01_P3985','CC01_P4005',
+                'CC01_P4010','CC01_P4015','CC01_P4020','CC01_P4030','CC01_P4035','CC01_P4040'
+            ],
+            G2: [
+                'CC01_P4045','CC01_P4050','CC01_P4055','CC01_P4060','CC01_P4065','CC01_P4070',
+                'CC01_P4075','CC01_P4080','CC01_P4085','CC01_P4087','CC01_P4090','CC01_P4100',
+                'CC01_P4215','CC01_P4225','CC01_P4230','CC01_P4235','CC01_P4240','CC01_P4245'
+            ],
+            G3: [
+                'CC01_P4250','CC01_P4255','CC01_P4260','CC01_P4265','CC01_P4270','CC01_P4275',
+                'CC01_P4280','CC01_P4285','CC01_P4290','CC01_P4295','CC01_P4430','CC01_P4440',
+                'CC01_P4445','CC01_P4450','CC01_P4475','CC01_P4480','CC01_P4485','CC01_P4490'
+            ],
+            G4: [
+                'CC01_P4500','CC01_P4510','CC01_P4410','CC01_P4415','CC01_P4420','CC01_P3505',
+                'CC01_P3510','CC01_P3515','CC01_P3520','CC01_P3525','CC01_P3530','CC01_P5040',
+                'CC01_P5041','CC01_P5042','CC01_P5043','CC01_P5060','CC01_P5061','CC01_P5070'
+            ],
+            G5: [
+                'CC01_P5079','CC01_P5080','CC01_P5090','CC01_P5020','CC01_P5021','CC01_P5022',
+                'CC01_P5023','CC01_P5024','CC01_P5025','CC01_P5026','CC02_P5010','CC02_P5030',
+                'CC02_P5043','CC02_P5050','CC01_P005','CC01_P0010','CC01_P0015','CC01_P0100'
+            ]
+        };
+
+        async function agregarGrupoCC01() {
+            esGeneracionAuto = false;
+            const sector = document.getElementById('manualCC01Select').value;
+            const aso = document.getElementById('manualCC01AsoSelect').value;
+            const selFecha = document.getElementById('manualCC01Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!sector) { mostrarAlerta('Atención', 'Seleccione un sector CC01.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_CC01[sector] || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'CC01';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'CC01';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos de este sector ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('manualCC01Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
         }

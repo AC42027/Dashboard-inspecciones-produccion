@@ -595,6 +595,51 @@
                         </p>
                     </div>
 
+                    <!-- Grupo CC01 (recorrido completo en 5 sectores) -->
+                    <div
+                        class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg mb-6 border border-emerald-200 dark:border-emerald-800">
+                        <h4
+                            class="text-xs font-bold text-emerald-700 dark:text-emerald-300 mb-3 uppercase tracking-wider">
+                            <i class="fas fa-route mr-1"></i> Grupo CC01 (Recorrido en 5 sectores)</h4>
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="w-full sm:w-64">
+                                <label
+                                    class="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold ml-1">Sector CC01</label>
+                                <select id="manualCC01Select" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar Sector --</option>
+                                    <option value="G1">Sector 1 · Entrada CC03 / Scan 6 (18)</option>
+                                    <option value="G2">Sector 2 · Robots y triple transf. muralla (18)</option>
+                                    <option value="G3">Sector 3 · Retorno bandejas / pasillo (18)</option>
+                                    <option value="G4">Sector 4 · Recirculación y enlaces CC03 (18)</option>
+                                    <option value="G5">Sector 5 · Clasificador y bajadas cruz (18)</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-48">
+                                <label
+                                    class="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold ml-1">Asociado</label>
+                                <select id="manualCC01AsoSelect" class="glass-input w-full text-sm">
+                                    <option value="PENDIENTE">-- Sin Asignar --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-56">
+                                <label
+                                    class="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold ml-1">Semana</label>
+                                <select id="manualCC01Fecha" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar semana --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <button onclick="agregarGrupoCC01()"
+                                class="self-end btn btn-primary btn-md bg-emerald-600 hover:bg-emerald-700">
+                                <i class="fas fa-layer-group"></i> Agregar Grupo
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-emerald-600 dark:text-emerald-400 mt-2 ml-1">
+                            Agrega un sector de 18 conveyors del recorrido CC01 (excluye inbound/outbound de los cranes).
+                        </p>
+                    </div>
+
                     <!-- Previsualización antes de guardar -->
                     <div id="asigPreviewContainer" class="hidden mt-6">
                         <div class="flex justify-between items-center mb-2">
