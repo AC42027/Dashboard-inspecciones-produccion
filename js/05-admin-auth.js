@@ -105,6 +105,14 @@
                 selGrupo.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
                     asrsTeam.map(name => `<option value="${name}" ${name === valG ? 'selected' : ''}>${name}</option>`).join('');
             }
+
+            // Actualizar select de grupo robot
+            const selRobot = document.getElementById('manualRobotAsoSelect');
+            if (selRobot) {
+                const valR = selRobot.value;
+                selRobot.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valR ? 'selected' : ''}>${name}</option>`).join('');
+            }
         }
 
         async function addAssociate() {

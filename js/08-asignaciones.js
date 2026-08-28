@@ -133,6 +133,18 @@
                     selGrupoFecha.value = periods[0].startStr;
                 }
             }
+
+            const selRobotFecha = document.getElementById('manualRobotFecha');
+            if (selRobotFecha) {
+                const prevValR = selRobotFecha.value;
+                selRobotFecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValR && periods.some(p => p.startStr === prevValR)) {
+                    selRobotFecha.value = prevValR;
+                } else {
+                    selRobotFecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -363,11 +375,12 @@
                 const allEquipos = await res.json();
                 const datalist = document.getElementById('asrsEqList');
                 if (datalist) {
-                    datalist.innerHTML = allEquipos
-                        .filter(e => e.area === "ASRS" || e.area_id === "ASRS" || (e.area && e.area.nombre === "ASRS") || e.division === "ASRS")
+                    const asrsEqs = allEquipos.filter(e => e.area === "ASRS" || e.area_id === "ASRS" || (e.area && e.area.nombre === "ASRS") || e.division === "ASRS");
+                    datalist.innerHTML = asrsEqs
                         .map(e => `<option value="${e.nombre || e.equipo}">${e.zona || ''}</option>`)
                         .join('');
                 }
+                actualizarSelectGrupoRobots();
             } catch (e) { console.warn("Error al cargar equipos para búsqueda manual"); }
         }
 
@@ -488,6 +501,95 @@
             }
 
             document.getElementById('manualGrupoSRM').value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+        }
+
+        // Agrupar robots de prensa completos + sus ejes a partir del listado ASRS real
+        function getRobotGroupsFromDatalist() {
+            const names = Array.from(document.querySelectorAll('#asrsEqList option')).map(o => o && o.value).filter(Boolean);
+            const botNames = names.filter(n => /robot/i.test(n));
+            const map = new Map();
+            botNames.forEach(n => {
+                const base = getBaseRobotName(n);
+                if (!map.has(base)) map.set(base, { base, robot: '', ejes: [] });
+                map.get(base).ejes.push(n);
+            });
+            map.forEach(grp => {
+                const idx = grp.ejes.findIndex(n => normalizarTexto(n) === normalizarTexto(grp.base));
+                if (idx >= 0) {
+                    grp.robot = grp.ejes[idx];
+                    grp.ejes = grp.ejes.filter((_, i) => i !== idx);
+                } else {
+                    grp.robot = grp.ejes[0];
+                    grp.ejes = grp.ejes.slice(1);
+                }
+            });
+            return Array.from(map.values());
+        }
+
+        function actualizarSelectGrupoRobots() {
+            const sel = document.getElementById('manualRobotSelect');
+            if (!sel) return;
+            const grupos = getRobotGroupsFromDatalist();
+            sel.innerHTML = '<option value="">-- Seleccionar Robot --</option>' +
+                grupos.map(g => {
+                    const label = (g.robot || g.base) + (g.ejes.length > 0 ? ` (${g.ejes.length} ejes)` : '');
+                    return `<option value="${g.base}">${label}</option>`;
+                }).join('');
+        }
+
+        async function agregarGrupoRobot() {
+            esGeneracionAuto = false;
+            const baseSel = document.getElementById('manualRobotSelect');
+            const baseName = baseSel ? baseSel.value : '';
+            const aso = document.getElementById('manualRobotAsoSelect').value;
+            const selFecha = document.getElementById('manualRobotFecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!baseName) { mostrarAlerta('Atención', 'Seleccione un robot de prensa.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const grupos = getRobotGroupsFromDatalist();
+            const grp = grupos.find(g => g.base === baseName);
+            if (!grp) { mostrarAlerta('Error', 'Grupo de robot no encontrado.', 'fa-times-circle text-red-500'); return; }
+
+            const todosLosEqs = [grp.robot, ...grp.ejes].filter(Boolean);
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'ASRS';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'ASRS';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos de este robot ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            baseSel.value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
         }
