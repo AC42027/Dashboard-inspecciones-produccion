@@ -994,12 +994,23 @@
                             <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Registro de inspecciones</span>
                         </span>
                     </h2>
-                    <div class="flex items-center gap-2">
+                    <div class="flex flex-wrap items-center gap-2">
                         <button id="btnExportarQRsSinQR" onclick="abrirModalQRsSinQR()"
                             class="btn bg-blue-700 hover:bg-blue-800 text-white btn-sm hidden flex items-center gap-2"
-                            title="Generar hoja de QRs para imprimir o descargar en Word">
+                            title="Generar QRs de la lista reportada en el dashboard">
                             <i class="fas fa-qrcode"></i> <span>Generar QRs Faltantes</span>
                         </button>
+                        <button id="btnQRsRepo" onclick="cargarQRsDesdeExcelRepo()"
+                            class="btn bg-indigo-700 hover:bg-indigo-800 text-white btn-sm hidden flex items-center gap-2"
+                            title="Generar QRs leyendo automáticamente el archivo equipos_qr.xlsx guardado en el repositorio">
+                            <i class="fas fa-file-excel"></i> <span>QRs desde Excel Repo</span>
+                        </button>
+                        <button id="btnCargarExcelPC" onclick="document.getElementById('inputExcelPC').click()"
+                            class="btn bg-emerald-700 hover:bg-emerald-800 text-white btn-sm hidden flex items-center gap-2"
+                            title="Cargar un archivo Excel (.xlsx/.xls) desde tu PC para generar fichas de QRs e imprimir">
+                            <i class="fas fa-upload"></i> <span>Cargar Excel de PC</span>
+                        </button>
+                        <input type="file" id="inputExcelPC" accept=".xlsx, .xls, .csv" class="hidden" onchange="cargarQRsDesdeExcelLocal(event)">
                         <button id="btnBorrarEquiposSinQRSeleccionados" onclick="eliminarEquiposSinQRSeleccionados()"
                             class="btn bg-red-600 hover:bg-red-700 text-white btn-sm hidden flex items-center gap-2">
                             <i class="fas fa-trash-alt"></i> <span>Eliminar seleccionados (<span id="countSinQRSeleccionados">0</span>)</span>

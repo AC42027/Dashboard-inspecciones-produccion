@@ -242,29 +242,142 @@
                 return;
             }
 
+            const items = lista.map(eq => ({
+                nombre: eq.equipo_nombre || eq.equipo || 'Equipo',
+                fecha: eq.fecha || ''
+            }));
+
+            await generarYMostrarModalQRs(items, 'Dashboard');
+        }
+
+        async function cargarQRsDesdeExcelLocal(event) {
+            if (!isAdminModo) return;
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const listaNombres = extraerEquiposDeExcel(workbook);
+
+                if (listaNombres.length === 0) {
+                    await mostrarAlerta('Sin datos', 'No se encontraron nombres de equipos en el archivo Excel.', 'fa-exclamation-circle text-amber-500');
+                    return;
+                }
+
+                const items = listaNombres.map(n => ({ nombre: n, fecha: 'Desde Excel' }));
+                await generarYMostrarModalQRs(items, file.name);
+
+            } catch (err) {
+                console.error(err);
+                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel. Asegúrate de seleccionar un archivo .xlsx, .xls o .csv válido.', 'fa-times-circle text-red-500');
+            } finally {
+                event.target.value = '';
+            }
+        }
+
+        async function cargarQRsDesdeExcelRepo() {
+            if (!isAdminModo) return;
+            try {
+                let response = null;
+                let fileUsed = '';
+                const possiblePaths = [
+                    'public/equipos_qr.xlsx',
+                    'equipos_qr.xlsx',
+                    'public/equipos_qr.csv',
+                    'equipos_qr.csv'
+                ];
+
+                for (const path of possiblePaths) {
+                    const res = await fetch(path);
+                    if (res.ok) {
+                        response = res;
+                        fileUsed = path.split('/').pop();
+                        break;
+                    }
+                }
+
+                if (!response) {
+                    await mostrarAlerta(
+                        'Archivo no encontrado',
+                        'No se encontró el archivo "equipos_qr.xlsx" en la carpeta public/ ni en la raíz del repositorio. Sube un archivo Excel llamado equipos_qr.xlsx al repositorio para usar esta opción.',
+                        'fa-exclamation-triangle text-amber-500'
+                    );
+                    return;
+                }
+
+                const arrayBuffer = await response.arrayBuffer();
+                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+                const listaNombres = extraerEquiposDeExcel(workbook);
+
+                if (listaNombres.length === 0) {
+                    await mostrarAlerta('Sin datos', `No se encontraron nombres de equipos en el archivo Excel (${fileUsed}) del repositorio.`, 'fa-exclamation-circle text-amber-500');
+                    return;
+                }
+
+                const items = listaNombres.map(n => ({ nombre: n, fecha: 'Excel Repo' }));
+                await generarYMostrarModalQRs(items, `Excel del Repo (${fileUsed})`);
+
+            } catch (err) {
+                console.error(err);
+                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel del repositorio. Verifica el formato del archivo.', 'fa-times-circle text-red-500');
+            }
+        }
+
+        function extraerEquiposDeExcel(workbook) {
+            const firstSheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[firstSheetName];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+            if (!rows || rows.length === 0) return [];
+
+            let colIndex = 0;
+
+            if (rows[0] && Array.isArray(rows[0])) {
+                const headerRow = rows[0].map(c => String(c).toLowerCase().trim());
+                const foundIdx = headerRow.findIndex(h =>
+                    h.includes('equipo') || h.includes('qr') || h.includes('codigo') || h.includes('código') || h.includes('nombre')
+                );
+                if (foundIdx !== -1) colIndex = foundIdx;
+            }
+
+            const listaEquipos = [];
+            const headersToIgnore = ['equipo', 'equipos', 'qr', 'qrs', 'codigo', 'código', 'nombre', 'tag', 'id'];
+
+            rows.forEach(row => {
+                if (!row || !Array.isArray(row)) return;
+                const rawVal = String(row[colIndex] || '').trim();
+                if (rawVal && !headersToIgnore.includes(rawVal.toLowerCase())) {
+                    if (!listaEquipos.includes(rawVal)) {
+                        listaEquipos.push(rawVal);
+                    }
+                }
+            });
+
+            return listaEquipos;
+        }
+
+        async function generarYMostrarModalQRs(items, origenStr = 'Dashboard') {
             const modal = document.getElementById('modalQRsSinQR');
             const contenedor = document.getElementById('contenedorVistaQRs');
             const badge = document.getElementById('badgeCantQRs');
 
-            if (badge) badge.textContent = lista.length;
+            if (badge) badge.textContent = items.length;
 
             contenedor.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12">
                     <div class="loader mb-4"></div>
-                    <p class="text-gray-600 dark:text-gray-300 font-medium">Generando códigos QR (${lista.length})...</p>
+                    <p class="text-gray-600 dark:text-gray-300 font-medium">Generando códigos QR (${items.length}) desde ${origenStr}...</p>
                 </div>
             `;
             modal.classList.remove('hidden');
 
             qrsExportCache = [];
-            for (const eq of lista) {
-                const qrName = eq.equipo_nombre || eq.equipo || 'Equipo';
-                const base64 = await generarQRBase64(qrName);
+            for (const item of items) {
+                const base64 = await generarQRBase64(item.nombre);
                 qrsExportCache.push({
-                    id: eq.id,
-                    nombre: qrName,
-                    fecha: eq.fecha || '',
-                    comentario: eq.comentario || '',
+                    nombre: item.nombre,
+                    fecha: item.fecha || '',
                     qrSrc: base64
                 });
             }
