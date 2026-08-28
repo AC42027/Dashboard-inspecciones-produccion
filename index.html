@@ -1110,6 +1110,9 @@
                                 </h2>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                     <i class="fas fa-user text-[#003399] dark:text-yellow-400 mr-1"></i> <span id="misAsigUserName"></span>
+                                    <span id="misAsigAnnualBadge" class="hidden ml-2 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-[#003399] dark:bg-blue-900/40 dark:text-yellow-400 border border-blue-200 dark:border-blue-800" title="Cumplimiento anual">
+                                        <i class="fas fa-calendar-alt"></i> <span id="misAsigAnnualBadgeText">0%</span>
+                                    </span>
                                 </p>
                             </div>
                             <button onclick="cerrarSesionMisAsignaciones()" class="btn btn-secondary btn-md">
@@ -1452,6 +1455,7 @@
                 document.getElementById('misAsigLogin').classList.add('hidden');
                 document.getElementById('misAsigContent').classList.remove('hidden');
                 document.getElementById('misAsigUserName').textContent = loggedUserFullName;
+                cargarCumplimientoAnual(new Date().getFullYear());
             }
 
             fetchData();
@@ -1536,6 +1540,7 @@
                 poblarSelectMesMisAsignaciones();
                 if (loggedUserFullName) {
                     cargarMisAsignaciones();
+                    cargarCumplimientoAnual(new Date().getFullYear());
                 }
             }
         }
@@ -1581,13 +1586,12 @@
             const currYr = ahora.getFullYear();
             const currMo = ahora.getMonth();
             let html = '';
-            for (let yr = currYr - 1; yr <= currYr + 1; yr++) {
-                for (let m = 0; m < 12; m++) {
-                    const val = `${yr}-${String(m + 1).padStart(2, '0')}`;
-                    const label = `${MESES_ES[m]} ${yr}`;
-                    const isSelected = (yr === currYr && m === currMo);
-                    html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${label}</option>`;
-                }
+            for (let i = -6; i <= 6; i++) {
+                const d = new Date(currYr, currMo + i, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                const label = `${MESES_ES[d.getMonth()]} ${d.getFullYear()}`;
+                const isSelected = (i === 0);
+                html += `<option value="${val}" ${isSelected ? 'selected' : ''}>${label}</option>`;
             }
             sel.innerHTML = html;
         }
@@ -1711,6 +1715,7 @@
 
                     poblarSelectMesMisAsignaciones();
                     cargarMisAsignaciones();
+                    cargarCumplimientoAnual(new Date().getFullYear());
                 } else {
                     error.textContent = data.message || data.error || "Credenciales inválidas o acceso denegado.";
                     error.classList.remove('hidden');
@@ -1725,8 +1730,13 @@
         }
 
         async function cargarMisAsignaciones() {
-            const mes = document.getElementById('misAsigMes').value;
-            if (!mes) return;
+            const selMes = document.getElementById('misAsigMes');
+            let mes = selMes ? selMes.value : '';
+            if (!mes) {
+                const ahora = new Date();
+                mes = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+                if (selMes) selMes.value = mes;
+            }
 
             const loading = document.getElementById('misAsigLoading');
             const wrapper = document.getElementById('misAsigTableWrapper');
@@ -1859,6 +1869,14 @@
             const normalizar = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
             const userNorm = normalizar(loggedUserFullName);
 
+            // Esperar a que las inspecciones estén cargadas para no calcular 0% por carrera con fetchData()
+            if (!inspecciones || inspecciones.length === 0) {
+                for (let i = 0; i < 100; i++) {
+                    if (inspecciones.length > 0) break;
+                    await new Promise(r => setTimeout(r, 100));
+                }
+            }
+
             try {
                 const meses = Array.from({ length: 12 }, (_, i) =>
                     `${anio}-${String(i + 1).padStart(2, '0')}`
@@ -1883,6 +1901,8 @@
 
                 if (totalAnual === 0) {
                     progressAnual.classList.add('hidden');
+                    const badge = document.getElementById('misAsigAnnualBadge');
+                    if (badge) badge.classList.add('hidden');
                     return;
                 }
 
@@ -1891,6 +1911,11 @@
                 document.getElementById('misAsigProgressAnualPct').textContent = `${pctAnual}%`;
                 document.getElementById('misAsigProgressAnualBar').style.width = `${pctAnual}%`;
                 progressAnual.classList.remove('hidden');
+
+                const badge = document.getElementById('misAsigAnnualBadge');
+                const badgeText = document.getElementById('misAsigAnnualBadgeText');
+                if (badge) badge.classList.remove('hidden');
+                if (badgeText) badgeText.textContent = `${pctAnual}%`;
 
             } catch (err) {
                 console.error('Error al cargar cumplimiento anual:', err);
