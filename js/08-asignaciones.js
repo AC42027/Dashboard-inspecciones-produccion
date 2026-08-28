@@ -1,4 +1,17 @@
         // LÓGICA DE ASIGNACIONES SEMANALES ASRS
+        // Pliega/despliega una tarjeta de grupo (acordeón)
+        function toggleGrupoSeccion(id) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const btn = el.previousElementSibling;
+            const icn = btn ? btn.querySelector('i.asrs-chevron') : null;
+            el.classList.toggle('hidden');
+            if (icn) {
+                icn.classList.toggle('fa-chevron-down');
+                icn.classList.toggle('fa-chevron-up');
+            }
+        }
+
         async function cargarAsignacionesSemanales(desdeGuardado = false) {
             const mes = document.getElementById('verFecha').value;
             if (!mes) return;
@@ -1070,13 +1083,13 @@
             }));
 
             return {
-                SRM: { container: 'badgesSRM', grupos: srmGrupos },
-                Robot: { container: 'badgesRobot', grupos: robotGrupos },
-                CC01: { container: 'badgesCC01', grupos: Object.entries(GRUPOS_CC01).map(([k, v]) => ({ clave: k, etiqueta: 'Sector ' + k.replace('G', ''), equipos: v })) },
-                CC03: { container: 'badgesCC03', grupos: Object.entries(GRUPOS_CC03).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
-                Z12: { container: 'badgesZ12', grupos: Object.entries(GRUPOS_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
-                Z13: { container: 'badgesZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
-                HS: { container: 'badgesHS', grupos: Object.entries(GRUPOS_HS).map(([k, v]) => ({ clave: k, etiqueta: 'HS ' + k, equipos: v })) }
+                SRM: { container: 'badgesSRM', stat: 'statSRM', grupos: srmGrupos },
+                Robot: { container: 'badgesRobot', stat: 'statRobot', grupos: robotGrupos },
+                CC01: { container: 'badgesCC01', stat: 'statCC01', grupos: Object.entries(GRUPOS_CC01).map(([k, v]) => ({ clave: k, etiqueta: 'Sector ' + k.replace('G', ''), equipos: v })) },
+                CC03: { container: 'badgesCC03', stat: 'statCC03', grupos: Object.entries(GRUPOS_CC03).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                Z12: { container: 'badgesZ12', stat: 'statZ12', grupos: Object.entries(GRUPOS_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                Z13: { container: 'badgesZ13', stat: 'statZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                HS: { container: 'badgesHS', stat: 'statHS', grupos: Object.entries(GRUPOS_HS).map(([k, v]) => ({ clave: k, etiqueta: 'HS ' + k, equipos: v })) }
             };
         }
 
@@ -1089,10 +1102,33 @@
             Object.values(familias).forEach(fam => {
                 const cont = document.getElementById(fam.container);
                 if (!cont) return;
+                const statEl = fam.stat ? document.getElementById(fam.stat) : null;
+
                 if (!fam.grupos.length) {
                     cont.innerHTML = '<span class="text-[10px] text-gray-400 italic">Sin grupos disponibles</span>';
+                    if (statEl) statEl.classList.add('hidden');
                     return;
                 }
+
+                const totalGrupos = fam.grupos.filter(g => g.equipos.length > 0).length;
+                const completos = fam.grupos.filter(g => g.equipos.length > 0 && g.equipos.every(e => planificados.has(e))).length;
+
+                if (statEl) {
+                    let sCls, sIcon;
+                    if (completos >= totalGrupos) {
+                        sCls = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-300 dark:border-green-800';
+                        sIcon = 'fa-check-circle';
+                    } else if (completos > 0) {
+                        sCls = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-800';
+                        sIcon = 'fa-clock';
+                    } else {
+                        sCls = 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400 border border-gray-300 dark:border-slate-600';
+                        sIcon = 'fa-circle';
+                    }
+                    statEl.className = `inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${sCls}`;
+                    statEl.innerHTML = `<i class="fas ${sIcon}"></i> ${completos}/${totalGrupos}`;
+                }
+
                 cont.innerHTML = fam.grupos.map(g => {
                     const total = g.equipos.length;
                     const cubiertos = g.equipos.filter(e => planificados.has(e)).length;

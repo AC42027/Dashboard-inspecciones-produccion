@@ -463,9 +463,14 @@
                     <!-- Asignación Manual (Para pruebas o casos específicos) -->
                     <div
                         class="bg-white/50 dark:bg-black/20 p-4 rounded-lg mb-6 border border-blue-100 dark:border-blue-800">
-                        <h4
-                            class="text-xs font-bold text-goodyear-blue dark:text-blue-300 mb-3 uppercase tracking-wider">
-                            Asignación Manual / Individual</h4>
+                        <button onclick="toggleGrupoSeccion('bodyManual')"
+                            class="w-full flex items-center justify-between text-left mb-3 group">
+                            <span
+                                class="text-xs font-bold text-goodyear-blue dark:text-blue-300 uppercase tracking-wider">
+                                <i class="fas fa-user-plus mr-1"></i> Asignación Manual / Individual</span>
+                            <i class="fas fa-chevron-up asrs-chevron text-goodyear-blue dark:text-blue-300"></i>
+                        </button>
+                        <div id="bodyManual">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-64">
                                 <label class="text-sm text-goodyear-blue dark:text-blue-300 font-bold ml-1">Mes a planificar</label>
@@ -501,14 +506,23 @@
                                 <i class="fas fa-plus-circle"></i> Agregar a Vista Previa
                             </button>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo CC01 (recorrido completo en 5 sectores) -->
                     <div
                         class="bg-emerald-50 dark:bg-emerald-900/20 p-4 rounded-lg mb-6 border border-emerald-200 dark:border-emerald-800">
-                        <h4
-                            class="text-xs font-bold text-emerald-700 dark:text-emerald-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-route mr-1"></i> Grupo CC01 (Recorrido en 5 sectores)</h4>
+                        <button onclick="toggleGrupoSeccion('bodyCC01')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                                <i class="fas fa-route mr-1"></i> Grupo CC01 (Recorrido en 5 sectores)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statCC01" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-emerald-600 dark:text-emerald-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodyCC01" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-64">
                                 <label
@@ -549,14 +563,23 @@
                         <div id="badgesCC01" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo CC03 (circuito prensas en 3 tramos) -->
                     <div
                         class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg mb-6 border border-purple-200 dark:border-purple-800">
-                        <h4
-                            class="text-xs font-bold text-purple-700 dark:text-purple-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-route mr-1"></i> Grupo CC03 (Circuito prensas en 3 tramos)</h4>
+                        <button onclick="toggleGrupoSeccion('bodyCC03')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider">
+                                <i class="fas fa-route mr-1"></i> Grupo CC03 (Circuito prensas en 3 tramos)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statCC03" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-purple-600 dark:text-purple-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodyCC03" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-64">
                                 <label
@@ -595,14 +618,23 @@
                         <div id="badgesCC03" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo Zona 12 (2 tramos) -->
                     <div
                         class="bg-teal-50 dark:bg-teal-900/20 p-4 rounded-lg mb-6 border border-teal-200 dark:border-teal-800">
-                        <h4
-                            class="text-xs font-bold text-teal-700 dark:text-teal-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-route mr-1"></i> Grupo Zona 12 (2 tramos)</h4>
+                        <button onclick="toggleGrupoSeccion('bodyZ12')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-teal-700 dark:text-teal-300 uppercase tracking-wider">
+                                <i class="fas fa-route mr-1"></i> Grupo Zona 12 (2 tramos)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statZ12" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-teal-600 dark:text-teal-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodyZ12" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-64">
                                 <label
@@ -640,14 +672,23 @@
                         <div id="badgesZ12" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo Zona 13 (2 tramos) -->
                     <div
                         class="bg-rose-50 dark:bg-rose-900/20 p-4 rounded-lg mb-6 border border-rose-200 dark:border-rose-800">
-                        <h4
-                            class="text-xs font-bold text-rose-700 dark:text-rose-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-route mr-1"></i> Grupo Zona 13 (2 tramos)</h4>
+                        <button onclick="toggleGrupoSeccion('bodyZ13')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-rose-700 dark:text-rose-300 uppercase tracking-wider">
+                                <i class="fas fa-route mr-1"></i> Grupo Zona 13 (2 tramos)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statZ13" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-rose-600 dark:text-rose-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodyZ13" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-64">
                                 <label
@@ -685,14 +726,23 @@
                         <div id="badgesZ13" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo Crane + Conveyors (Inbound / Outbound) -->
                     <div
                         class="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-lg mb-6 border border-amber-200 dark:border-amber-800">
-                        <h4
-                            class="text-xs font-bold text-amber-700 dark:text-amber-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-project-diagram mr-1"></i> Grupo Crane + Conveyors (Inbound / Outbound)</h4>
+                        <button onclick="toggleGrupoSeccion('bodySRM')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                                <i class="fas fa-project-diagram mr-1"></i> Grupo Crane + Conveyors (Inbound / Outbound)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statSRM" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-amber-600 dark:text-amber-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodySRM" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-48">
                                 <label
@@ -739,14 +789,23 @@
                         <div id="badgesSRM" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo Robot de Prensa + Ejes -->
                     <div
                         class="bg-blue-50 dark:bg-goodyear-blue/10 p-4 rounded-lg mb-6 border border-blue-200 dark:border-blue-800">
-                        <h4
-                            class="text-xs font-bold text-goodyear-blue dark:text-blue-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-robot mr-1"></i> Grupo Robot de Prensa + Ejes</h4>
+                        <button onclick="toggleGrupoSeccion('bodyRobot')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-goodyear-blue dark:text-blue-300 uppercase tracking-wider">
+                                <i class="fas fa-robot mr-1"></i> Grupo Robot de Prensa + Ejes</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statRobot" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-goodyear-blue dark:text-blue-300"></i>
+                            </span>
+                        </button>
+                        <div id="bodyRobot" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-52">
                                 <label
@@ -783,14 +842,23 @@
                         <div id="badgesRobot" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Grupo HorseShoe (5 robots de prensa) -->
                     <div
                         class="bg-cyan-50 dark:bg-cyan-900/20 p-4 rounded-lg mb-6 border border-cyan-200 dark:border-cyan-800">
-                        <h4
-                            class="text-xs font-bold text-cyan-700 dark:text-cyan-300 mb-3 uppercase tracking-wider">
-                            <i class="fas fa-horseshoe mr-1"></i> Grupo HorseShoe (9 equipos por robot)</h4>
+                        <button onclick="toggleGrupoSeccion('bodyHS')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-cyan-700 dark:text-cyan-300 uppercase tracking-wider">
+                                <i class="fas fa-horseshoe mr-1"></i> Grupo HorseShoe (9 equipos por robot)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statHS" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-cyan-600 dark:text-cyan-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodyHS" class="hidden">
                         <div class="flex flex-col sm:flex-row gap-3">
                             <div class="w-full sm:w-64">
                                 <label
@@ -830,6 +898,7 @@
                         </p>
                         <div id="badgesHS" class="mt-2 flex flex-wrap gap-1.5 ml-1">
                             <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
+                        </div>
                         </div>
                     </div>
 
