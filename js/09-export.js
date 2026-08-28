@@ -278,7 +278,7 @@
                     itemsAMostrar.push({
                         id: eq.id,
                         nombre: match.zona,
-                        subtitulo: eq.comentario || '',
+                        subtitulo: '',
                         qrText: match.url,
                         matchEncontrado: true
                     });
@@ -286,7 +286,7 @@
                     itemsAMostrar.push({
                         id: eq.id,
                         nombre: nombreReportado,
-                        subtitulo: eq.comentario || '',
+                        subtitulo: '',
                         qrText: nombreReportado,
                         matchEncontrado: false
                     });
@@ -320,7 +320,7 @@
                 const base64 = await generarQRBase64(textToEncode);
                 qrsExportCache.push({
                     nombre: item.nombre,
-                    subtitulo: item.subtitulo || item.fecha || '',
+                    subtitulo: '',
                     qrSrc: base64,
                     qrText: textToEncode
                 });
