@@ -121,6 +121,14 @@
                 selCC01.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
                     asrsTeam.map(name => `<option value="${name}" ${name === valC ? 'selected' : ''}>${name}</option>`).join('');
             }
+
+            // Actualizar select de grupo CC03
+            const selCC03 = document.getElementById('manualCC03AsoSelect');
+            if (selCC03) {
+                const valC3 = selCC03.value;
+                selCC03.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valC3 ? 'selected' : ''}>${name}</option>`).join('');
+            }
         }
 
         async function addAssociate() {

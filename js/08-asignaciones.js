@@ -157,6 +157,18 @@
                     selCC01Fecha.value = periods[0].startStr;
                 }
             }
+
+            const selCC03Fecha = document.getElementById('manualCC03Fecha');
+            if (selCC03Fecha) {
+                const prevValC3 = selCC03Fecha.value;
+                selCC03Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValC3 && periods.some(p => p.startStr === prevValC3)) {
+                    selCC03Fecha.value = prevValC3;
+                } else {
+                    selCC03Fecha.value = periods[0].startStr;
+                }
+            }
         }
 
         async function generarAsignaciones() {
@@ -679,6 +691,75 @@
             }
 
             document.getElementById('manualCC01Select').value = '';
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+        }
+
+        // Grupos CC03: circuito de los 5 robots de prensa dividido en 3 tramos
+        // (sorter NBS/NBS90, retorno largo y retorno corto + uniones).
+        const GRUPOS_CC03 = {
+            A: [
+                'CC03_P2900','CC03_P2975','CC03_P3905','CC03_P4500','CC03_P2650','CC03_P2690',
+                'CC03_P2600','CC03_P2640','CC03_P2550','CC03_P2590','CC03_P2500','CC03_P2540',
+                'CC03_P2490'
+            ],
+            B: [
+                'CC03_P3010','CC03_P3030','CC03_P3040','CC03_P3050','CC03_P3060','CC03_P3075',
+                'CC03_P3080','CC03_P3090','CC03_P3100','CC03_P3110','CC03_P3115','CC03_P3120',
+                'CC03_P3125','CC03_P3130','CC03_P3135','CC03_P3140','CC03_P3145','CC03_P3300'
+            ],
+            C: [
+                'CC03_P3210','CC03_P3215','CC03_P3220','CC03_P3225','CC03_P3230','CC03_P3240',
+                'CC03_P3250','CC03_P3490','CC03_P3500','CC03_P3375','CC03_P3425'
+            ]
+        };
+
+        async function agregarGrupoCC03() {
+            esGeneracionAuto = false;
+            const tramo = document.getElementById('manualCC03Select').value;
+            const aso = document.getElementById('manualCC03AsoSelect').value;
+            const selFecha = document.getElementById('manualCC03Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!tramo) { mostrarAlerta('Atención', 'Seleccione un tramo CC03.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_CC03[tramo] || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'CC03';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'CC03';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos de este tramo ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('manualCC03Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
         }
