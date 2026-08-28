@@ -449,6 +449,11 @@
 
                 let nombre = '';
                 let subtitulo = '';
+                let qrText = '';
+
+                if (colUrl !== -1 && row[colUrl] && !String(row[colUrl]).includes('#VALUE!')) {
+                    qrText = String(row[colUrl]).trim();
+                }
 
                 if (colZona !== -1 && row[colZona]) {
                     nombre = String(row[colZona]).trim();
@@ -472,7 +477,8 @@
                     if (!items.some(item => item.nombre === nombre)) {
                         items.push({
                             nombre: nombre,
-                            subtitulo: subtitulo && !subtitulo.includes('#VALUE!') ? subtitulo : ''
+                            subtitulo: subtitulo && !subtitulo.includes('#VALUE!') ? subtitulo : '',
+                            qrText: qrText || nombre
                         });
                     }
                 }
@@ -498,11 +504,13 @@
 
             qrsExportCache = [];
             for (const item of items) {
-                const base64 = await generarQRBase64(item.nombre);
+                const textToEncode = item.qrText || item.nombre;
+                const base64 = await generarQRBase64(textToEncode);
                 qrsExportCache.push({
                     nombre: item.nombre,
                     subtitulo: item.subtitulo || item.fecha || '',
-                    qrSrc: base64
+                    qrSrc: base64,
+                    qrText: textToEncode
                 });
             }
 
