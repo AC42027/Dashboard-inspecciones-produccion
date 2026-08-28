@@ -505,25 +505,21 @@
             renderPreview();
         }
 
-        // Agrupar robots de prensa completos + sus ejes a partir del listado ASRS real
+        // Agrupar robots de prensa completos + sus ejes a partir del listado ASRS real.
+        // Solo considera robots de prensa (zona 'Press Robot' o nombre 'press robot'): 600B, 600A, 500B, 500A, 400B.
+        // Cada grupo agrupa los ejes reales (X, Z, U, W); no existe un equipo "robot" principal.
         function getRobotGroupsFromDatalist() {
-            const names = Array.from(document.querySelectorAll('#asrsEqList option')).map(o => o && o.value).filter(Boolean);
-            const botNames = names.filter(n => /robot/i.test(n));
+            const options = Array.from(document.querySelectorAll('#asrsEqList option'));
             const map = new Map();
-            botNames.forEach(n => {
-                const base = getBaseRobotName(n);
-                if (!map.has(base)) map.set(base, { base, robot: '', ejes: [] });
-                map.get(base).ejes.push(n);
-            });
-            map.forEach(grp => {
-                const idx = grp.ejes.findIndex(n => normalizarTexto(n) === normalizarTexto(grp.base));
-                if (idx >= 0) {
-                    grp.robot = grp.ejes[idx];
-                    grp.ejes = grp.ejes.filter((_, i) => i !== idx);
-                } else {
-                    grp.robot = grp.ejes[0];
-                    grp.ejes = grp.ejes.slice(1);
-                }
+            options.forEach(opt => {
+                const name = opt && opt.value;
+                if (!name) return;
+                const zona = (opt.innerText || '');
+                const esPrensa = /press robot/i.test(name) || normalizarTexto(zona) === 'press robot';
+                if (!esPrensa) return;
+                const base = getBaseRobotName(name);
+                if (!map.has(base)) map.set(base, { base, equipos: [] });
+                map.get(base).equipos.push(name);
             });
             return Array.from(map.values());
         }
@@ -534,9 +530,10 @@
             const grupos = getRobotGroupsFromDatalist();
             sel.innerHTML = '<option value="">-- Seleccionar Robot --</option>' +
                 grupos.map(g => {
-                    const label = (g.robot || g.base) + (g.ejes.length > 0 ? ` (${g.ejes.length} ejes)` : '');
+                    const code = (g.base.match(/(\d+[A-Za-z])\s*$/i) || [])[1] || g.base;
+                    const label = `${code} (${g.equipos.length} ejes)`;
                     return `<option value="${g.base}">${label}</option>`;
-                }).join('');
+                }).sort((a, b) => a.localeCompare(b)).join('');
         }
 
         async function agregarGrupoRobot() {
@@ -565,7 +562,7 @@
             const grp = grupos.find(g => g.base === baseName);
             if (!grp) { mostrarAlerta('Error', 'Grupo de robot no encontrado.', 'fa-times-circle text-red-500'); return; }
 
-            const todosLosEqs = [grp.robot, ...grp.ejes].filter(Boolean);
+            const todosLosEqs = (grp.equipos || []).filter(Boolean);
             const asoVal = aso === 'PENDIENTE' ? '' : aso;
             let agregadosCount = 0;
 
