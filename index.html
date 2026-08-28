@@ -954,14 +954,16 @@
                     <table class="w-full text-left premium-table text-sm">
                         <thead>
                             <tr>
-                                <th id="asigAdminSelectHeader" class="text-center w-10 hidden">
-                                    <input type="checkbox" id="selectAllAsig" onchange="toggleSelectAllAsig(this.checked)" title="Seleccionar todas" class="rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer">
-                                </th>
                                 <th>Asociado</th>
                                 <th>Zona</th>
                                 <th>Equipo Asignado</th>
                                 <th class="text-center">Estado del Mes</th>
-                                <th id="asigAdminAccionHeader" class="text-center hidden">Acción</th>
+                                <th id="asigAdminAccionHeader" class="text-center hidden">
+                                    <div class="inline-flex items-center justify-center gap-2">
+                                        <input type="checkbox" id="selectAllAsig" onchange="toggleSelectAllAsig(this.checked)" title="Seleccionar todas" class="rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer">
+                                        <span>Acción</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="tabla-asignaciones-publica">
@@ -1004,15 +1006,17 @@
                     <table class="w-full text-left premium-table text-sm">
                         <thead>
                             <tr>
-                                <th id="sinQrSelectHeader" class="text-center w-10 hidden">
-                                    <input type="checkbox" id="selectAllSinQR" onchange="toggleSelectAllSinQR(this.checked)" title="Seleccionar todos" class="rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer">
-                                </th>
                                 <th>Fecha</th>
                                 <th>Hora</th>
                                 <th>Usuario</th>
                                 <th>Equipo</th>
                                 <th>Comentario</th>
-                                <th id="sinQrAccionHeader" class="text-center hidden">Acci&oacute;n</th>
+                                <th id="sinQrAccionHeader" class="text-center hidden">
+                                    <div class="inline-flex items-center justify-center gap-2">
+                                        <input type="checkbox" id="selectAllSinQR" onchange="toggleSelectAllSinQR(this.checked)" title="Seleccionar todos" class="rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer">
+                                        <span>Acci&oacute;n</span>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody id="tabla-equipos-sin-qr">

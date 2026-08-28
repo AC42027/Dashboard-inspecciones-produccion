@@ -38,7 +38,7 @@
                 asignacionesActuales = data;
 
                 if (data.length === 0) {
-                    const colspan = isAdminModo ? 6 : 4;
+                    const colspan = isAdminModo ? 5 : 4;
                     tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-8 text-gray-500 font-medium">Sin inspecciones asignadas</td></tr>`;
                     return;
                 }
@@ -78,16 +78,13 @@
         function renderTablaAsignacionesPublica(mesStr) {
             const tbody = document.getElementById('tabla-asignaciones-publica');
             const accionHeader = document.getElementById('asigAdminAccionHeader');
-            const selectHeader = document.getElementById('asigAdminSelectHeader');
             let html = '';
 
-            // Mostrar columna de selección y acción solo en modo admin
+            // Mostrar columna de acción solo en modo admin
             if (isAdminModo) {
                 if (accionHeader) accionHeader.classList.remove('hidden');
-                if (selectHeader) selectHeader.classList.remove('hidden');
             } else {
                 if (accionHeader) accionHeader.classList.add('hidden');
-                if (selectHeader) selectHeader.classList.add('hidden');
             }
 
             const btnBulk = document.getElementById('btnBorrarAsignacionesSeleccionadas');
@@ -128,9 +125,6 @@
                         opt && normalizarTexto(opt.value) === normalizarTexto(asig.equipo));
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
-                    if (isAdminModo) {
-                        html += `<td class="text-center p-2"><input type="checkbox" class="chk-asig-publica rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer" data-id="${asig.id}" onchange="actualizarSeleccionAsignaciones()"></td>`;
-                    }
                     if (index === 0) {
                         html += `<td rowspan="${equiposAso.length}" class="font-bold text-gray-800 dark:text-gray-200 align-top pt-4 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">${aso}</td>`;
                     }
@@ -143,9 +137,12 @@
                         </td>
                         ${isAdminModo ? `
                         <td class="text-center p-2">
-                            <button onclick="eliminarAsignacion(${asig.id})" class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded transition-colors" title="Eliminar asignación">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
+                            <div class="inline-flex items-center justify-center gap-2">
+                                <input type="checkbox" class="chk-asig-publica rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer" data-id="${asig.id}" onchange="actualizarSeleccionAsignaciones()">
+                                <button onclick="eliminarAsignacion(${asig.id})" class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded transition-colors" title="Eliminar asignación">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </td>` : ''}
                     </tr>`;
                 });

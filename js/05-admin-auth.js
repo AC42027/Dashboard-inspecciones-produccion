@@ -309,9 +309,6 @@
             const headerAccion = document.getElementById('sinQrAccionHeader');
             if (headerAccion) headerAccion.classList.toggle('hidden', !isAdminModo);
 
-            const headerSelect = document.getElementById('sinQrSelectHeader');
-            if (headerSelect) headerSelect.classList.toggle('hidden', !isAdminModo);
-
             const btnBulk = document.getElementById('btnBorrarEquiposSinQRSeleccionados');
             if (btnBulk && !isAdminModo) btnBulk.classList.add('hidden');
 
@@ -320,7 +317,7 @@
 
             actualizarSeleccionSinQR();
 
-            const totalCols = 5 + (isAdminModo ? 2 : 0);
+            const totalCols = 5 + (isAdminModo ? 1 : 0);
 
             if (equiposSinQR.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="${totalCols}" class="text-center py-8 text-gray-500 font-medium">No hay equipos sin QR registrados.</td></tr>`;
@@ -329,11 +326,6 @@
 
             tbody.innerHTML = equiposSinQR.map(eq => `
                 <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">
-                    ${isAdminModo ? `
-                    <td class="text-center">
-                        <input type="checkbox" class="chk-sin-qr rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer"
-                               data-id="${eq.id}" onchange="actualizarSeleccionSinQR()">
-                    </td>` : ''}
                     <td>${eq.fecha || '-'}</td>
                     <td>${eq.hora || '-'}</td>
                     <td>${eq.usuario_nombre || eq.usuario || '-'}</td>
@@ -341,11 +333,15 @@
                     <td>${eq.comentario || '-'}</td>
                     ${isAdminModo ? `
                     <td class="text-center">
-                        <button onclick="eliminarEquipoSinQR(${eq.id})"
-                            class="text-red-500 hover:text-red-700 transition-colors"
-                            title="Eliminar (QR ya colocado)">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
+                        <div class="inline-flex items-center justify-center gap-2.5">
+                            <input type="checkbox" class="chk-sin-qr rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer"
+                                   data-id="${eq.id}" onchange="actualizarSeleccionSinQR()">
+                            <button onclick="eliminarEquipoSinQR(${eq.id})"
+                                class="text-red-500 hover:text-red-700 transition-colors"
+                                title="Eliminar (QR ya colocado)">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
                     </td>` : ''}
                 </tr>
             `).join('');
