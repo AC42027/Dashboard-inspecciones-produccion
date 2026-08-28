@@ -62,6 +62,11 @@
             }, {});
 
             Object.entries(porAsociado).sort().forEach(([aso, equiposAso]) => {
+                const estadoPrioridad = asig => {
+                    const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
+                    return st === 'REALIZADA' ? 0 : st === 'FUERA_DE_TIEMPO' ? 1 : 2;
+                };
+                equiposAso.sort((a, b) => estadoPrioridad(a) - estadoPrioridad(b) || a.equipo.localeCompare(b.equipo));
                 equiposAso.forEach((asig, index) => {
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     const realizada = esInspeccionRealizada(asig, inspecciones, mesStr);
