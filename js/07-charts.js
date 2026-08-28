@@ -189,6 +189,11 @@
                             <span id="avance-asociados-global" class="px-2.5 py-1 font-bold rounded-full border hidden"></span>
                         </div>
                     </div>
+                    <div class="flex flex-wrap items-center gap-3 mb-4">
+                        <label for="avanceAsoMes" class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Mes</label>
+                        <select id="avanceAsoMes" class="glass-input w-48 text-sm font-semibold" onchange="cambiarAvanceMes(this)"></select>
+                        <span class="text-[10px] text-gray-400 dark:text-gray-500">La tabla mensual responde a este selector; abajo se muestra el avance del año actual.</span>
+                    </div>
                     <div id="avance-asociados-body">
                         <div class="flex items-center justify-center gap-2 py-8 text-gray-400 dark:text-gray-500 text-sm">
                             <i class="fas fa-spinner fa-spin"></i> Calculando avance...
@@ -196,6 +201,7 @@
                     </div>
                 `;
                 els.graficasContainer.appendChild(avancePanel);
+                poblarSelectAvanceMes();
                 renderAvanceAsociados();
 
                 // DIBUJAR CHARTS GLOBALES
@@ -498,6 +504,7 @@
 
         let avanceRenderToken = 0;
         const avanceMesFetchCache = {}; // YYYY-MM -> Promise<Array>
+        const avanceState = { mes: '' }; // Selector propio del panel (persiste entre renders)
 
         async function fetchAsigMes(mes) {
             if (avanceMesFetchCache[mes]) return avanceMesFetchCache[mes];
@@ -516,86 +523,68 @@
             return p;
         }
 
-        async function renderAvanceAsociados() {
-            const panel = document.getElementById('avance-asociados-panel');
-            if (!panel) return;
-            const body = document.getElementById('avance-asociados-body');
-            const periodoEl = document.getElementById('avance-asociados-periodo');
-            const globalEl = document.getElementById('avance-asociados-global');
-            const token = ++avanceRenderToken;
-
-            // Esperar a que las inspecciones estén cargadas para no calcular 0% por carrera
-            if (!inspecciones || inspecciones.length === 0) {
-                for (let i = 0; i < 100; i++) {
-                    if (inspecciones.length > 0) break;
-                    await new Promise(r => setTimeout(r, 100));
-                }
+        function poblarSelectAvanceMes() {
+            const sel = document.getElementById('avanceAsoMes');
+            if (!sel) return;
+            const ahora = new Date();
+            const currYr = ahora.getFullYear();
+            const currMo = ahora.getMonth();
+            let html = '';
+            for (let i = -6; i <= 6; i++) {
+                const d = new Date(currYr, currMo + i, 1);
+                const val = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                html += `<option value="${val}">${MESES_ES[d.getMonth()]} ${d.getFullYear()}</option>`;
             }
+            sel.innerHTML = html;
+            if (!avanceState.mes) {
+                avanceState.mes = sel.value;
+            } else if ([...sel.options].some(o => o.value === avanceState.mes)) {
+                sel.value = avanceState.mes;
+            } else {
+                avanceState.mes = sel.value;
+            }
+        }
 
-            const now = new Date();
-            const anioSel = filtros.anio || String(now.getFullYear());
-            const mesSel = filtros.mes || String(now.getMonth() + 1).padStart(2, '0');
-            // Si solo hay año seleccionado -> agregar los 12 meses; si nada -> solo mes actual
-            const esAnual = !!(filtros.anio && !filtros.mes);
-            const meses = esAnual
-                ? Array.from({ length: 12 }, (_, i) => `${anioSel}-${String(i + 1).padStart(2, '0')}`)
-                : [`${anioSel}-${mesSel}`];
+        window.cambiarAvanceMes = function (sel) {
+            avanceState.mes = sel.value;
+            renderAvanceAsociados();
+        };
 
-            try {
-                const responses = await Promise.all(meses.map(m => fetchAsigMes(m).catch(() => null)));
-                if (token !== avanceRenderToken) return;
+        const badgeAvanceCls = (pct) => pct >= 90
+            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+            : pct >= 75
+            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+            : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-300 dark:border-red-800';
 
-                const asignaciones = [].concat(...responses.filter(Boolean));
+        function calcularAvance(asignaciones) {
+            const porAsociado = {};
+            asignaciones.forEach(a => {
+                if (!a.asociado) return;
+                const mesAsig = a.fecha ? a.fecha.substring(0, 7) : '';
+                if (!porAsociado[a.asociado]) porAsociado[a.asociado] = { asignadas: 0, realizadas: 0, fueraTiempo: 0, pendientes: 0 };
+                const st = evaluarEstadoAsignacion(a, inspecciones, mesAsig);
+                const acc = porAsociado[a.asociado];
+                acc.asignadas++;
+                if (st === 'REALIZADA') acc.realizadas++;
+                else if (st === 'FUERA_DE_TIEMPO') acc.fueraTiempo++;
+                else acc.pendientes++;
+            });
+            const filas = Object.entries(porAsociado).map(([aso, c]) => {
+                const pct = c.asignadas > 0 ? ((c.realizadas + c.fueraTiempo) / c.asignadas) * 100 : 0;
+                return { aso, c, pct: Math.round(pct * 10) / 10 };
+            }).sort((a, b) => b.pct - a.pct || a.aso.localeCompare(b.aso));
+            const totalAsig = Object.values(porAsociado).reduce((s, c) => s + c.asignadas, 0);
+            const totalReal = Object.values(porAsociado).reduce((s, c) => s + c.realizadas + c.fueraTiempo, 0);
+            return { filas, totalAsig, totalReal, pctGlobal: totalAsig > 0 ? Math.round((totalReal / totalAsig) * 100) : 0 };
+        }
 
-                periodoEl.textContent = esAnual ? `Año ${anioSel}` : obtenerNombreMesEspañol(`${anioSel}-${mesSel}`);
+        const estadoPill = (tex, bs) => `<span class="${bs}">${tex}</span>`;
 
-                if (responses.every(r => r === null)) {
-                    body.innerHTML = `
-                        <div class="flex items-center justify-center gap-2 py-8 text-red-500 text-sm font-medium">
-                            <i class="fas fa-wifi"></i> Error de conexión al cargar asignaciones. Consultar a Manuel Rivera en caso de persistir.
-                        </div>`;
-                    return;
-                }
-
-                const porAsociado = {};
-                asignaciones.forEach(a => {
-                    if (!a.asociado) return;
-                    const mesAsig = a.fecha ? a.fecha.substring(0, 7) : `${anioSel}-${mesSel}`;
-                    if (!porAsociado[a.asociado]) porAsociado[a.asociado] = { asignadas: 0, realizadas: 0, fueraTiempo: 0, pendientes: 0 };
-                    const st = evaluarEstadoAsignacion(a, inspecciones, mesAsig);
-                    const acc = porAsociado[a.asociado];
-                    acc.asignadas++;
-                    if (st === 'REALIZADA') acc.realizadas++;
-                    else if (st === 'FUERA_DE_TIEMPO') acc.fueraTiempo++;
-                    else acc.pendientes++;
-                });
-
-                const filas = Object.entries(porAsociado).map(([aso, c]) => {
-                    const pct = c.asignadas > 0 ? ((c.realizadas + c.fueraTiempo) / c.asignadas) * 100 : 0;
-                    return { aso, c, pct: Math.round(pct * 10) / 10 };
-                }).sort((a, b) => b.pct - a.pct || a.aso.localeCompare(b.aso));
-
-                const totalAsig = asignaciones.filter(a => a.asociado).length;
-                const totalReal = asignaciones.filter(a => a.asociado && esInspeccionRealizada(a, inspecciones, a.fecha ? a.fecha.substring(0, 7) : undefined)).length;
-                const pctGlobal = totalAsig > 0 ? Math.round((totalReal / totalAsig) * 100) : 0;
-
-                const gCls = pctGlobal >= 90
-                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
-                    : pctGlobal >= 75
-                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-300 dark:border-amber-800'
-                    : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-300 dark:border-red-800';
-                globalEl.className = `px-2.5 py-1 font-bold rounded-full border inline-flex items-center gap-1 ${gCls}`;
-                globalEl.innerHTML = `<i class="fas fa-percent"></i> ${totalReal}/${totalAsig} · ${pctGlobal}%`;
-                globalEl.classList.remove('hidden');
-
-                if (filas.length === 0) {
-                    body.innerHTML = `<div class="flex items-center justify-center gap-2 py-8 text-gray-500 dark:text-gray-400 text-sm"><i class="fas fa-inbox"></i> No hay asignaciones para el período seleccionado.</div>`;
-                    return;
-                }
-
-                const estadoPill = (tex, bs) => `<span class="${bs}">${tex}</span>`;
-                body.innerHTML = `
-                    <div class="overflow-x-auto">
+        function renderAvanceTabla(filas) {
+            if (filas.length === 0) {
+                return `<div class="flex items-center justify-center gap-2 py-6 text-gray-500 dark:text-gray-400 text-sm"><i class="fas fa-inbox"></i> Sin asignaciones en el período.</div>`;
+            }
+            return `<div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead>
                                 <tr class="text-left text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
@@ -630,9 +619,81 @@
                                 }).join('')}
                             </tbody>
                         </table>
+                    </div>`;
+        }
+
+        async function renderAvanceAsociados() {
+            const panel = document.getElementById('avance-asociados-panel');
+            if (!panel) return;
+            const body = document.getElementById('avance-asociados-body');
+            const periodoEl = document.getElementById('avance-asociados-periodo');
+            const globalEl = document.getElementById('avance-asociados-global');
+            const token = ++avanceRenderToken;
+
+            // Esperar a que las inspecciones estén cargadas para no calcular 0% por carrera
+            if (!inspecciones || inspecciones.length === 0) {
+                for (let i = 0; i < 100; i++) {
+                    if (inspecciones.length > 0) break;
+                    await new Promise(r => setTimeout(r, 100));
+                }
+            }
+
+            if (!avanceState.mes) {
+                const ahora = new Date();
+                avanceState.mes = `${ahora.getFullYear()}-${String(ahora.getMonth() + 1).padStart(2, '0')}`;
+            }
+            const selMes = document.getElementById('avanceAsoMes');
+            if (selMes) selMes.value = avanceState.mes;
+
+            const anioAnual = new Date().getFullYear();
+            const mesesAnual = Array.from({ length: 12 }, (_, i) => `${anioAnual}-${String(i + 1).padStart(2, '0')}`);
+
+            try {
+                const [mesDatos, ...anuDatos] = await Promise.all([
+                    fetchAsigMes(avanceState.mes).catch(() => null),
+                    ...mesesAnual.map(m => fetchAsigMes(m).catch(() => null))
+                ]);
+                if (token !== avanceRenderToken) return;
+
+                periodoEl.textContent = obtenerNombreMesEspañol(avanceState.mes);
+
+                if (mesDatos === null) {
+                    body.innerHTML = `
+                        <div class="flex items-center justify-center gap-2 py-8 text-red-500 text-sm font-medium">
+                            <i class="fas fa-wifi"></i> Error de conexión al cargar asignaciones. Consultar a Manuel Rivera en caso de persistir.
+                        </div>`;
+                    return;
+                }
+
+                const mensual = calcularAvance(mesDatos);
+                const anual = calcularAvance([].concat(...anuDatos.filter(Boolean)));
+
+                globalEl.className = `px-2.5 py-1 font-bold rounded-full border inline-flex items-center gap-1 ${badgeAvanceCls(mensual.pctGlobal)}`;
+                globalEl.innerHTML = `<i class="fas fa-percent"></i> ${mensual.totalReal}/${mensual.totalAsig} · ${mensual.pctGlobal}%`;
+                globalEl.classList.remove('hidden');
+
+                const badgeAnual = `<span class="px-2.5 py-1 font-bold rounded-full border inline-flex items-center gap-1 ${badgeAvanceCls(anual.pctGlobal)}"><i class="fas fa-percent"></i> ${anual.totalReal}/${anual.totalAsig} · ${anual.pctGlobal}%</span>`;
+
+                body.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fas fa-calendar-day text-goodyear-blue dark:text-goodyear-yellow"></i> Avance Mensual ${obtenerNombreMesEspañol(avanceState.mes)}
+                            </h4>
+                        </div>
+                        ${renderAvanceTabla(mensual.filas)}
                     </div>
-                    <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-3">
-                        Avance = equipos asignados que ya fueron inspeccionados (Realizadas + Fuera de tiempo) sobre el total asignado.
+                    <div class="mt-8 pt-4 border-t border-gray-200 dark:border-slate-700">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <h4 class="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+                                <i class="fas fa-calendar-week text-goodyear-yellow"></i> Avance Anual ${anioAnual}
+                            </h4>
+                            ${badgeAnual}
+                        </div>
+                        ${renderAvanceTabla(anual.filas)}
+                    </div>
+                    <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-4">
+                        Avance = equipos asignados que ya fueron inspeccionados (Realizadas + Fuera de tiempo) sobre el total asignado. El % anual agrega los 12 meses del año.
                     </p>`;
             } catch (err) {
                 console.error('[AvanceAsociados] error:', err);
