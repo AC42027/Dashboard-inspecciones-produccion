@@ -193,6 +193,8 @@
                     selZ13Fecha.value = periods[0].startStr;
                 }
             }
+
+            renderBadgesGrupos();
         }
 
         async function generarAsignaciones() {
@@ -429,6 +431,7 @@
                         .join('');
                 }
                 actualizarSelectGrupoRobots();
+                renderBadgesGrupos();
             } catch (e) { console.warn("Error al cargar equipos para búsqueda manual"); }
         }
 
@@ -488,6 +491,7 @@
             document.getElementById('manualEqSearch').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
         }
 
         async function agregarGrupoSRM() {
@@ -551,6 +555,7 @@
             document.getElementById('manualGrupoSRM').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
         }
 
         // Agrupar robots de prensa completos + sus ejes a partir del listado ASRS real.
@@ -637,6 +642,7 @@
             baseSel.value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
         }
 
         // Grupos CC01: 5 sectores de 18 conveyors siguiendo el recorrido físico del transportador
@@ -717,6 +723,7 @@
             document.getElementById('manualCC01Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
         }
 
         // Grupos CC03: circuito de los 5 robots de prensa dividido en 3 tramos
@@ -786,6 +793,7 @@
             document.getElementById('manualCC03Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
         }
 
         // Grupos Zona 12: mesas de inspeccion Q1-Q6 hasta entradas de Plummer
@@ -853,6 +861,7 @@
             document.getElementById('manualZ12Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
         }
 
         // Grupos Zona 13: entrada + centrador + robot de carga, y
@@ -919,6 +928,105 @@
             document.getElementById('manualZ13Select').value = '';
             document.getElementById('asigPreviewContainer').classList.remove('hidden');
             renderPreview();
+            renderBadgesGrupos();
+        }
+
+        // ===== INDICADOR DE GRUPOS PLANIFICADOS EN EL MES =====
+        // Un grupo cuenta como planificado si TODOS sus equipos ya tienen
+        // asignación en el mes seleccionado (backend guardado + vista previa).
+        const asignacionesMesCache = {};
+
+        async function obtenerEquiposPlanificadosMes(mes) {
+            if (!mes) return new Set();
+            if (!asignacionesMesCache[mes]) {
+                try {
+                    const res = await fetch(`${API_BASE}/api/asignaciones/?mes=${mes}`);
+                    if (!res.ok) throw new Error("Endpoint no encontrado");
+                    const data = await res.json();
+                    asignacionesMesCache[mes] = new Set((data || []).map(a => a.equipo));
+                } catch (e) {
+                    asignacionesMesCache[mes] = new Set();
+                }
+            }
+            const set = new Set(asignacionesMesCache[mes]);
+            asignacionesPreview.forEach(a => {
+                if (a.fecha && a.fecha.startsWith(mes)) set.add(a.equipo);
+            });
+            return set;
+        }
+
+        async function resolverGruposFamilia() {
+            let srmGrupos = [];
+            if (craneGroupsCache && Object.keys(craneGroupsCache).length > 0) {
+                srmGrupos = Object.entries(craneGroupsCache).map(([key, grp]) => ({
+                    clave: key,
+                    etiqueta: key,
+                    equipos: [grp.crane, ...(grp.inbound || []), ...(grp.outbound || [])].filter(Boolean)
+                }));
+            } else {
+                try {
+                    const res = await fetch(`${API_BASE}/api/equipos/`);
+                    const allEq = await res.json();
+                    const { groups } = buildCraneGroupsFromAPI(allEq);
+                    craneGroupsCache = groups;
+                    srmGrupos = Object.entries(groups).map(([key, grp]) => ({
+                        clave: key,
+                        etiqueta: key,
+                        equipos: [grp.crane, ...(grp.inbound || []), ...(grp.outbound || [])].filter(Boolean)
+                    }));
+                } catch (e) {
+                    srmGrupos = [];
+                }
+            }
+
+            const robotGrupos = getRobotGroupsFromDatalist().map(g => ({
+                clave: g.base,
+                etiqueta: (g.base.match(/(\d+[A-Za-z])\s*$/i) || [])[1] || g.base,
+                equipos: (g.equipos || []).filter(Boolean)
+            }));
+
+            return {
+                SRM: { container: 'badgesSRM', grupos: srmGrupos },
+                Robot: { container: 'badgesRobot', grupos: robotGrupos },
+                CC01: { container: 'badgesCC01', grupos: Object.entries(GRUPOS_CC01).map(([k, v]) => ({ clave: k, etiqueta: 'Sector ' + k.replace('G', ''), equipos: v })) },
+                CC03: { container: 'badgesCC03', grupos: Object.entries(GRUPOS_CC03).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                Z12: { container: 'badgesZ12', grupos: Object.entries(GRUPOS_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                Z13: { container: 'badgesZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) }
+            };
+        }
+
+        async function renderBadgesGrupos() {
+            const mes = document.getElementById('asigMesGenerar')?.value;
+            if (!mes) return;
+            const planificados = await obtenerEquiposPlanificadosMes(mes);
+            const familias = await resolverGruposFamilia();
+
+            Object.values(familias).forEach(fam => {
+                const cont = document.getElementById(fam.container);
+                if (!cont) return;
+                if (!fam.grupos.length) {
+                    cont.innerHTML = '<span class="text-[10px] text-gray-400 italic">Sin grupos disponibles</span>';
+                    return;
+                }
+                cont.innerHTML = fam.grupos.map(g => {
+                    const total = g.equipos.length;
+                    const cubiertos = g.equipos.filter(e => planificados.has(e)).length;
+                    const done = cubiertos >= total;
+                    const partial = cubiertos > 0;
+                    let cls, icono;
+                    if (done) {
+                        cls = 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-300 dark:border-green-800';
+                        icono = 'fa-check-circle';
+                    } else if (partial) {
+                        cls = 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-800';
+                        icono = 'fa-clock';
+                    } else {
+                        cls = 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400 border border-gray-300 dark:border-slate-600';
+                        icono = 'fa-circle';
+                    }
+                    return `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold inline-flex items-center gap-1 ${cls}" title="${g.clave}: ${cubiertos} de ${total} equipos planificados en el mes"><i class="fas ${icono}"></i> ${g.etiqueta} ${cubiertos}/${total}</span>`;
+                }).join('');
+            });
         }
 
         function renderPreview() {
@@ -1041,6 +1149,7 @@
                 document.getElementById('asigPreviewContainer').classList.add('hidden');
             }
             renderPreview();
+            renderBadgesGrupos();
         }
 
         async function cancelarVistaPrevia() {
@@ -1057,6 +1166,7 @@
             asignacionesPreview = [];
             esGeneracionAuto = false;
             document.getElementById('asigPreviewContainer').classList.add('hidden');
+            renderBadgesGrupos();
         }
 
         async function guardarAsignacionesEnDjango() {
@@ -1110,6 +1220,8 @@
                     esGeneracionAuto = false;
                     asignacionesPreview = [];
                     cargarAsignacionesSemanales(true);
+                    delete asignacionesMesCache[fechaSemana.slice(0, 7)];
+                    renderBadgesGrupos();
                 } else {
                     mostrarAlerta('Aviso', "El servidor respondió con error.", 'fa-exclamation-circle text-amber-500');
                 }
