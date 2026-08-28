@@ -225,6 +225,23 @@
         }
 
         let activeWorkbookQRs = null;
+        let mapaEquiposOficialCache = null;
+
+        async function cargarMapaEquiposOficial() {
+            if (mapaEquiposOficialCache && mapaEquiposOficialCache.length > 0) {
+                return mapaEquiposOficialCache;
+            }
+            try {
+                const res = await fetch('public/equipos_oficial_map.json');
+                if (res.ok) {
+                    mapaEquiposOficialCache = await res.json();
+                    return mapaEquiposOficialCache;
+                }
+            } catch (e) {
+                console.warn('No se pudo cargar equipos_oficial_map.json:', e);
+            }
+            return [];
+        }
 
         function obtenerListaMaestraDeWorkbook(workbook) {
             if (!workbook || !workbook.SheetNames) return [];
@@ -246,20 +263,18 @@
                 });
             }
 
-            if (colZona === -1) colZona = 1; // Columna B por defecto
-            if (colEquipo === -1) colEquipo = 2; // Columna C por defecto
-            if (colQr === -1) colQr = 3; // Columna D por defecto
-            if (colUrl === -1) colUrl = 0; // Columna A por defecto
+            if (colZona === -1) colZona = 1;
+            if (colEquipo === -1) colEquipo = 2;
+            if (colQr === -1) colQr = 3;
+            if (colUrl === -1) colUrl = 0;
 
             const master = [];
             rows.slice(1).forEach(row => {
                 if (!row || !Array.isArray(row)) return;
 
-                // Nombre del equipo en Columna B (Zona) o C (Equipo)
                 const zona = String(row[colZona] || row[colEquipo] || '').trim();
                 const desc = String(row[colEquipo] || '').trim();
 
-                // Contenido del QR en Columna D o Columna A
                 let qrData = String(row[colQr] || '').trim();
                 if (!qrData || qrData.includes('#VALUE!')) {
                     qrData = String(row[colUrl] || '').trim();
@@ -283,7 +298,6 @@
         async function abrirModalQRsSinQR() {
             if (!isAdminModo) return;
 
-            // 1. Obtener la lista de equipos sin QR a procesar (seleccionados o todos los reportados)
             const selectedChks = document.querySelectorAll('.chk-sin-qr:checked');
             let listaReportados = [];
 
@@ -299,8 +313,11 @@
                 return;
             }
 
-            // 2. Cargar Excel maestro del repositorio para hacer MATCH
+            // 2. Cargar mapa oficial en JSON + Excel del repositorio para hacer MATCH
             let masterList = [];
+            const mapaOficial = await cargarMapaEquiposOficial();
+            masterList = [...mapaOficial];
+
             try {
                 if (!activeWorkbookQRs) {
                     let res = await fetch('public/equipos_qr.xlsx');
@@ -311,7 +328,12 @@
                     }
                 }
                 if (activeWorkbookQRs) {
-                    masterList = obtenerListaMaestraDeWorkbook(activeWorkbookQRs);
+                    const excelMaster = obtenerListaMaestraDeWorkbook(activeWorkbookQRs);
+                    excelMaster.forEach(item => {
+                        if (!masterList.some(m => normalizarTexto(m.zona) === normalizarTexto(item.zona))) {
+                            masterList.push(item);
+                        }
+                    });
                 }
             } catch (e) {
                 console.warn('No se pudo cargar el Excel maestro para match:', e);
