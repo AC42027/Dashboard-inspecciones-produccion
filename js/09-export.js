@@ -250,31 +250,7 @@
             await generarYMostrarModalQRs(items, 'Dashboard');
         }
 
-        async function cargarQRsDesdeExcelLocal(event) {
-            if (!isAdminModo) return;
-            const file = event.target.files[0];
-            if (!file) return;
-
-            try {
-                const arrayBuffer = await file.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const listaNombres = extraerEquiposDeExcel(workbook);
-
-                if (listaNombres.length === 0) {
-                    await mostrarAlerta('Sin datos', 'No se encontraron nombres de equipos en el archivo Excel.', 'fa-exclamation-circle text-amber-500');
-                    return;
-                }
-
-                const items = listaNombres.map(n => ({ nombre: n, fecha: 'Desde Excel' }));
-                await generarYMostrarModalQRs(items, file.name);
-
-            } catch (err) {
-                console.error(err);
-                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel. Asegúrate de seleccionar un archivo .xlsx, .xls o .csv válido.', 'fa-times-circle text-red-500');
-            } finally {
-                event.target.value = '';
-            }
-        }
+        let activeWorkbookQRs = null;
 
         async function cargarQRsDesdeExcelRepo() {
             if (!isAdminModo) return;
@@ -300,61 +276,141 @@
                 if (!response) {
                     await mostrarAlerta(
                         'Archivo no encontrado',
-                        'No se encontró el archivo "equipos_qr.xlsx" en la carpeta public/ ni en la raíz del repositorio. Sube un archivo Excel llamado equipos_qr.xlsx al repositorio para usar esta opción.',
+                        'No se encontró el archivo "equipos_qr.xlsx" en la carpeta public/ ni en la raíz del repositorio.',
                         'fa-exclamation-triangle text-amber-500'
                     );
                     return;
                 }
 
                 const arrayBuffer = await response.arrayBuffer();
-                const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-                const listaNombres = extraerEquiposDeExcel(workbook);
-
-                if (listaNombres.length === 0) {
-                    await mostrarAlerta('Sin datos', `No se encontraron nombres de equipos en el archivo Excel (${fileUsed}) del repositorio.`, 'fa-exclamation-circle text-amber-500');
-                    return;
-                }
-
-                const items = listaNombres.map(n => ({ nombre: n, fecha: 'Excel Repo' }));
-                await generarYMostrarModalQRs(items, `Excel del Repo (${fileUsed})`);
+                activeWorkbookQRs = XLSX.read(arrayBuffer, { type: 'array' });
+                procesarWorkbookYSheet(activeWorkbookQRs, null, `Excel del Repo (${fileUsed})`);
 
             } catch (err) {
                 console.error(err);
-                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel del repositorio. Verifica el formato del archivo.', 'fa-times-circle text-red-500');
+                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel del repositorio.', 'fa-times-circle text-red-500');
             }
         }
 
-        function extraerEquiposDeExcel(workbook) {
-            const firstSheetName = workbook.SheetNames[0];
-            const sheet = workbook.Sheets[firstSheetName];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+        async function cargarQRsDesdeExcelLocal(event) {
+            if (!isAdminModo) return;
+            const file = event.target.files[0];
+            if (!file) return;
 
-            if (!rows || rows.length === 0) return [];
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                activeWorkbookQRs = XLSX.read(arrayBuffer, { type: 'array' });
+                procesarWorkbookYSheet(activeWorkbookQRs, null, file.name);
 
-            let colIndex = 0;
+            } catch (err) {
+                console.error(err);
+                await mostrarAlerta('Error', 'No se pudo leer el archivo Excel. Asegúrate de seleccionar un archivo .xlsx, .xls o .csv válido.', 'fa-times-circle text-red-500');
+            } finally {
+                event.target.value = '';
+            }
+        }
 
-            if (rows[0] && Array.isArray(rows[0])) {
-                const headerRow = rows[0].map(c => String(c).toLowerCase().trim());
-                const foundIdx = headerRow.findIndex(h =>
-                    h.includes('equipo') || h.includes('qr') || h.includes('codigo') || h.includes('código') || h.includes('nombre')
-                );
-                if (foundIdx !== -1) colIndex = foundIdx;
+        function procesarWorkbookYSheet(workbook, targetSheetName = null, origenStr = 'Excel') {
+            if (!workbook || !workbook.SheetNames || workbook.SheetNames.length === 0) return;
+
+            const containerHojas = document.getElementById('containerHojasExcel');
+            const selectHojas = document.getElementById('selectHojaExcel');
+
+            if (workbook.SheetNames.length > 1) {
+                if (selectHojas) {
+                    selectHojas.innerHTML = workbook.SheetNames.map(name => `<option value="${name}" ${name === targetSheetName ? 'selected' : ''}>${name}</option>`).join('');
+                }
+                if (containerHojas) containerHojas.classList.remove('hidden');
+            } else {
+                if (containerHojas) containerHojas.classList.add('hidden');
             }
 
-            const listaEquipos = [];
-            const headersToIgnore = ['equipo', 'equipos', 'qr', 'qrs', 'codigo', 'código', 'nombre', 'tag', 'id'];
+            let sheetToUse = targetSheetName;
+            if (!sheetToUse) {
+                const sheetPriority = ['SinQR', 'Sheet1', 'Equipos'];
+                for (const name of sheetPriority) {
+                    if (workbook.SheetNames.includes(name)) {
+                        sheetToUse = name;
+                        break;
+                    }
+                }
+                if (!sheetToUse) sheetToUse = workbook.SheetNames[0];
+            }
+
+            if (selectHojas) selectHojas.value = sheetToUse;
+
+            const items = extraerEquiposDeSheet(workbook.Sheets[sheetToUse]);
+            if (items.length === 0) {
+                mostrarAlerta('Pestaña vacía', `La pestaña "${sheetToUse}" no contiene registros válidos.`, 'fa-exclamation-circle text-amber-500');
+                return;
+            }
+
+            generarYMostrarModalQRs(items, `${origenStr} [${sheetToUse}]`);
+        }
+
+        function cambiarHojaExcelQRs(sheetName) {
+            if (!activeWorkbookQRs) return;
+            procesarWorkbookYSheet(activeWorkbookQRs, sheetName, 'Excel');
+        }
+
+        function extraerEquiposDeSheet(sheet) {
+            if (!sheet) return [];
+            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+            if (!rows || rows.length === 0) return [];
+
+            let colEquipo = -1;
+            let colZona = -1;
+            let colUrl = -1;
+            let colComentario = -1;
+
+            if (rows[0] && Array.isArray(rows[0])) {
+                rows[0].forEach((cell, idx) => {
+                    const h = String(cell || '').toLowerCase().trim();
+                    if (h.includes('zona')) colZona = idx;
+                    else if (h.includes('equipo')) colEquipo = idx;
+                    else if (h.includes('direccion') || h.includes('ip') || h.includes('url')) colUrl = idx;
+                    else if (h.includes('comentario') || h.includes('descrip')) colComentario = idx;
+                });
+            }
+
+            const headersToIgnore = ['equipo', 'equipos', 'qr', 'qrs', 'codigo', 'código', 'nombre', 'tag', 'id', 'direccion ip', 'fecha', 'hora', 'usuario', 'comentario', 'acción', 'accion'];
+            const items = [];
 
             rows.forEach(row => {
                 if (!row || !Array.isArray(row)) return;
-                const rawVal = String(row[colIndex] || '').trim();
-                if (rawVal && !headersToIgnore.includes(rawVal.toLowerCase())) {
-                    if (!listaEquipos.includes(rawVal)) {
-                        listaEquipos.push(rawVal);
+
+                let nombre = '';
+                let subtitulo = '';
+
+                if (colZona !== -1 && row[colZona]) {
+                    nombre = String(row[colZona]).trim();
+                    if (colEquipo !== -1 && row[colEquipo]) subtitulo = String(row[colEquipo]).trim();
+                } else if (colEquipo !== -1 && row[colEquipo]) {
+                    nombre = String(row[colEquipo]).trim();
+                    if (colComentario !== -1 && row[colComentario]) subtitulo = String(row[colComentario]).trim();
+                } else if (colUrl !== -1 && row[colUrl]) {
+                    nombre = String(row[colUrl]).trim();
+                } else {
+                    for (let c = 0; c < row.length; c++) {
+                        const val = String(row[c] || '').trim();
+                        if (val && !headersToIgnore.includes(val.toLowerCase()) && !val.includes('#VALUE!') && val.length < 200) {
+                            if (!nombre) nombre = val;
+                            else if (!subtitulo) { subtitulo = val; break; }
+                        }
+                    }
+                }
+
+                if (nombre && !headersToIgnore.includes(nombre.toLowerCase()) && !nombre.includes('#VALUE!')) {
+                    if (!items.some(item => item.nombre === nombre)) {
+                        items.push({
+                            nombre: nombre,
+                            subtitulo: subtitulo && !subtitulo.includes('#VALUE!') ? subtitulo : ''
+                        });
                     }
                 }
             });
 
-            return listaEquipos;
+            return items;
         }
 
         async function generarYMostrarModalQRs(items, origenStr = 'Dashboard') {
@@ -377,7 +433,7 @@
                 const base64 = await generarQRBase64(item.nombre);
                 qrsExportCache.push({
                     nombre: item.nombre,
-                    fecha: item.fecha || '',
+                    subtitulo: item.subtitulo || item.fecha || '',
                     qrSrc: base64
                 });
             }
@@ -403,7 +459,7 @@
                             <img src="${item.qrSrc}" class="w-full h-full object-contain" alt="QR ${item.nombre}">
                         </div>
                         <span class="font-extrabold text-sm text-gray-900 mt-2 block uppercase tracking-tight break-all">${item.nombre}</span>
-                        ${item.fecha ? `<span class="text-[10px] text-gray-500 font-medium mt-0.5">${item.fecha}</span>` : ''}
+                        ${item.subtitulo ? `<span class="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-2" title="${item.subtitulo}">${item.subtitulo}</span>` : ''}
                     </div>
                 `;
             });
@@ -425,7 +481,7 @@
                 <div class="qr-card">
                     <img src="${item.qrSrc}" class="qr-img" alt="QR ${item.nombre}">
                     <div class="qr-name">${item.nombre}</div>
-                    ${item.fecha ? `<div class="qr-date">${item.fecha}</div>` : ''}
+                    ${item.subtitulo ? `<div class="qr-date">${item.subtitulo}</div>` : ''}
                 </div>
             `).join('');
 
@@ -460,7 +516,7 @@
                 <body>
                     <div class="header">
                         <div class="title">GOODYEAR - CÓDIGOS QR DE EQUIPOS</div>
-                        <div class="subtitle">Reporte de Equipos sin QR · Total: ${qrsExportCache.length}</div>
+                        <div class="subtitle">Equipos ASRS · Total: ${qrsExportCache.length}</div>
                     </div>
                     <div class="grid">
                         ${cardsHtml}
@@ -485,7 +541,7 @@
                 <div class="qr-card">
                     <img src="${item.qrSrc}" width="130" height="130" style="width:130px;height:130px;display:block;margin:0 auto;" alt="QR ${item.nombre}">
                     <div class="qr-name">${item.nombre}</div>
-                    ${item.fecha ? `<div class="qr-date">${item.fecha}</div>` : ''}
+                    ${item.subtitulo ? `<div class="qr-date">${item.subtitulo}</div>` : ''}
                 </div>
             `).join('');
 
@@ -517,7 +573,7 @@
                 </head>
                 <body>
                     <div class="title">GOODYEAR - ETIQUETAS DE CÓDIGOS QR</div>
-                    <div class="subtitle">Equipos Faltantes de QR · Total: ${qrsExportCache.length}</div>
+                    <div class="subtitle">Equipos ASRS · Total: ${qrsExportCache.length}</div>
                     <div class="grid">
                         ${cardsHtml}
                     </div>
@@ -527,6 +583,6 @@
 
             const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
             const hoy = new Date().toISOString().slice(0, 10);
-            saveAs(blob, `QRs_Faltantes_Goodyear_${hoy}.doc`);
+            saveAs(blob, `QRs_Equipos_Goodyear_${hoy}.doc`);
         }
 
