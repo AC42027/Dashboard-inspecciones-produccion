@@ -175,6 +175,29 @@
                 `;
                 els.graficasContainer.appendChild(kpiSection);
 
+                // Panel Avance de Asociados (ASRS)
+                const avancePanel = document.createElement('div');
+                avancePanel.className = 'glass-panel p-6 chart-enter';
+                avancePanel.id = 'avance-asociados-panel';
+                avancePanel.innerHTML = `
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-200 dark:border-slate-700 pb-4 mb-4">
+                        <h3 class="text-lg font-bold text-goodyear-blue dark:text-white uppercase flex items-center gap-2">
+                            <i class="fas fa-user-check text-goodyear-yellow"></i> Avance de Asociados (ASRS)
+                        </h3>
+                        <div class="flex flex-wrap gap-2 text-xs items-center">
+                            <span id="avance-asociados-periodo" class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-goodyear-blue dark:text-blue-300 font-bold rounded-full border border-blue-200 dark:border-blue-800"></span>
+                            <span id="avance-asociados-global" class="px-2.5 py-1 font-bold rounded-full border hidden"></span>
+                        </div>
+                    </div>
+                    <div id="avance-asociados-body">
+                        <div class="flex items-center justify-center gap-2 py-8 text-gray-400 dark:text-gray-500 text-sm">
+                            <i class="fas fa-spinner fa-spin"></i> Calculando avance...
+                        </div>
+                    </div>
+                `;
+                els.graficasContainer.appendChild(avancePanel);
+                renderAvanceAsociados();
+
                 // DIBUJAR CHARTS GLOBALES
                 // Chart K1: Doughnut Condición Operativa
                 const ctxHealth = document.getElementById('kpi-chart-health').getContext('2d');
@@ -470,6 +493,154 @@
                         }
                     }));
                 });
+            }
+        }
+
+        let avanceRenderToken = 0;
+        const avanceMesFetchCache = {}; // YYYY-MM -> Promise<Array>
+
+        async function fetchAsigMes(mes) {
+            if (avanceMesFetchCache[mes]) return avanceMesFetchCache[mes];
+            const p = (async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/asignaciones/?mes=${mes}`);
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    const data = await res.json();
+                    return Array.isArray(data) ? data : [];
+                } catch (e) {
+                    throw e;
+                }
+            })();
+            avanceMesFetchCache[mes] = p;
+            p.catch(() => { delete avanceMesFetchCache[mes]; });
+            return p;
+        }
+
+        async function renderAvanceAsociados() {
+            const panel = document.getElementById('avance-asociados-panel');
+            if (!panel) return;
+            const body = document.getElementById('avance-asociados-body');
+            const periodoEl = document.getElementById('avance-asociados-periodo');
+            const globalEl = document.getElementById('avance-asociados-global');
+            const token = ++avanceRenderToken;
+
+            // Esperar a que las inspecciones estén cargadas para no calcular 0% por carrera
+            if (!inspecciones || inspecciones.length === 0) {
+                for (let i = 0; i < 100; i++) {
+                    if (inspecciones.length > 0) break;
+                    await new Promise(r => setTimeout(r, 100));
+                }
+            }
+
+            const now = new Date();
+            const anioSel = filtros.anio || String(now.getFullYear());
+            const mesSel = filtros.mes || String(now.getMonth() + 1).padStart(2, '0');
+            // Si solo hay año seleccionado -> agregar los 12 meses; si nada -> solo mes actual
+            const esAnual = !!(filtros.anio && !filtros.mes);
+            const meses = esAnual
+                ? Array.from({ length: 12 }, (_, i) => `${anioSel}-${String(i + 1).padStart(2, '0')}`)
+                : [`${anioSel}-${mesSel}`];
+
+            try {
+                const responses = await Promise.all(meses.map(m => fetchAsigMes(m).catch(() => null)));
+                if (token !== avanceRenderToken) return;
+
+                const asignaciones = [].concat(...responses.filter(Boolean));
+
+                periodoEl.textContent = esAnual ? `Año ${anioSel}` : obtenerNombreMesEspañol(`${anioSel}-${mesSel}`);
+
+                if (responses.every(r => r === null)) {
+                    body.innerHTML = `
+                        <div class="flex items-center justify-center gap-2 py-8 text-red-500 text-sm font-medium">
+                            <i class="fas fa-wifi"></i> Error de conexión al cargar asignaciones. Consultar a Manuel Rivera en caso de persistir.
+                        </div>`;
+                    return;
+                }
+
+                const porAsociado = {};
+                asignaciones.forEach(a => {
+                    if (!a.asociado) return;
+                    const mesAsig = a.fecha ? a.fecha.substring(0, 7) : `${anioSel}-${mesSel}`;
+                    if (!porAsociado[a.asociado]) porAsociado[a.asociado] = { asignadas: 0, realizadas: 0, fueraTiempo: 0, pendientes: 0 };
+                    const st = evaluarEstadoAsignacion(a, inspecciones, mesAsig);
+                    const acc = porAsociado[a.asociado];
+                    acc.asignadas++;
+                    if (st === 'REALIZADA') acc.realizadas++;
+                    else if (st === 'FUERA_DE_TIEMPO') acc.fueraTiempo++;
+                    else acc.pendientes++;
+                });
+
+                const filas = Object.entries(porAsociado).map(([aso, c]) => {
+                    const pct = c.asignadas > 0 ? ((c.realizadas + c.fueraTiempo) / c.asignadas) * 100 : 0;
+                    return { aso, c, pct: Math.round(pct * 10) / 10 };
+                }).sort((a, b) => b.pct - a.pct || a.aso.localeCompare(b.aso));
+
+                const totalAsig = asignaciones.filter(a => a.asociado).length;
+                const totalReal = asignaciones.filter(a => a.asociado && esInspeccionRealizada(a, inspecciones, a.fecha ? a.fecha.substring(0, 7) : undefined)).length;
+                const pctGlobal = totalAsig > 0 ? Math.round((totalReal / totalAsig) * 100) : 0;
+
+                const gCls = pctGlobal >= 90
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                    : pctGlobal >= 75
+                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                    : 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border-red-300 dark:border-red-800';
+                globalEl.className = `px-2.5 py-1 font-bold rounded-full border inline-flex items-center gap-1 ${gCls}`;
+                globalEl.innerHTML = `<i class="fas fa-percent"></i> ${totalReal}/${totalAsig} · ${pctGlobal}%`;
+                globalEl.classList.remove('hidden');
+
+                if (filas.length === 0) {
+                    body.innerHTML = `<div class="flex items-center justify-center gap-2 py-8 text-gray-500 dark:text-gray-400 text-sm"><i class="fas fa-inbox"></i> No hay asignaciones para el período seleccionado.</div>`;
+                    return;
+                }
+
+                const estadoPill = (tex, bs) => `<span class="${bs}">${tex}</span>`;
+                body.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-[11px] uppercase tracking-wider text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-slate-700">
+                                    <th class="px-3 py-2.5 font-bold">Asociado</th>
+                                    <th class="px-3 py-2.5 font-bold text-center">Asignados</th>
+                                    <th class="px-3 py-2.5 font-bold text-center">Realizadas</th>
+                                    <th class="px-3 py-2.5 font-bold text-center">Fuera de tiempo</th>
+                                    <th class="px-3 py-2.5 font-bold text-center">Pendientes</th>
+                                    <th class="px-3 py-2.5 font-bold text-left min-w-[220px]">% Avance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filas.map(f => {
+                                    const barCls = f.pct >= 90 ? 'bg-green-500' : f.pct >= 75 ? 'bg-amber-500' : 'bg-rose-500';
+                                    const pctCls = f.pct >= 90 ? 'text-emerald-600 dark:text-emerald-400' : f.pct >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
+                                    return `
+                                    <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors border-b border-gray-100 dark:border-slate-700/50">
+                                        <td class="font-bold text-goodyear-blue dark:text-blue-400 px-3 py-2.5">${f.aso}</td>
+                                        <td class="text-center text-gray-700 dark:text-gray-300 px-3 py-2.5">${f.c.asignadas}</td>
+                                        <td class="text-center px-3 py-2.5">${estadoPill(f.c.realizadas, 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300 border border-green-200 dark:border-green-800')}</td>
+                                        <td class="text-center px-3 py-2.5">${estadoPill(f.c.fueraTiempo, 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800')}</td>
+                                        <td class="text-center px-3 py-2.5">${estadoPill(f.c.pendientes, 'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300 border border-red-200 dark:border-red-800')}</td>
+                                        <td class="px-3 py-2.5">
+                                            <div class="flex items-center gap-2">
+                                                <div class="flex-1 h-2 rounded-full bg-gray-100 dark:bg-slate-700 relative overflow-hidden">
+                                                    <div class="${barCls} h-full rounded-full transition-all duration-700" style="width:${f.pct}%"></div>
+                                                </div>
+                                                <span class="w-14 text-right font-extrabold text-xs ${pctCls}">${f.pct}%</span>
+                                            </div>
+                                        </td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <p class="text-[10px] text-gray-400 dark:text-gray-500 mt-3">
+                        Avance = equipos asignados que ya fueron inspeccionados (Realizadas + Fuera de tiempo) sobre el total asignado.
+                    </p>`;
+            } catch (err) {
+                console.error('[AvanceAsociados] error:', err);
+                if (token !== avanceRenderToken) return;
+                body.innerHTML = `
+                    <div class="flex items-center justify-center gap-2 py-8 text-red-500 text-sm font-medium">
+                        <i class="fas fa-exclamation-triangle"></i> Error al calcular el avance de asociados.
+                    </div>`;
             }
         }
 

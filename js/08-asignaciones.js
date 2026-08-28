@@ -1342,6 +1342,7 @@
                     asignacionesPreview = [];
                     cargarAsignacionesSemanales(true);
                     delete asignacionesMesCache[fechaSemana.slice(0, 7)];
+                    if (typeof avanceMesFetchCache !== 'undefined') delete avanceMesFetchCache[fechaSemana.slice(0, 7)];
                     renderBadgesGrupos();
                 } else {
                     mostrarAlerta('Aviso', "El servidor respondió con error.", 'fa-exclamation-circle text-amber-500');
