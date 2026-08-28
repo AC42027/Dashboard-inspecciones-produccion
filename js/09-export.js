@@ -181,3 +181,239 @@
             const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             saveAs(blob, `Rutas_ASRS_${tituloMes.replace(/\s+/g, '_')}.xlsx`);
         }
+
+        // ==========================================
+        // EXPORTACIÓN E IMPRESIÓN DE QRS FALTANTES
+        // ==========================================
+        let qrsExportCache = [];
+
+        function generarQRBase64(texto) {
+            return new Promise((resolve) => {
+                try {
+                    if (typeof QRCode !== 'undefined') {
+                        const tempDiv = document.createElement('div');
+                        tempDiv.style.display = 'none';
+                        document.body.appendChild(tempDiv);
+
+                        new QRCode(tempDiv, {
+                            text: texto,
+                            width: 160,
+                            height: 160,
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+
+                        setTimeout(() => {
+                            let src = '';
+                            const img = tempDiv.querySelector('img');
+                            const canvas = tempDiv.querySelector('canvas');
+                            if (img && img.src) src = img.src;
+                            else if (canvas) src = canvas.toDataURL('image/png');
+                            if (tempDiv.parentNode) document.body.removeChild(tempDiv);
+                            if (src) {
+                                resolve(src);
+                                return;
+                            }
+                            resolve(`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(texto)}`);
+                        }, 60);
+                    } else {
+                        resolve(`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(texto)}`);
+                    }
+                } catch (e) {
+                    resolve(`https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(texto)}`);
+                }
+            });
+        }
+
+        async function abrirModalQRsSinQR() {
+            if (!isAdminModo) return;
+
+            const selectedChks = document.querySelectorAll('.chk-sin-qr:checked');
+            let lista = [];
+
+            if (selectedChks.length > 0) {
+                const ids = Array.from(selectedChks).map(c => c.getAttribute('data-id'));
+                lista = equiposSinQR.filter(eq => ids.includes(String(eq.id)));
+            } else {
+                lista = equiposSinQR;
+            }
+
+            if (lista.length === 0) {
+                await mostrarAlerta('Atención', 'No hay equipos sin QR para generar.', 'fa-exclamation-circle text-amber-500');
+                return;
+            }
+
+            const modal = document.getElementById('modalQRsSinQR');
+            const contenedor = document.getElementById('contenedorVistaQRs');
+            const badge = document.getElementById('badgeCantQRs');
+
+            if (badge) badge.textContent = lista.length;
+
+            contenedor.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-12">
+                    <div class="loader mb-4"></div>
+                    <p class="text-gray-600 dark:text-gray-300 font-medium">Generando códigos QR (${lista.length})...</p>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+
+            qrsExportCache = [];
+            for (const eq of lista) {
+                const qrName = eq.equipo_nombre || eq.equipo || 'Equipo';
+                const base64 = await generarQRBase64(qrName);
+                qrsExportCache.push({
+                    id: eq.id,
+                    nombre: qrName,
+                    fecha: eq.fecha || '',
+                    comentario: eq.comentario || '',
+                    qrSrc: base64
+                });
+            }
+
+            renderGridVistaQRs();
+        }
+
+        function renderGridVistaQRs() {
+            const contenedor = document.getElementById('contenedorVistaQRs');
+            if (!contenedor) return;
+
+            if (qrsExportCache.length === 0) {
+                contenedor.innerHTML = '<p class="text-center py-8 text-gray-500 font-medium">No hay códigos para mostrar.</p>';
+                return;
+            }
+
+            let html = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">`;
+
+            qrsExportCache.forEach(item => {
+                html += `
+                    <div class="bg-white text-slate-900 border-2 border-goodyear-blue rounded-xl p-3 shadow flex flex-col items-center justify-center text-center break-inside-avoid">
+                        <div class="w-36 h-36 bg-white flex items-center justify-center p-1 rounded-lg">
+                            <img src="${item.qrSrc}" class="w-full h-full object-contain" alt="QR ${item.nombre}">
+                        </div>
+                        <span class="font-extrabold text-sm text-gray-900 mt-2 block uppercase tracking-tight break-all">${item.nombre}</span>
+                        ${item.fecha ? `<span class="text-[10px] text-gray-500 font-medium mt-0.5">${item.fecha}</span>` : ''}
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            contenedor.innerHTML = html;
+        }
+
+        function cerrarModalQRsSinQR() {
+            const modal = document.getElementById('modalQRsSinQR');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function imprimirContenidoQRs() {
+            if (qrsExportCache.length === 0) return;
+
+            const printWin = window.open('', '_blank');
+            const cardsHtml = qrsExportCache.map(item => `
+                <div class="qr-card">
+                    <img src="${item.qrSrc}" class="qr-img" alt="QR ${item.nombre}">
+                    <div class="qr-name">${item.nombre}</div>
+                    ${item.fecha ? `<div class="qr-date">${item.fecha}</div>` : ''}
+                </div>
+            `).join('');
+
+            printWin.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>QRs Faltantes - Goodyear</title>
+                    <style>
+                        @page { size: A4 portrait; margin: 1cm; }
+                        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; text-align: center; }
+                        .header { margin-bottom: 20px; border-bottom: 2px solid #003399; padding-bottom: 10px; }
+                        .title { font-size: 20px; font-weight: bold; color: #003399; margin: 0; }
+                        .subtitle { font-size: 12px; color: #555; margin-top: 4px; }
+                        .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
+                        .qr-card {
+                            width: 150px;
+                            padding: 12px;
+                            border: 2px solid #003399;
+                            border-radius: 10px;
+                            box-sizing: border-box;
+                            page-break-inside: avoid;
+                            text-align: center;
+                            display: inline-block;
+                            margin: 5px;
+                        }
+                        .qr-img { width: 120px; height: 120px; margin: 0 auto; display: block; object-fit: contain; }
+                        .qr-name { font-size: 13px; font-weight: bold; margin-top: 8px; color: #000; word-break: break-all; text-transform: uppercase; }
+                        .qr-date { font-size: 9px; color: #666; margin-top: 2px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div class="title">GOODYEAR - CÓDIGOS QR DE EQUIPOS</div>
+                        <div class="subtitle">Reporte de Equipos sin QR · Total: ${qrsExportCache.length}</div>
+                    </div>
+                    <div class="grid">
+                        ${cardsHtml}
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.print();
+                            }, 300);
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            printWin.document.close();
+        }
+
+        function descargarQRsWord() {
+            if (qrsExportCache.length === 0) return;
+
+            const cardsHtml = qrsExportCache.map(item => `
+                <div class="qr-card">
+                    <img src="${item.qrSrc}" width="130" height="130" style="width:130px;height:130px;display:block;margin:0 auto;" alt="QR ${item.nombre}">
+                    <div class="qr-name">${item.nombre}</div>
+                    ${item.fecha ? `<div class="qr-date">${item.fecha}</div>` : ''}
+                </div>
+            `).join('');
+
+            const htmlContent = `
+                <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+                <head>
+                    <meta charset='utf-8'>
+                    <title>QRs Faltantes Goodyear</title>
+                    <style>
+                        @page { size: A4; margin: 1cm; }
+                        body { font-family: Arial, sans-serif; text-align: center; }
+                        .title { font-size: 18pt; font-weight: bold; color: #003399; margin-bottom: 4px; }
+                        .subtitle { font-size: 10pt; color: #666; margin-bottom: 20px; }
+                        .grid { text-align: center; }
+                        .qr-card {
+                            display: inline-block;
+                            width: 160px;
+                            margin: 8px;
+                            padding: 10px;
+                            border: 2pt solid #003399;
+                            border-radius: 8px;
+                            text-align: center;
+                            vertical-align: top;
+                            page-break-inside: avoid;
+                        }
+                        .qr-name { font-size: 11pt; font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; word-break: break-all; }
+                        .qr-date { font-size: 8pt; color: #666; margin-top: 2px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="title">GOODYEAR - ETIQUETAS DE CÓDIGOS QR</div>
+                    <div class="subtitle">Equipos Faltantes de QR · Total: ${qrsExportCache.length}</div>
+                    <div class="grid">
+                        ${cardsHtml}
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob(['\ufeff' + htmlContent], { type: 'application/msword' });
+            const hoy = new Date().toISOString().slice(0, 10);
+            saveAs(blob, `QRs_Faltantes_Goodyear_${hoy}.doc`);
+        }
+

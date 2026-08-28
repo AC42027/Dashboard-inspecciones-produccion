@@ -309,6 +309,9 @@
             const headerAccion = document.getElementById('sinQrAccionHeader');
             if (headerAccion) headerAccion.classList.toggle('hidden', !isAdminModo);
 
+            const btnExpQR = document.getElementById('btnExportarQRsSinQR');
+            if (btnExpQR) btnExpQR.classList.toggle('hidden', !isAdminModo);
+
             const btnBulk = document.getElementById('btnBorrarEquiposSinQRSeleccionados');
             if (btnBulk && !isAdminModo) btnBulk.classList.add('hidden');
 

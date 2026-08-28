@@ -9,6 +9,9 @@
     <!-- Google Fonts: Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+    <!-- QRCode JS Generator -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -992,6 +995,11 @@
                         </span>
                     </h2>
                     <div class="flex items-center gap-2">
+                        <button id="btnExportarQRsSinQR" onclick="abrirModalQRsSinQR()"
+                            class="btn bg-blue-700 hover:bg-blue-800 text-white btn-sm hidden flex items-center gap-2"
+                            title="Generar hoja de QRs para imprimir o descargar en Word">
+                            <i class="fas fa-qrcode"></i> <span>Generar QRs Faltantes</span>
+                        </button>
                         <button id="btnBorrarEquiposSinQRSeleccionados" onclick="eliminarEquiposSinQRSeleccionados()"
                             class="btn bg-red-600 hover:bg-red-700 text-white btn-sm hidden flex items-center gap-2">
                             <i class="fas fa-trash-alt"></i> <span>Eliminar seleccionados (<span id="countSinQRSeleccionados">0</span>)</span>
@@ -1302,6 +1310,41 @@
                     class="btn btn-secondary btn-md text-xs uppercase tracking-wider active:scale-95">Cancelar</button>
                 <button id="customModalConfirm"
                     class="btn btn-primary btn-md text-xs uppercase tracking-wider active:scale-95">Aceptar</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal Vista Previa e Impresión de QRs Faltantes -->
+    <div id="modalQRsSinQR" class="hidden fixed inset-0 z-[120] flex items-center justify-center bg-black/75 backdrop-blur-md p-4 overflow-y-auto">
+        <div class="glass-panel p-6 max-w-5xl w-full mx-auto my-6 bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-slate-700 max-h-[92vh] flex flex-col">
+            <!-- Modal Header -->
+            <div class="flex flex-wrap items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-slate-700 shrink-0">
+                <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 flex items-center justify-center shrink-0">
+                        <i class="fas fa-qrcode text-goodyear-blue dark:text-goodyear-yellow text-lg"></i>
+                    </span>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-gray-800 dark:text-white flex items-center gap-2">
+                            <span>QRs Faltantes para Imprimir</span>
+                            <span id="badgeCantQRs" class="text-xs bg-goodyear-blue text-white px-2.5 py-0.5 rounded-full font-bold">0</span>
+                        </h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Códigos QR con el nombre del equipo impreso abajo, listos para imprimir o exportar a Word</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="imprimirContenidoQRs()" class="btn bg-emerald-600 hover:bg-emerald-700 text-white btn-sm flex items-center gap-1.5 shadow">
+                        <i class="fas fa-print"></i> <span>Imprimir</span>
+                    </button>
+                    <button onclick="descargarQRsWord()" class="btn bg-blue-700 hover:bg-blue-800 text-white btn-sm flex items-center gap-1.5 shadow">
+                        <i class="fas fa-file-word"></i> <span>Descargar Word (.doc)</span>
+                    </button>
+                    <button onclick="cerrarModalQRsSinQR()" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <!-- Modal Body (Printable Preview Area) -->
+            <div id="contenedorVistaQRs" class="overflow-y-auto p-6 my-4 bg-gray-50 dark:bg-slate-800/60 rounded-xl border border-gray-200 dark:border-slate-700 flex-1">
+                <!-- Se poblará por JS -->
             </div>
         </div>
     </div>
