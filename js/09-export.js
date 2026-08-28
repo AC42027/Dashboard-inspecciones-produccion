@@ -278,7 +278,7 @@
                     itemsAMostrar.push({
                         id: eq.id,
                         nombre: match.zona,
-                        subtitulo: eq.comentario ? `Reportado: ${nombreReportado} (${eq.comentario})` : `Reportado: ${nombreReportado}`,
+                        subtitulo: eq.comentario || '',
                         qrText: match.url,
                         matchEncontrado: true
                     });
@@ -286,7 +286,7 @@
                     itemsAMostrar.push({
                         id: eq.id,
                         nombre: nombreReportado,
-                        subtitulo: eq.comentario || 'Reportado sin QR',
+                        subtitulo: eq.comentario || '',
                         qrText: nombreReportado,
                         matchEncontrado: false
                     });
