@@ -346,7 +346,7 @@
                         <div class="w-36 h-36 bg-white flex items-center justify-center p-1 rounded-lg">
                             <img src="${item.qrSrc}" class="w-full h-full object-contain" alt="QR ${item.nombre}">
                         </div>
-                        <span class="font-extrabold text-sm text-gray-900 mt-2 block uppercase tracking-tight break-all">${item.nombre}</span>
+                        <span class="font-extrabold text-xs text-gray-900 mt-2 block uppercase tracking-tight leading-tight break-words">${item.nombre}</span>
                         ${item.subtitulo ? `<span class="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-2" title="${item.subtitulo}">${item.subtitulo}</span>` : ''}
                     </div>
                 `;
@@ -386,8 +386,8 @@
                         .subtitle { font-size: 12px; color: #555; margin-top: 4px; }
                         .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
                         .qr-card {
-                            width: 150px;
-                            padding: 12px;
+                            width: 165px;
+                            padding: 10px;
                             border: 2px solid #003399;
                             border-radius: 10px;
                             box-sizing: border-box;
@@ -395,9 +395,10 @@
                             text-align: center;
                             display: inline-block;
                             margin: 5px;
+                            vertical-align: top;
                         }
-                        .qr-img { width: 120px; height: 120px; margin: 0 auto; display: block; object-fit: contain; }
-                        .qr-name { font-size: 13px; font-weight: bold; margin-top: 8px; color: #000; word-break: break-all; text-transform: uppercase; }
+                        .qr-img { width: 125px; height: 125px; margin: 0 auto; display: block; object-fit: contain; }
+                        .qr-name { font-size: 11.5px; font-weight: bold; margin-top: 6px; color: #000; overflow-wrap: break-word; word-break: normal; line-height: 1.25; text-transform: uppercase; }
                         .qr-date { font-size: 9px; color: #666; margin-top: 2px; }
                     </style>
                 </head>
@@ -446,7 +447,7 @@
                         .grid { text-align: center; }
                         .qr-card {
                             display: inline-block;
-                            width: 160px;
+                            width: 170px;
                             margin: 8px;
                             padding: 10px;
                             border: 2pt solid #003399;
@@ -455,7 +456,7 @@
                             vertical-align: top;
                             page-break-inside: avoid;
                         }
-                        .qr-name { font-size: 11pt; font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; word-break: break-all; }
+                        .qr-name { font-size: 10pt; font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; overflow-wrap: break-word; word-break: normal; line-height: 1.25; }
                         .qr-date { font-size: 8pt; color: #666; margin-top: 2px; }
                     </style>
                 </head>
