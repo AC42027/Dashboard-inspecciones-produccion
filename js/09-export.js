@@ -346,7 +346,7 @@
                         <div class="w-36 h-36 bg-white flex items-center justify-center p-1 rounded-lg">
                             <img src="${item.qrSrc}" class="w-full h-full object-contain" alt="QR ${item.nombre}">
                         </div>
-                        <span class="font-extrabold text-xs text-gray-900 mt-2 block uppercase tracking-tight leading-tight break-words">${item.nombre}</span>
+                        <span class="font-extrabold text-xs text-gray-900 mt-2 block uppercase tracking-tight leading-tight whitespace-nowrap text-ellipsis overflow-hidden max-w-full">${item.nombre}</span>
                         ${item.subtitulo ? `<span class="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-2" title="${item.subtitulo}">${item.subtitulo}</span>` : ''}
                     </div>
                 `;
@@ -398,7 +398,7 @@
                             vertical-align: top;
                         }
                         .qr-img { width: 125px; height: 125px; margin: 0 auto; display: block; object-fit: contain; }
-                        .qr-name { font-size: 11.5px; font-weight: bold; margin-top: 6px; color: #000; overflow-wrap: break-word; word-break: normal; line-height: 1.25; text-transform: uppercase; }
+                        .qr-name { font-size: 11.5px; font-weight: bold; margin-top: 6px; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; text-transform: uppercase; }
                         .qr-date { font-size: 9px; color: #666; margin-top: 2px; }
                     </style>
                 </head>
@@ -456,7 +456,7 @@
                             vertical-align: top;
                             page-break-inside: avoid;
                         }
-                        .qr-name { font-size: 10pt; font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; overflow-wrap: break-word; word-break: normal; line-height: 1.25; }
+                        .qr-name { font-size: 10pt; font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
                         .qr-date { font-size: 8pt; color: #666; margin-top: 2px; }
                     </style>
                 </head>
