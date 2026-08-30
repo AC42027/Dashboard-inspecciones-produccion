@@ -337,11 +337,11 @@
 
             tbody.innerHTML = equiposSinQR.map(eq => `
                 <tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">
-                    <td>${eq.fecha || '-'}</td>
-                    <td>${eq.hora || '-'}</td>
-                    <td>${eq.usuario_nombre || eq.usuario || '-'}</td>
-                    <td class="font-semibold">${eq.equipo_nombre}</td>
-                    <td>${eq.comentario || '-'}</td>
+                    <td class="whitespace-nowrap">${eq.fecha || '-'}</td>
+                    <td class="whitespace-nowrap">${eq.hora || '-'}</td>
+                    <td class="whitespace-nowrap">${eq.usuario_nombre || eq.usuario || '-'}</td>
+                    <td class="font-semibold whitespace-nowrap">${eq.equipo_nombre}</td>
+                    <td class="whitespace-nowrap max-w-[320px] truncate" title="${(eq.comentario || '').replace(/"/g, '&quot;')}">${eq.comentario || '-'}</td>
                     ${isAdminModo ? `
                     <td class="text-center">
                         <div class="inline-flex items-center justify-center gap-2.5">
