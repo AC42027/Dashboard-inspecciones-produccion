@@ -261,6 +261,14 @@
             }
 
             const mapaOficial = await cargarMapaEquiposOficial();
+            let equiposDjango = [];
+            try {
+                const resEq = await fetch(`${API_BASE}/api/equipos/`);
+                equiposDjango = await resEq.json();
+            } catch (e) {
+                console.warn('No se pudo cargar equipos de Django para URL de QR:', e);
+            }
+
             const itemsAMostrar = [];
 
             for (const eq of listaReportados) {
@@ -274,23 +282,22 @@
                     return normZona === normRep || normZona.endsWith(normRep) || (normRep.length >= 4 && normZona.includes(normRep));
                 });
 
-                if (match) {
-                    itemsAMostrar.push({
-                        id: eq.id,
-                        nombre: match.zona,
-                        subtitulo: '',
-                        qrText: match.url,
-                        matchEncontrado: true
-                    });
-                } else {
-                    itemsAMostrar.push({
-                        id: eq.id,
-                        nombre: nombreReportado,
-                        subtitulo: '',
-                        qrText: nombreReportado,
-                        matchEncontrado: false
-                    });
+                // URL por defecto: http://10.107.194.110/insp_pry/inspecciones/?equipo=ID (id del equipo en Django)
+                const equipoDjango = equiposDjango.find(e => normalizarTexto(e.nombre || '') === normRep);
+                let qrText = nombreReportado;
+                if (match && match.url) {
+                    qrText = match.url;
+                } else if (equipoDjango && equipoDjango.id) {
+                    qrText = `http://10.107.194.110/insp_pry/inspecciones/?equipo=${equipoDjango.id}`;
                 }
+
+                itemsAMostrar.push({
+                    id: eq.id,
+                    nombre: nombreReportado,
+                    subtitulo: '',
+                    qrText: qrText,
+                    matchEncontrado: !!(match || equipoDjango)
+                });
             }
 
             const totalMatches = itemsAMostrar.filter(i => i.matchEncontrado).length;

@@ -154,6 +154,22 @@
                     asrsTeam.map(name => `<option value="${name}" ${name === valZ2 ? 'selected' : ''}>${name}</option>`).join('');
             }
 
+            // Actualizar select de grupo Gabinetes Z12
+            const selGABZ12 = document.getElementById('manualGABZ12AsoSelect');
+            if (selGABZ12) {
+                const valGZ = selGABZ12.value;
+                selGABZ12.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valGZ ? 'selected' : ''}>${name}</option>`).join('');
+            }
+
+            // Actualizar select de grupo Gabinetes Z13
+            const selGABZ13 = document.getElementById('manualGABZ13AsoSelect');
+            if (selGABZ13) {
+                const valGZ2 = selGABZ13.value;
+                selGABZ13.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valGZ2 ? 'selected' : ''}>${name}</option>`).join('');
+            }
+
             // Actualizar select de grupo HorseShoe
             const selHS = document.getElementById('manualHSAsoSelect');
             if (selHS) {

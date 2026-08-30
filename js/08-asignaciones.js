@@ -327,6 +327,30 @@
                 }
             }
 
+            const selGABZ12Fecha = document.getElementById('manualGABZ12Fecha');
+            if (selGABZ12Fecha) {
+                const prevValGZ = selGABZ12Fecha.value;
+                selGABZ12Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValGZ && periods.some(p => p.startStr === prevValGZ)) {
+                    selGABZ12Fecha.value = prevValGZ;
+                } else {
+                    selGABZ12Fecha.value = periods[0].startStr;
+                }
+            }
+
+            const selGABZ13Fecha = document.getElementById('manualGABZ13Fecha');
+            if (selGABZ13Fecha) {
+                const prevValGZ2 = selGABZ13Fecha.value;
+                selGABZ13Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValGZ2 && periods.some(p => p.startStr === prevValGZ2)) {
+                    selGABZ13Fecha.value = prevValGZ2;
+                } else {
+                    selGABZ13Fecha.value = periods[0].startStr;
+                }
+            }
+
             const selHSFecha = document.getElementById('manualHSFecha');
             if (selHSFecha) {
                 const prevValH = selHSFecha.value;
@@ -1140,6 +1164,123 @@
             renderBadgesGrupos();
         }
 
+        // Grupo Gabinetes Zona 12: todos los gabinetes de control de Z12 en un solo grupo.
+        const GRUPOS_GABINETES_Z12 = {
+            A: [
+                'CH-GB-Z12AB235','CH-GB-Z12CV149-01','CH-GB-Z12CV168','CH-GB-Z12CV169/172',
+                'CH-GB-Z12CV173-02','CH-GB-Z12CV194-03','CH-GB-Z12CV212-04','CH-GB-Z12CV213',
+                'CH-GB-Z12CV214','CH-GB-Z12CV215-05','CH-GB-Z12CV221/224','CH-GB-Z12CV224/226',
+                'CH-GB-Z12CV225/228','CH-GB-Z12CV229','CH-GB-Z12CV230','CH-GB-Z12CV231',
+                'CH-GB-Z12CV233/235','CH-GB-Z12CV236/239','CH-GB-Z12CV238','CH-GB-Z12CV242/243',
+                'CH-GB-Z12CV244','CH-GB-Z12CV245/247','CH-GB-Z12CV248/249'
+            ]
+        };
+
+        async function agregarGrupoGABINETESZ12() {
+            esGeneracionAuto = false;
+            const aso = document.getElementById('manualGABZ12AsoSelect').value;
+            const selFecha = document.getElementById('manualGABZ12Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_GABINETES_Z12.A || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'Zona 12';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'Zona 12';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos del grupo Gabinetes Z12 ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+            renderBadgesGrupos();
+        }
+
+        // Grupo Gabinetes Zona 13: todos los gabinetes de control de Z13 en un solo grupo.
+        const GRUPOS_GABINETES_Z13 = {
+            A: [
+                'CH-GB-Z13-CV01-06','CH-GB-Z13-CV04/05','CH-GB-Z13-CV06/07','CH-GB-Z13-CV08/09',
+                'CH-GB-Z13-CV10/11','CH-GB-Z13-CV12-07','CH-GB-Z13-CV15/16','CH-GB-Z13-CV17/18',
+                'CH-GB-Z13-CV19/20','CH-GB-Z13-CV21/22','CH-GB-Z13-CV23-08','CH-GB-Z13-CV24/26',
+                'CH-GB-Z13-CV29/30','CH-GB-Z13-CV31-09','CH-GB-Z13-CV34/35','CH-GB-Z13-CV36/37',
+                'CH-GB-Z13-CV38/39'
+            ]
+        };
+
+        async function agregarGrupoGABINETESZ13() {
+            esGeneracionAuto = false;
+            const aso = document.getElementById('manualGABZ13AsoSelect').value;
+            const selFecha = document.getElementById('manualGABZ13Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_GABINETES_Z13.A || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'Zona 13';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'Zona 13';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos del grupo Gabinetes Z13 ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+            renderBadgesGrupos();
+        }
+
         // Grupos HorseShoe: 9 conveyors por cada robot de prensa (600B, 600A, 500B, 500A, 400B)
         const GRUPOS_HS = {
             '600B': ['P2655A','P2660','P2665C','P2665B','P2665A','P2670B','P2670A','P2675','P2680'],
@@ -1264,6 +1405,8 @@
                 CC03: { container: 'badgesCC03', stat: 'statCC03', grupos: Object.entries(GRUPOS_CC03).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
                 Z12: { container: 'badgesZ12', stat: 'statZ12', grupos: Object.entries(GRUPOS_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
                 Z13: { container: 'badgesZ13', stat: 'statZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
+                GABZ12: { container: 'badgesGABZ12', stat: 'statGABZ12', grupos: Object.entries(GRUPOS_GABINETES_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Gabinetes Z12', equipos: v })) },
+                GABZ13: { container: 'badgesGABZ13', stat: 'statGABZ13', grupos: Object.entries(GRUPOS_GABINETES_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Gabinetes Z13', equipos: v })) },
                 HS: { container: 'badgesHS', stat: 'statHS', grupos: Object.entries(GRUPOS_HS).map(([k, v]) => ({ clave: k, etiqueta: 'HS ' + k, equipos: v })) }
             };
         }
