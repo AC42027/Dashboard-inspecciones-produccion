@@ -329,6 +329,14 @@
             renderGridVistaQRs();
         }
 
+        // Calcula un tamaño de fuente que garantice que el nombre completo
+        // quepa en UNA sola línea (nunca se corta, se achica la fuente).
+        function tamanoFuenteUnaLinea(nombre, basePx, maxCharsBase) {
+            const n = (nombre || '').length;
+            if (n <= maxCharsBase) return basePx;
+            return Math.max(6, Math.round((basePx * maxCharsBase) / n));
+        }
+
         function renderGridVistaQRs() {
             const contenedor = document.getElementById('contenedorVistaQRs');
             if (!contenedor) return;
@@ -341,12 +349,13 @@
             let html = `<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">`;
 
             qrsExportCache.forEach(item => {
+                const tamFuente = tamanoFuenteUnaLinea(item.nombre, 12, 20);
                 html += `
                     <div class="bg-white text-slate-900 border-2 border-goodyear-blue rounded-xl p-3 shadow flex flex-col items-center justify-center text-center break-inside-avoid">
                         <div class="w-36 h-36 bg-white flex items-center justify-center p-1 rounded-lg">
                             <img src="${item.qrSrc}" class="w-full h-full object-contain" alt="QR ${item.nombre}">
                         </div>
-                        <span class="font-extrabold text-xs text-gray-900 mt-2 block uppercase tracking-tight leading-tight whitespace-nowrap text-ellipsis overflow-hidden max-w-full">${item.nombre}</span>
+                        <span class="font-extrabold text-gray-900 mt-2 block uppercase tracking-tight leading-tight whitespace-nowrap max-w-full" style="font-size:${tamFuente}px;">${item.nombre}</span>
                         ${item.subtitulo ? `<span class="text-[10px] text-gray-500 font-medium mt-0.5 line-clamp-2" title="${item.subtitulo}">${item.subtitulo}</span>` : ''}
                     </div>
                 `;
@@ -365,13 +374,16 @@
             if (qrsExportCache.length === 0) return;
 
             const printWin = window.open('', '_blank');
-            const cardsHtml = qrsExportCache.map(item => `
+            const cardsHtml = qrsExportCache.map(item => {
+                const tamFuente = tamanoFuenteUnaLinea(item.nombre, 11.5, 16);
+                return `
                 <div class="qr-card">
                     <img src="${item.qrSrc}" class="qr-img" alt="QR ${item.nombre}">
-                    <div class="qr-name">${item.nombre}</div>
+                    <div class="qr-name" style="font-size:${tamFuente}px; white-space:nowrap;">${item.nombre}</div>
                     ${item.subtitulo ? `<div class="qr-date">${item.subtitulo}</div>` : ''}
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             printWin.document.write(`
                 <!DOCTYPE html>
@@ -398,7 +410,7 @@
                             vertical-align: top;
                         }
                         .qr-img { width: 125px; height: 125px; margin: 0 auto; display: block; object-fit: contain; }
-                        .qr-name { font-size: 11.5px; font-weight: bold; margin-top: 6px; color: #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; text-transform: uppercase; }
+                        .qr-name { font-weight: bold; margin-top: 6px; color: #000; white-space: nowrap; line-height: 1.25; text-transform: uppercase; }
                         .qr-date { font-size: 9px; color: #666; margin-top: 2px; }
                     </style>
                 </head>
@@ -426,13 +438,16 @@
         function descargarQRsWord() {
             if (qrsExportCache.length === 0) return;
 
-            const cardsHtml = qrsExportCache.map(item => `
+            const cardsHtml = qrsExportCache.map(item => {
+                const tamFuentePt = tamanoFuenteUnaLinea(item.nombre, 10, 16);
+                return `
                 <div class="qr-card">
                     <img src="${item.qrSrc}" width="130" height="130" style="width:130px;height:130px;display:block;margin:0 auto;" alt="QR ${item.nombre}">
-                    <div class="qr-name">${item.nombre}</div>
+                    <div class="qr-name" style="font-size:${tamFuentePt}pt; white-space:nowrap;">${item.nombre}</div>
                     ${item.subtitulo ? `<div class="qr-date">${item.subtitulo}</div>` : ''}
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             const htmlContent = `
                 <html xmlns:o='urn:schemas-microsoft-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -456,7 +471,7 @@
                             vertical-align: top;
                             page-break-inside: avoid;
                         }
-                        .qr-name { font-size: 10pt; font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.25; }
+                        .qr-name { font-weight: bold; color: #000; margin-top: 6px; text-transform: uppercase; white-space: nowrap; line-height: 1.25; }
                         .qr-date { font-size: 8pt; color: #666; margin-top: 2px; }
                     </style>
                 </head>
