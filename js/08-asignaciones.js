@@ -105,6 +105,7 @@
                 return acc;
             }, {});
 
+            let grupoIdx = 0;
             Object.entries(porAsociado).sort((a, b) => {
                 const contRealizadas = (items) => items.reduce((acc, asig) => {
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
@@ -126,17 +127,29 @@
 
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700">`;
                     if (index === 0) {
-                        html += `<td rowspan="${equiposAso.length}" class="font-bold text-gray-800 dark:text-gray-200 align-top pt-4 border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800">${aso}</td>`;
+                        const iniciales = aso.split(/\s+/).filter(Boolean).slice(0, 2).map(p => p[0].toUpperCase()).join('');
+                        const bandaAso = grupoIdx % 2 === 0 ? 'bg-goodyear-blue/5 dark:bg-goodyear-blue/10' : 'bg-goodyear-blue/10 dark:bg-goodyear-blue/20';
+                        html += `<td rowspan="${equiposAso.length}" class="align-top border-r border-gray-200 dark:border-slate-700 ${bandaAso}">
+                            <div class="flex flex-col items-center gap-2 pt-1">
+                                <div class="w-11 h-11 rounded-full bg-goodyear-blue/15 dark:bg-goodyear-yellow/20 border border-goodyear-blue/30 dark:border-goodyear-yellow/40 flex items-center justify-center shadow-sm shrink-0">
+                                    <span class="text-sm font-bold text-goodyear-blue dark:text-goodyear-yellow">${iniciales}</span>
+                                </div>
+                                <span class="text-sm font-bold text-gray-800 dark:text-gray-200 text-center leading-tight">${aso}</span>
+                            </div>
+                        </td>`;
                     }
                     html += `
-                        <td class="text-sm text-gray-600 dark:text-gray-400 p-2">${asig.zona || 'N/A'}</td>
-                        <td class="font-medium text-goodyear-blue dark:text-blue-400 p-2">${asig.equipo}${!eqValido ? ' <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Este equipo no existe en el listado ASRS y por eso no se muestra en la planificación"><i class="fas fa-exclamation-triangle"></i> No existe</span>' : ''}</td>
-                        <td class="text-center p-2">
+                        <td class="text-sm py-2.5">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600">${asig.zona || 'N/A'}</span>
+                        </td>
+                        <td class="py-2.5">
+                            <span class="font-mono text-[13px] font-semibold text-goodyear-blue dark:text-blue-400">${asig.equipo}</span>${!eqValido ? ' <span class="ml-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Este equipo no existe en el listado ASRS y por eso no se muestra en la planificación"><i class="fas fa-exclamation-triangle"></i> No existe</span>' : ''}</td>
+                        <td class="text-center py-2.5">
                             ${st === 'REALIZADA'
                                 ? '<span class="bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[140px] mx-auto"><i class="fas fa-check-circle"></i> Realizada</span>': st === 'FUERA_DE_TIEMPO' ? '<span class="bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[180px] mx-auto" title="Realizada fuera de tiempo"><i class="fas fa-clock"></i> Realizada fuera de tiempo</span>': '<span class="bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-400 px-3 py-1 rounded-full text-xs font-bold flex items-center justify-center gap-1 min-w-[140px] mx-auto"><i class="fas fa-times-circle"></i> Pendiente</span>'}
                         </td>
                         ${isAdminModo ? `
-                        <td class="text-center p-2">
+                        <td class="text-center py-2.5">
                             <div class="inline-flex items-center justify-center gap-2">
                                 <input type="checkbox" class="chk-asig-publica rounded border-gray-300 text-goodyear-blue focus:ring-goodyear-blue cursor-pointer" data-id="${asig.id}" onchange="actualizarSeleccionAsignaciones()">
                                 <button onclick="eliminarAsignacion(${asig.id})" class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1.5 rounded transition-colors" title="Eliminar asignación">
@@ -146,6 +159,7 @@
                         </td>` : ''}
                     </tr>`;
                 });
+                grupoIdx++;
             });
             tbody.innerHTML = html;
         }
@@ -1082,7 +1096,7 @@
         const GRUPOS_HS = {
             '600B': ['P2655A','P2660','P2665C','P2665B','P2665A','P2670B','P2670A','P2675','P2680'],
             '600A': ['P2605A','P2610','P2615C','P2615B','P2615A','P2620B','P2620A','P2625','P2630'],
-            '500B': ['P2555A','P2560','P2565C','P2565B','P"565A','P2570B','P2579A','P2575','P2580'],
+            '500B': ['P2555A','P2560','P2565C','P2565B','P2565A','P2570B','P2579A','P2575','P2580'],
             '500A': ['P2505A','P2510','P2515C','P2515B','P2515A','P2520B','P2520A','P2525','P2530'],
             '400B': ['P2455A','P2460','P2465C','P2465B','P2465A','P2470B','P2470A','P2475','P2485']
         };
@@ -1115,8 +1129,10 @@
             todosLosEqs.forEach(eqCode => {
                 if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
                     let zona = 'Horseshoes';
-                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
-                    if (option) zona = option.innerText || 'Horseshoes';
+                    try {
+                        const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                        if (option) zona = option.innerText || 'Horseshoes';
+                    } catch (e) { zona = 'Horseshoes'; }
                     asignacionesPreview.push({
                         fecha: fecha,
                         asociado: asoVal,
