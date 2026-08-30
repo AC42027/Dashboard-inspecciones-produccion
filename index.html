@@ -569,6 +569,58 @@
                         </div>
                     </div>
 
+                    <!-- Grupo CC02 (todos los conveyors) -->
+                    <div
+                        class="bg-sky-50 dark:bg-sky-900/20 p-4 rounded-lg mb-6 border border-sky-200 dark:border-sky-800">
+                        <button onclick="toggleGrupoSeccion('bodyCC02')"
+                            class="w-full flex items-center justify-between text-left mb-2 group">
+                            <span
+                                class="text-xs font-bold text-sky-700 dark:text-sky-300 uppercase tracking-wider">
+                                <i class="fas fa-route mr-1"></i> Grupo CC02 (Todos los conveyors)</span>
+                            <span class="flex items-center gap-2">
+                                <span id="statCC02" class="px-2 py-0.5 rounded-full text-[10px] font-bold hidden"></span>
+                                <i class="fas fa-chevron-down asrs-chevron text-sky-600 dark:text-sky-400"></i>
+                            </span>
+                        </button>
+                        <div id="bodyCC02" class="hidden">
+                        <div class="flex flex-col sm:flex-row gap-3">
+                            <div class="w-full sm:w-64">
+                                <label
+                                    class="text-[10px] text-sky-700 dark:text-sky-300 font-bold ml-1">Grupo CC02</label>
+                                <select id="manualCC02Select" class="glass-input w-full text-sm">
+                                    <option value="A">Grupo Completo CC02 (Todos los CV)</option>
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-48">
+                                <label
+                                    class="text-[10px] text-sky-700 dark:text-sky-300 font-bold ml-1">Asociado</label>
+                                <select id="manualCC02AsoSelect" class="glass-input w-full text-sm">
+                                    <option value="PENDIENTE">-- Sin Asignar --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <div class="w-full sm:w-56">
+                                <label
+                                    class="text-[10px] text-sky-700 dark:text-sky-300 font-bold ml-1">Semana</label>
+                                <select id="manualCC02Fecha" class="glass-input w-full text-sm">
+                                    <option value="">-- Seleccionar semana --</option>
+                                    <!-- Se llena por JS -->
+                                </select>
+                            </div>
+                            <button onclick="agregarGrupoCC02()"
+                                class="self-end btn btn-primary btn-md bg-sky-600 hover:bg-sky-700">
+                                <i class="fas fa-layer-group"></i> Agregar Grupo
+                            </button>
+                        </div>
+                        <p class="text-[10px] text-sky-600 dark:text-sky-400 mt-2 ml-1">
+                            Agrega todos los conveyors (CV) del grupo CC02 de una sola vez.
+                        </p>
+                        <div id="badgesCC02" class="mt-2 flex flex-wrap gap-1.5 ml-1">
+                            <span class="text-[10px] text-gray-400 italic">Cargando estado del mes...</span>
+                        </div>
+                        </div>
+                    </div>
+
                     <!-- Grupo CC03 (circuito prensas en 3 tramos) -->
                     <div
                         class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg mb-6 border border-purple-200 dark:border-purple-800">

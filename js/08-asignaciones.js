@@ -217,6 +217,18 @@
                 }
             }
 
+            const selCC02Fecha = document.getElementById('manualCC02Fecha');
+            if (selCC02Fecha) {
+                const prevValC2 = selCC02Fecha.value;
+                selCC02Fecha.innerHTML = '<option value="">-- Seleccionar semana --</option>' +
+                    periods.map(p => `<option value="${p.startStr}">Sem. ${p.num} (${fmt(p.start)} - ${fmt(p.end)})</option>`).join('');
+                if (prevValC2 && periods.some(p => p.startStr === prevValC2)) {
+                    selCC02Fecha.value = prevValC2;
+                } else {
+                    selCC02Fecha.value = periods[0].startStr;
+                }
+            }
+
             const selCC03Fecha = document.getElementById('manualCC03Fecha');
             if (selCC03Fecha) {
                 const prevValC3 = selCC03Fecha.value;
@@ -797,6 +809,70 @@
             renderBadgesGrupos();
         }
 
+        // Grupo CC02: todos los conveyors (CV) de CC02 en un solo grupo.
+        const GRUPOS_CC02 = {
+            A: [
+                'CC02_0470','CC02_P01601','CC02_P01602','CC02_P0170','CC02_P0180','CC02_P02601',
+                'CC02_P02602','CC02_P0270','CC02_P0280','CC02_P03601','CC02_P03602','CC02_P0370',
+                'CC02_P0380','CC02_P04601','CC02_P04602','CC02_P0480','CC02_P05601','CC02_P05602',
+                'CC02_P0570','CC02_P0580','CC02_P06601','CC02_P06602','CC02_P0670','CC02_P0680',
+                'CC02_P07601','CC02_P07602','CC02_P0770','CC02_P0780','CC02_P08601','CC02_P08602',
+                'CC02_P0870','CC02_P0880','CC02_P09601','CC02_P09602','CC02_P0970','CC02_P0980',
+                'CC02_P10601','CC02_P10602','CC02_P1070','CC02_P1080','CC02_P11601','CC02_P11602',
+                'CC02_P1170','CC02_P1180','CC02_P1205','CC02_P1210','CC02_P1215','CC02_P1220',
+                'CC02_P1225','CC02_P1230','CC02_P1235','CC02_P1240','CC02_P1245','CC02_P1250',
+                'CC02_P1255','CC02_P1300','CC02_P1400','CC02_P1450','CC02_P1500','CC02_P1550',
+                'CC02_P1600','CC02_P5010','CC02_P5030','CC02_P5043','CC02_P5050'
+            ]
+        };
+
+        async function agregarGrupoCC02() {
+            esGeneracionAuto = false;
+            const aso = document.getElementById('manualCC02AsoSelect').value;
+            const selFecha = document.getElementById('manualCC02Fecha');
+            let fecha = selFecha ? selFecha.value : '';
+
+            if (!fecha) {
+                const mesVal = document.getElementById('asigMesGenerar')?.value;
+                if (mesVal) {
+                    const parts = mesVal.split('-').map(Number);
+                    const periods = get4PeriodsOfMonth(parts[0], parts[1] - 1);
+                    fecha = periods[0].startStr;
+                    if (selFecha) selFecha.value = fecha;
+                }
+            }
+
+            if (!fecha) { mostrarAlerta('Atención', 'Seleccione primero un mes y una semana.', 'fa-exclamation-circle text-amber-500'); return; }
+
+            const todosLosEqs = GRUPOS_CC02.A || [];
+            const asoVal = aso === 'PENDIENTE' ? '' : aso;
+            let agregadosCount = 0;
+
+            todosLosEqs.forEach(eqCode => {
+                if (!asignacionesPreview.some(a => a.equipo === eqCode)) {
+                    let zona = 'CC02';
+                    const option = document.querySelector(`#asrsEqList option[value="${eqCode}"]`);
+                    if (option) zona = option.innerText || 'CC02';
+                    asignacionesPreview.push({
+                        fecha: fecha,
+                        asociado: asoVal,
+                        equipo: eqCode,
+                        zona: zona
+                    });
+                    agregadosCount++;
+                }
+            });
+
+            if (agregadosCount === 0) {
+                mostrarAlerta('Atención', 'Todos los equipos del grupo CC02 ya están en la vista previa.', 'fa-info-circle text-blue-500');
+                return;
+            }
+
+            document.getElementById('asigPreviewContainer').classList.remove('hidden');
+            renderPreview();
+            renderBadgesGrupos();
+        }
+
         // Grupos CC03: circuito de los 5 robots de prensa dividido en 3 tramos
         // (sorter NBS/NBS90, retorno largo y retorno corto + uniones).
         const GRUPOS_CC03 = {
@@ -1120,6 +1196,7 @@
                 SRM: { container: 'badgesSRM', stat: 'statSRM', grupos: srmGrupos },
                 Robot: { container: 'badgesRobot', stat: 'statRobot', grupos: robotGrupos },
                 CC01: { container: 'badgesCC01', stat: 'statCC01', grupos: Object.entries(GRUPOS_CC01).map(([k, v]) => ({ clave: k, etiqueta: 'Sector ' + k.replace('G', ''), equipos: v })) },
+                CC02: { container: 'badgesCC02', stat: 'statCC02', grupos: Object.entries(GRUPOS_CC02).map(([k, v]) => ({ clave: k, etiqueta: 'Grupo ' + k, equipos: v })) },
                 CC03: { container: 'badgesCC03', stat: 'statCC03', grupos: Object.entries(GRUPOS_CC03).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
                 Z12: { container: 'badgesZ12', stat: 'statZ12', grupos: Object.entries(GRUPOS_Z12).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },
                 Z13: { container: 'badgesZ13', stat: 'statZ13', grupos: Object.entries(GRUPOS_Z13).map(([k, v]) => ({ clave: k, etiqueta: 'Tramo ' + k, equipos: v })) },

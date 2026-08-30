@@ -130,6 +130,14 @@
                     asrsTeam.map(name => `<option value="${name}" ${name === valC3 ? 'selected' : ''}>${name}</option>`).join('');
             }
 
+            // Actualizar select de grupo CC02
+            const selCC02 = document.getElementById('manualCC02AsoSelect');
+            if (selCC02) {
+                const valC2 = selCC02.value;
+                selCC02.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
+                    asrsTeam.map(name => `<option value="${name}" ${name === valC2 ? 'selected' : ''}>${name}</option>`).join('');
+            }
+
             // Actualizar select de grupo Zona 12
             const selZ12 = document.getElementById('manualZ12AsoSelect');
             if (selZ12) {
