@@ -222,67 +222,23 @@
         }
 
         function toggleModoAdmin() {
-            if (isAdminModo) {
-                isAdminModo = false;
-                loggedUser = '';
-
-                // Limpiar persistencia
-                localStorage.removeItem('isAdminModo');
-                localStorage.removeItem('loggedUser');
-
-                document.getElementById('adminPanel').classList.add('hidden');
-                document.getElementById('tab-asignaciones').classList.add('hidden');
-
-                const btnModoAdmin = document.getElementById('btnModoAdmin');
-                if (btnModoAdmin) {
-                    btnModoAdmin.innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
-                    btnModoAdmin.classList.replace('bg-red-600', 'bg-gray-200');
-                    if (btnModoAdmin.classList.contains('text-white')) {
-                        btnModoAdmin.classList.replace('text-white', 'text-gray-700');
-                    }
-                }
-                actualizarHeaderAdmin();
-                renderTabla();
-                renderEquiposSinQR(); // Ocultar botón eliminar en Equipos sin QR
-                const verFecha = document.getElementById('verFecha').value;
-                if (verFecha) cargarAsignacionesSemanales();
-                switchTab('inspecciones');
+            if (isAdminModo || loggedUserFullName) {
+                cerrarSesionCompleta();
+                mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión completamente.', 'fa-info-circle text-blue-500');
             } else {
                 toggleAuthModal();
             }
         }
 
         window.toggleHeaderAdmin = function () {
-            if (isAdminModo) {
-                isAdminModo = false;
-                loggedUser = '';
-
-                // Limpiar persistencia
-                localStorage.removeItem('isAdminModo');
-                localStorage.removeItem('loggedUser');
-
-                document.getElementById('adminPanel').classList.add('hidden');
-                document.getElementById('tab-asignaciones').classList.add('hidden');
-
-                const btnModoAdmin = document.getElementById('btnModoAdmin');
-                if (btnModoAdmin) {
-                    btnModoAdmin.innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
-                    btnModoAdmin.classList.replace('bg-red-600', 'bg-gray-200');
-                    if (btnModoAdmin.classList.contains('text-white')) {
-                        btnModoAdmin.classList.replace('text-white', 'text-gray-700');
-                    }
-                }
-                actualizarHeaderAdmin();
-                renderTabla();
-                renderEquiposSinQR(); // Ocultar botón eliminar en Equipos sin QR
-                const verFecha = document.getElementById('verFecha').value;
-                if (verFecha) cargarAsignacionesSemanales();
-                switchTab('inspecciones');
-                mostrarAlerta('Sesi\u00f3n Cerrada', 'Has cerrado la sesi\u00f3n de administrador.', 'fa-info-circle text-blue-500');
+            if (isAdminModo || loggedUserFullName) {
+                cerrarSesionCompleta();
+                mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión completamente.', 'fa-info-circle text-blue-500');
             } else {
                 toggleAuthModal();
             }
         };
+
 
         // EQUIPOS SIN QR
         let equiposSinQR = [];

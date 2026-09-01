@@ -128,3 +128,66 @@
             return st === 'REALIZADA' || st === 'FUERA_DE_TIEMPO';
         }
 
+        function cerrarSesionCompleta() {
+            // 1. Reset variables de estado global
+            isAdminModo = false;
+            loggedUser = '';
+            loggedUserFullName = '';
+            currentMisAsignaciones = [];
+
+            // 2. Eliminar toda la persistencia de autenticación en localStorage
+            localStorage.removeItem('isAdminModo');
+            localStorage.removeItem('loggedUser');
+            localStorage.removeItem('misAsigFullName');
+            localStorage.removeItem('misAsigUser');
+
+            // 3. UI Modo Admin
+            const adminPanel = document.getElementById('adminPanel');
+            if (adminPanel) adminPanel.classList.add('hidden');
+
+            const tabAsig = document.getElementById('tab-asignaciones');
+            if (tabAsig) tabAsig.classList.add('hidden');
+
+            const btnModoAdmin = document.getElementById('btnModoAdmin');
+            if (btnModoAdmin) {
+                btnModoAdmin.innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
+                btnModoAdmin.classList.replace('bg-red-600', 'bg-gray-200');
+                if (btnModoAdmin.classList.contains('text-white')) {
+                    btnModoAdmin.classList.replace('text-white', 'text-gray-700');
+                }
+            }
+
+            if (typeof actualizarHeaderAdmin === 'function') {
+                actualizarHeaderAdmin();
+            }
+
+            // 4. UI Mis Asignaciones
+            const misAsigContent = document.getElementById('misAsigContent');
+            if (misAsigContent) misAsigContent.classList.add('hidden');
+
+            const misAsigLogin = document.getElementById('misAsigLogin');
+            if (misAsigLogin) misAsigLogin.classList.remove('hidden');
+
+            const misAsigForm = document.getElementById('misAsigLoginForm');
+            if (misAsigForm) misAsigForm.reset();
+
+            const misAsigError = document.getElementById('misAsigError');
+            if (misAsigError) misAsigError.classList.add('hidden');
+
+            // 5. Actualizar renders de tablas
+            if (typeof renderTabla === 'function') renderTabla();
+            if (typeof renderEquiposSinQR === 'function') renderEquiposSinQR();
+
+            const verFecha = document.getElementById('verFecha')?.value;
+            if (verFecha && typeof cargarAsignacionesSemanales === 'function') {
+                cargarAsignacionesSemanales();
+            }
+
+            // 6. Cambiar a pestaña pública por defecto
+            if (typeof switchTab === 'function') {
+                switchTab('inspecciones');
+            }
+        }
+        window.cerrarSesionCompleta = cerrarSesionCompleta;
+
+
