@@ -140,7 +140,6 @@
                 }).length;
                 const pendientes = equiposAso.length - realizadas;
 
-                const zonasUnicas = [...new Set(equiposAso.map(a => (a.zona || 'ASRS')).filter(Boolean))];
                 const maquinasPorSemana = {};
                 equiposAso.forEach(a => {
                     if (!a.fecha) return;
@@ -165,9 +164,6 @@
                                 <span class="text-sm font-bold text-goodyear-blue dark:text-goodyear-yellow">${iniciales}</span>
                             </div>
                             <span class="text-sm font-bold text-gray-800 dark:text-gray-200 text-center">${aso}</span>
-                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shrink-0">
-                                <i class="fas fa-map-marker-alt text-[10px]"></i> ${zonasUnicas.join(' · ')}
-                            </span>
                             ${badgesSemanas}
                             <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600 shadow-sm ml-auto">
                                 ${equiposAso.length} CV
