@@ -184,10 +184,12 @@
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     const eqValido = Array.from(document.querySelectorAll('#asrsEqList option')).some(opt =>
                         opt && normalizarTexto(opt.value) === normalizarTexto(asig.equipo));
+                    const maq = resolverMaquinaEquipo(asig.equipo);
 
                     html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-slate-700/60 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                         <div class="w-px self-stretch bg-gray-200 dark:bg-slate-600 mr-1"></div>
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shrink-0">${asig.zona || 'N/A'}</span>
+                        ${maq ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shrink-0" title="Máquina"><i class="fas fa-industry text-[10px]"></i> ${maq}</span>` : ''}
                         <div class="flex items-center gap-1 flex-1 min-w-0">
                             <span class="font-mono text-[13px] font-semibold text-goodyear-blue dark:text-blue-400">${asig.equipo}</span>${!eqValido ? ' <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Este equipo no existe en el listado ASRS y por eso no se muestra en la planificación"><i class="fas fa-exclamation-triangle"></i> No existe</span>' : ''}
                         </div>
@@ -1539,6 +1541,7 @@
                                             <span class="text-[9px] text-goodyear-blue dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
                                                 <i class="fas fa-map-marker-alt"></i> ${e.zona}
                                             </span>
+                                            ${resolverMaquinaEquipo(e.equipo) ? `<span class="text-[9px] text-sky-700 dark:text-sky-300 font-medium bg-sky-50 dark:bg-sky-900/30 px-1.5 py-0.5 rounded"><i class="fas fa-industry"></i> ${resolverMaquinaEquipo(e.equipo)}</span>` : ''}
                                         </div>
                                         <div class="pt-1.5 border-t border-gray-200 dark:border-slate-700">
                                             <div class="flex items-center gap-1.5">

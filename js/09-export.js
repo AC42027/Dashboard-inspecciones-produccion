@@ -30,7 +30,7 @@
             // Fila 2: Espaciador
             datos.push([]);
             // Fila 3: Headers
-            const headers = ['ASOCIADO', 'EQUIPO', 'ZONA', 'ESTADO'];
+            const headers = ['ASOCIADO', 'EQUIPO', 'ZONA', 'MÁQUINA', 'ESTADO'];
             datos.push(headers);
 
             const asosOrdenados = Object.keys(porAso).sort();
@@ -43,7 +43,7 @@
                     const realizada = esInspeccionRealizada(a, inspecciones, mesStr);
                     const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
                     if (realizada) totalRealizadas++; else totalPendientes++;
-                    datos.push([aso, a.equipo, a.zona || 'N/A', estado]);
+                    datos.push([aso, a.equipo, a.zona || 'N/A', resolverMaquinaEquipo(a.equipo) || '—', estado]);
                 });
             });
 
@@ -72,6 +72,7 @@
                 { wch: 30 },
                 { wch: 24 },
                 { wch: 20 },
+                { wch: 22 },
                 { wch: 16 }
             ];
 
@@ -146,12 +147,12 @@
                     const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
 
                     for (let c = 0; c <= ultCol; c++) {
-                        const isEstado = c === 3;
+                        const isEstado = c === 4;
                         let cellStyle = {
                             font: { sz: 11, name: 'Calibri', bold: isEstado, color: { rgb: isEstado ? (realizada ? '1A7A1A' : 'CC0000') : '333333' } },
                             fill: { patternType: 'solid', fgColor: { rgb: isEstado ? (realizada ? 'E8F5E8' : 'FFE8E8') : bgColor } },
                             alignment: { vertical: 'center', horizontal: isEstado ? 'center' : 'left' },
-                            border: { top: { style: 'thin', color: { rgb: c === 3 ? (realizada ? 'C8E6C9' : 'FFCDD2') : grayMed } }, bottom: { style: 'thin', color: { rgb: c === 3 ? (realizada ? 'C8E6C9' : 'FFCDD2') : grayMed } }, left: { style: 'thin', color: { rgb: grayMed } }, right: { style: 'thin', color: { rgb: grayMed } } }
+                            border: { top: { style: 'thin', color: { rgb: c === 4 ? (realizada ? 'C8E6C9' : 'FFCDD2') : grayMed } }, bottom: { style: 'thin', color: { rgb: c === 4 ? (realizada ? 'C8E6C9' : 'FFCDD2') : grayMed } }, left: { style: 'thin', color: { rgb: grayMed } }, right: { style: 'thin', color: { rgb: grayMed } } }
                         };
                         setStyle(f, c, cellStyle);
                     }

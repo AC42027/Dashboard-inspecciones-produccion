@@ -73,6 +73,77 @@
             return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         }
 
+        // Resuelve la máquina (grupo) a la que pertenece un equipo usando los
+        // grupos definidos en 08-asignaciones.js (HS, CC01-03, Z12, Z13, gabinetes)
+        // y patrones de nombre (press robots, cranes). Retorna '' si no se puede.
+        function resolverMaquinaEquipo(equipo) {
+            if (!equipo) return '';
+            const eq = normalizarTexto(equipo);
+
+            // Press robots: "Press Robot 600B eje X" -> "Press Robot 600B"
+            if (/press\s+robot/i.test(eq)) return getBaseRobotName(equipo).trim();
+
+            // HorseShoes
+            if (typeof GRUPOS_HS !== 'undefined') {
+                for (const [k, v] of Object.entries(GRUPOS_HS)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return `HorseShoe ${k}`;
+                }
+            }
+
+            // Conveyors CC01
+            if (typeof GRUPOS_CC01 !== 'undefined') {
+                for (const [k, v] of Object.entries(GRUPOS_CC01)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return `CC01 ${k}`;
+                }
+            }
+
+            // Conveyors CC02
+            if (typeof GRUPOS_CC02 !== 'undefined') {
+                for (const v of Object.values(GRUPOS_CC02)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return 'CC02';
+                }
+            }
+
+            // Conveyors CC03
+            if (typeof GRUPOS_CC03 !== 'undefined') {
+                for (const [k, v] of Object.entries(GRUPOS_CC03)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return `CC03 ${k}`;
+                }
+            }
+
+            // Zona 12
+            if (typeof GRUPOS_Z12 !== 'undefined') {
+                for (const [k, v] of Object.entries(GRUPOS_Z12)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return `Zona 12 Tramo ${k}`;
+                }
+            }
+
+            // Zona 13
+            if (typeof GRUPOS_Z13 !== 'undefined') {
+                for (const [k, v] of Object.entries(GRUPOS_Z13)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return `Zona 13 Tramo ${k}`;
+                }
+            }
+
+            // Gabinetes zona 12 / zona 13
+            if (typeof GRUPOS_GABINETES_Z12 !== 'undefined') {
+                for (const v of Object.values(GRUPOS_GABINETES_Z12)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return 'Gabinetes Z12';
+                }
+            }
+            if (typeof GRUPOS_GABINETES_Z13 !== 'undefined') {
+                for (const v of Object.values(GRUPOS_GABINETES_Z13)) {
+                    if (v.some(n => normalizarTexto(n) === eq)) return 'Gabinetes Z13';
+                }
+            }
+
+            // Cranes propios: "Crane 3" / "Crane 3 Inbound", etc.
+            const mCrane = equipo.match(/^crane\s+\d+/i);
+            if (mCrane) return 'Crane ' + mCrane[0].match(/\d+/)[0];
+
+            return '';
+        }
+
         function matchAsociado(owner, asociado) {
             if (!owner || !asociado) return true;
             const limpiar = s => normalizarTexto(s).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();

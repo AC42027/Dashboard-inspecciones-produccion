@@ -122,7 +122,8 @@
             let filtered = currentMisAsignaciones.filter(a => {
                 const eq = (a.equipo || '').toLowerCase();
                 const zona = (a.zona || '').toLowerCase();
-                const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText);
+                const maq = resolverMaquinaEquipo(a.equipo).toLowerCase();
+                const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText) || maq.includes(searchText);
                 if (!matchesSearch) return false;
 
                 const realizada = esInspeccionRealizada(a, inspecciones);
@@ -133,7 +134,7 @@
             });
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="text-center py-8 text-gray-500 dark:text-gray-400">No se encontraron asignaciones con los filtros seleccionados.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-gray-500 dark:text-gray-400">No se encontraron asignaciones con los filtros seleccionados.</td></tr>`;
             } else {
                 let html = '';
                 filtered.forEach(a => {
@@ -149,6 +150,7 @@
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-100 dark:border-slate-700/50">
                         <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${a.zona || 'N/A'}</td>
+                        <td class="text-sm font-medium text-gray-600 dark:text-gray-300 px-5 py-3.5">${resolverMaquinaEquipo(a.equipo) || '—'}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${rangoSemana}</td>
                         <td class="text-center px-5 py-3.5">
                             ${st === 'REALIZADA'
@@ -330,6 +332,7 @@
                         <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
                         <td style="font-weight: bold; color: #003399;">${a.equipo || '-'}</td>
                         <td>${a.zona || 'N/A'}</td>
+                        <td>${resolverMaquinaEquipo(a.equipo) || '—'}</td>
                         <td>${rangoSemana}</td>
                         <td style="text-align: center;">${estadoBadge}</td>
                         <td style="border-bottom: 1px dashed #ccc;"></td>
@@ -505,6 +508,7 @@
                                 <th style="width: 30px; text-align: center;">#</th>
                                 <th>Equipo</th>
                                 <th>Zona</th>
+                                <th>Máquina</th>
                                 <th>Semana de Inspección</th>
                                 <th style="text-align: center; width: 140px;">Estado</th>
                                 <th style="width: 120px;">Firma / Obs.</th>
