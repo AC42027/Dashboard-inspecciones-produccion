@@ -141,6 +141,12 @@
             const mCrane = equipo.match(/^crane\s+\d+/i);
             if (mCrane) return 'Crane ' + mCrane[0].match(/\d+/)[0];
 
+            // Plummer: los propios equipos son la maquina (Plummer 1, 2, 3, 4 / Manual)
+            if (/^plummer/i.test(eq)) {
+                const rest = equipo.replace(/^plummer\s*/i, '').trim();
+                return rest ? 'Plummer ' + rest : 'Plummer';
+            }
+
             return '';
         }
 
