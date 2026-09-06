@@ -4,7 +4,7 @@
             renderCharts();
         };
 
-        function renderCharts() {
+        async function renderCharts() {
             // Destruir gráficos anteriores
             chartInstances.forEach(c => c.destroy());
             chartInstances = [];
@@ -20,6 +20,8 @@
                 `;
                 return;
             }
+
+            const setSinQR = await obtenerSetEquiposSinQR();
 
             const isDark = document.documentElement.classList.contains('dark');
             const textColor = isDark ? '#cbd5e1' : '#475569';
@@ -355,6 +357,13 @@
                     const zTotalPts = zOk + zNok;
                     const zConformidad = zTotalPts > 0 ? ((zOk / zTotalPts) * 100).toFixed(1) : '100.0';
 
+                    // Equipos de la zona con reporte activo Sin QR
+                    const zQrEquipos = [];
+                    datos.forEach(d => {
+                        if (!setSinQR.has(normalizarTexto(d.equipo))) return;
+                        if (!zQrEquipos.includes(d.equipo)) zQrEquipos.push(d.equipo);
+                    });
+
                     const zoneContainer = document.createElement('div');
                     zoneContainer.className = 'glass-panel p-6 space-y-6 chart-enter';
                     zoneContainer.style.animationDelay = `${index * 80}ms`;
@@ -371,6 +380,7 @@
                                     Conformidad: ${zConformidad}% OK
                                 </span>
                                 ${zSap > 0 ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-semibold rounded-full border border-amber-200 dark:border-amber-800"><i class="fas fa-exclamation-circle mr-1"></i>${zSap} Avisos SAP</span>` : ''}
+                                ${zQrEquipos.length > 0 ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-semibold rounded-full border border-amber-200 dark:border-amber-800 cursor-help" title="Equipos con reporte Sin QR: ${zQrEquipos.join(', ')}"><i class="fas fa-exclamation-triangle mr-1"></i>${zQrEquipos.length} Sin QR</span>` : ''}
                             </div>
                         </div>
 
@@ -402,7 +412,8 @@
 
                     // PROCESAR DATOS DE LA ZONA
                     const dEquipo = datos.reduce((acc, i) => { acc[i.equipo] = (acc[i.equipo] || 0) + 1; return acc; }, {});
-                    const labels1 = Object.keys(dEquipo);
+                    const labels1Raw = Object.keys(dEquipo);
+                    const labels1 = labels1Raw.map(eq => setSinQR.has(normalizarTexto(eq)) ? '⚠ ' + eq : eq);
                     const data1 = Object.values(dEquipo);
 
                     const dataOkNokMap = datos.reduce((acc, i) => {
@@ -420,6 +431,7 @@
                         const tot = dataOkNokMap[k].OK + dataOkNokMap[k].NOK;
                         return tot > 0 ? parseFloat(((dataOkNokMap[k].OK / tot) * 100).toFixed(1)) : 100;
                     });
+                    const labels2Display = labels2.map(eq => setSinQR.has(normalizarTexto(eq)) ? '⚠ ' + eq : eq);
 
                     // DIBUJAR GRAFICOS DE LA ZONA
                     // Chart 1: Volume
@@ -435,7 +447,7 @@
                             datasets: [{
                                 label: 'Inspecciones',
                                 data: data1,
-                                backgroundColor: grad1,
+                                backgroundColor: labels1Raw.map(eq => setSinQR.has(normalizarTexto(eq)) ? 'rgba(245, 158, 11, 0.85)' : grad1),
                                 borderRadius: 6,
                                 borderSkipped: false
                             }]
@@ -456,7 +468,7 @@
                     chartInstances.push(new Chart(ctx2, {
                         type: 'bar',
                         data: {
-                            labels: labels2,
+                            labels: labels2Display,
                             datasets: [
                                 { label: 'OK', data: dataOk, backgroundColor: gradOk, borderRadius: 6, borderSkipped: false },
                                 { label: 'NOK', data: dataNok, backgroundColor: gradNok, borderRadius: 6, borderSkipped: false }
@@ -470,7 +482,7 @@
                     chartInstances.push(new Chart(ctx3, {
                         type: 'bar',
                         data: {
-                            labels: labels2,
+                            labels: labels2Display,
                             datasets: [{
                                 label: 'Conformidad (%)',
                                 data: dataHealth,
@@ -585,7 +597,7 @@
             return { filas, totalAsig, totalReal, pctGlobal: totalAsig > 0 ? Math.round((totalReal / totalAsig) * 100) : 0 };
         }
 
-        function renderAvanceTabla(filas) {
+        function renderAvanceTabla(filas, sinQRMap) {
             if (filas.length === 0) {
                 return `<div class="flex items-center justify-center gap-2 py-6 text-gray-500 dark:text-gray-400 text-sm"><i class="fas fa-inbox"></i> Sin asignaciones en el período.</div>`;
             }
@@ -593,9 +605,13 @@
                 ${filas.map(f => {
                     const barCls = f.pct >= 90 ? 'bg-green-500' : f.pct >= 75 ? 'bg-amber-500' : 'bg-rose-500';
                     const pctCls = f.pct >= 90 ? 'text-emerald-600 dark:text-emerald-400' : f.pct >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
+                    const sqr = sinQRMap ? sinQRMap.get(normalizarTexto(f.aso)) : null;
+                    const sqrBadge = sqr && sqr.n > 0
+                        ? `<span class="shrink-0 ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700 cursor-help" title="Asignados con reporte Sin QR: ${sqr.equipos.join(', ')}"><i class="fas fa-exclamation-triangle"></i> ${sqr.n} Sin QR</span>`
+                        : '';
                     return `
                     <div class="flex items-center gap-3">
-                        <span class="w-40 sm:w-48 shrink-0 font-bold text-goodyear-blue dark:text-blue-400 text-sm truncate" title="${f.aso}">${f.aso}</span>
+                        <span class="w-40 sm:w-52 lg:w-56 shrink-0 inline-flex items-center gap-1 font-bold text-goodyear-blue dark:text-blue-400 text-sm truncate" title="${f.aso}">${f.aso}${sqrBadge}</span>
                         <div class="flex-1 h-3 rounded-full bg-gray-100 dark:bg-slate-700 relative overflow-hidden">
                             <div class="${barCls} h-full rounded-full transition-all duration-700" style="width:${f.pct}%"></div>
                         </div>
@@ -651,6 +667,18 @@
                 const mensual = calcularAvance(mesDatos);
                 const anual = calcularAvance([].concat(...anuDatos.filter(Boolean)));
 
+                const setSinQR = await obtenerSetEquiposSinQR();
+                if (token !== avanceRenderToken) return;
+                const sinQRMap = new Map();
+                (mesDatos || []).forEach(a => {
+                    if (!a || !a.asociado || !normalizarTexto(a.equipo)) return;
+                    if (!setSinQR.has(normalizarTexto(a.equipo))) return;
+                    const k = normalizarTexto(a.asociado);
+                    if (!sinQRMap.has(k)) sinQRMap.set(k, { n: 0, equipos: [] });
+                    const acc = sinQRMap.get(k);
+                    if (!acc.equipos.includes(a.equipo)) { acc.equipos.push(a.equipo); acc.n++; }
+                });
+
                 globalEl.className = `px-2.5 py-1 font-bold rounded-full border inline-flex items-center gap-1 ${badgeAvanceCls(mensual.pctGlobal)}`;
                 globalEl.innerHTML = `<i class="fas fa-percent"></i> ${mensual.totalReal}/${mensual.totalAsig} · ${mensual.pctGlobal}%`;
                 globalEl.classList.remove('hidden');
@@ -664,7 +692,7 @@
                                 <i class="fas fa-calendar-day text-goodyear-blue dark:text-goodyear-yellow"></i> Cumplimiento Mensual ${obtenerNombreMesEspañol(avanceState.mes)}
                             </h4>
                         </div>
-                        ${renderAvanceTabla(mensual.filas)}
+                        ${renderAvanceTabla(mensual.filas, sinQRMap)}
                     </div>
                     <div class="mt-8 pt-4 border-t border-gray-200 dark:border-slate-700">
                         <div class="flex items-center justify-between gap-2 mb-2">

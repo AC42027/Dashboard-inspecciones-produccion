@@ -114,10 +114,11 @@
             }
         }
 
-        function renderTablaMisAsignaciones() {
+        async function renderTablaMisAsignaciones() {
             const tbody = document.getElementById('misAsigTableBody');
             const wrapper = document.getElementById('misAsigTableWrapper');
             const searchText = (document.getElementById('misAsigSearch')?.value || '').toLowerCase();
+            const setSinQR = await obtenerSetEquiposSinQR();
 
             let filtered = currentMisAsignaciones.filter(a => {
                 const eq = (a.equipo || '').toLowerCase();
@@ -147,8 +148,9 @@
                     const rangoSemana = `Semana del ${fmtFecha(fInicio)} al ${fmtFecha(fFin)}`;
 
                     const st = evaluarEstadoAsignacion(a, inspecciones);
+                    const esSinQR = setSinQR.has(normalizarTexto(a.equipo));
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-100 dark:border-slate-700/50">
-                        <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}</td>
+                        <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}${esSinQR ? `<span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700" title="Este equipo tiene reporte activo sin QR"><i class="fas fa-exclamation-triangle"></i> Sin QR</span>` : ''}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${a.zona || 'N/A'}</td>
                         <td class="text-sm font-medium text-gray-600 dark:text-gray-300 px-5 py-3.5">${resolverMaquinaEquipo(a.equipo) || '—'}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${rangoSemana}</td>
@@ -251,7 +253,7 @@
         }
         window.cerrarSesionMisAsignaciones = cerrarSesionMisAsignaciones;
 
-        function imprimirMisAsignaciones() {
+        async function imprimirMisAsignaciones() {
             if (!loggedUserFullName) {
                 if (typeof mostrarAlerta === 'function') {
                     mostrarAlerta('Atención', 'Debes iniciar sesión para imprimir tus asignaciones.', 'fa-info-circle text-blue-500');
@@ -296,6 +298,8 @@
                 return;
             }
 
+            const setSinQR = await obtenerSetEquiposSinQR();
+
             const totalCount = filtered.length;
             const realizadasCount = filtered.filter(a => esInspeccionRealizada(a, inspecciones)).length;
             const pendientesCount = totalCount - realizadasCount;
@@ -318,6 +322,7 @@
                 const rangoSemana = `Semana del ${fmtFecha(fInicio)} al ${fmtFecha(fFin)}`;
 
                 const st = evaluarEstadoAsignacion(a, inspecciones);
+                const esSinQR = setSinQR.has(normalizarTexto(a.equipo));
                 let estadoBadge = '';
                 if (st === 'REALIZADA') {
                     estadoBadge = '<span class="status-realizada">✔ REALIZADA</span>';
@@ -330,7 +335,7 @@
                 return `
                     <tr>
                         <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
-                        <td style="font-weight: bold; color: #003399;">${a.equipo || '-'}</td>
+                        <td style="font-weight: bold; color: #003399;">${a.equipo || '-'}${esSinQR ? '<br><span style="color:#b45309;font-weight:bold;font-size:9.5px;">⚠ SIN QR</span>' : ''}</td>
                         <td>${a.zona || 'N/A'}</td>
                         <td>${resolverMaquinaEquipo(a.equipo) || '—'}</td>
                         <td>${rangoSemana}</td>

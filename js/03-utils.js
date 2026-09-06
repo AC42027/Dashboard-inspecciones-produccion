@@ -73,6 +73,32 @@
             return (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
         }
 
+        // Set de equipos con reporte activo "Sin QR" (fetch con cache).
+        // Devuelve Promise<Set> de nombres normalizados; si falla, Set vacío (no rompe la vista).
+        let _promesaSetEquiposSinQR = null;
+        function obtenerSetEquiposSinQR() {
+            if (_promesaSetEquiposSinQR) return _promesaSetEquiposSinQR;
+            _promesaSetEquiposSinQR = (async () => {
+                try {
+                    const res = await fetch(`${API_BASE}/api/equipos-sin-qr/`, {
+                        headers: { 'X-API-Token': 'fxoNqZPOR7nxwAYrbqFTONNEjUO2I1Hv3Wm34YGrEL4' }
+                    });
+                    if (!res.ok) throw new Error('HTTP ' + res.status);
+                    const data = await res.json();
+                    const set = new Set();
+                    (Array.isArray(data) ? data : []).forEach(eq => {
+                        const n = normalizarTexto(eq && eq.equipo_nombre);
+                        if (n) set.add(n);
+                    });
+                    return set;
+                } catch (e) {
+                    _promesaSetEquiposSinQR = null;
+                    return new Set();
+                }
+            })();
+            return _promesaSetEquiposSinQR;
+        }
+
         // Resuelve la máquina (grupo) a la que pertenece un equipo usando los
         // grupos definidos en 08-asignaciones.js (HS, CC01-03, Z12, Z13, gabinetes)
         // y patrones de nombre (press robots, cranes). Retorna '' si no se puede.
