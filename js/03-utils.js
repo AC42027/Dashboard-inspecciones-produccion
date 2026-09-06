@@ -158,7 +158,9 @@
             if (o === a) return true;
             const oParts = o.split(/\s+/).filter(p => p.length >= 2);
             const aParts = a.split(/\s+/).filter(p => p.length >= 2);
-            return oParts.some(p => aParts.includes(p)) || aParts.some(p => oParts.includes(p));
+            if (oParts.length === 0 || aParts.length === 0) return false;
+            const [shortParts, longParts] = oParts.length <= aParts.length ? [oParts, aParts] : [aParts, oParts];
+            return shortParts.every(p => longParts.includes(p));
         }
 
         function evaluarEstadoAsignacion(asig, inspeccionesList, mesStr) {
