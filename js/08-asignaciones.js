@@ -178,11 +178,26 @@
                     </td>
                 </tr>`;
 
-                html += `<tr id="asoDetalle-${idx}" class="hidden">
-                    <td colspan="${totalCols}" class="p-0">
-                        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">`;
+                // Agrupar el detalle por semana
+                const detPorSemana = {};
+                const sinSemana = [];
+                equiposAso.forEach(a => {
+                    let num = null;
+                    if (a.fecha) {
+                        const [y, m] = a.fecha.split('-').map(Number);
+                        const periods = get4PeriodsOfMonth(y, m - 1);
+                        const p = periods.find(x => x.startStr === a.fecha);
+                        if (p) num = p.num;
+                    }
+                    if (num == null) sinSemana.push(a);
+                    else {
+                        if (!detPorSemana[num]) detPorSemana[num] = [];
+                        detPorSemana[num].push(a);
+                    }
+                });
+                const semanasDet = Object.keys(detPorSemana).map(Number).sort((a, b) => a - b);
 
-                equiposAso.forEach(asig => {
+                const filaDetalleAsig = asig => {
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     const eqValido = Array.from(document.querySelectorAll('#asrsEqList option')).some(opt =>
                         opt && normalizarTexto(opt.value) === normalizarTexto(asig.equipo));
@@ -207,7 +222,30 @@
                             </button>
                         </span>` : ''}
                     </div>`;
+                };
+
+                html += `<tr id="asoDetalle-${idx}" class="hidden">
+                    <td colspan="${totalCols}" class="p-0">
+                        <div class="bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700">`;
+
+                semanasDet.forEach(n => {
+                    const det = detPorSemana[n];
+                    html += `<div class="flex items-center gap-2 px-4 py-1.5 bg-purple-50/70 dark:bg-slate-900/40 border-b border-purple-200/60 dark:border-slate-700">
+                        <i class="far fa-calendar-alt text-[10px] text-purple-600 dark:text-purple-300"></i>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-purple-700 dark:text-purple-300">Semana ${n}</span>
+                        <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 ml-auto">${det.length} equipos</span>
+                    </div>`;
+                    det.forEach(filaDetalleAsig);
                 });
+
+                if (sinSemana.length > 0) {
+                    html += `<div class="flex items-center gap-2 px-4 py-1.5 bg-slate-100/70 dark:bg-slate-900/40 border-b border-slate-200/60 dark:border-slate-700">
+                        <i class="fas fa-question-circle text-[10px] text-slate-500 dark:text-slate-400"></i>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400">Sin semana</span>
+                        <span class="text-[10px] font-semibold text-slate-400 dark:text-slate-500 ml-auto">${sinSemana.length} equipos</span>
+                    </div>`;
+                    sinSemana.forEach(filaDetalleAsig);
+                }
 
                 html += `</div>
                     </td>
