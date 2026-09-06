@@ -87,8 +87,39 @@
             }
         }
 
-        function renderTablaAsignacionesPublica(mesStr) {
+        // Mapa equipo → "Crane N" (crane + sus conveyors inbound/outbound) para rotular
+        // los grupos de asignación ASRS y evitar confundir con inspectores de zona (p.ej. CC02).
+        let _promMapaCraneEquipos = null;
+        function obtenerMapaCraneEquipos() {
+            if (_promMapaCraneEquipos) return _promMapaCraneEquipos;
+            _promMapaCraneEquipos = (async () => {
+                const mapa = new Map();
+                try {
+                    let groups = null;
+                    if (craneGroupsCache && Object.keys(craneGroupsCache).length > 0) {
+                        groups = craneGroupsCache;
+                    }
+                    if (!groups) {
+                        const res = await fetch(`${API_BASE}/api/equipos/`);
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        groups = buildCraneGroupsFromAPI(await res.json()).groups;
+                    }
+                    Object.entries(groups).forEach(([key, grp]) => {
+                        [grp.crane, ...(grp.inbound || []), ...(grp.outbound || [])].forEach(eq => {
+                            if (eq) mapa.set(normalizarTexto(eq), key);
+                        });
+                    });
+                } catch (e) {
+                    _promMapaCraneEquipos = null;
+                }
+                return mapa;
+            })();
+            return _promMapaCraneEquipos;
+        }
+
+        async function renderTablaAsignacionesPublica(mesStr) {
             const tbody = document.getElementById('tabla-asignaciones-publica');
+            const craneMap = await obtenerMapaCraneEquipos();
             const accionHeader = document.getElementById('asigAdminAccionHeader');
             let html = '';
 
@@ -140,6 +171,10 @@
                 }).length;
                 const pendientes = equiposAso.length - realizadas;
 
+                // Máquina/grupo a inspeccionar: si el equipo pertenece a un crane (crane + conveyors
+                // inbound/outbound) se rotula solo "Crane N" para no confundir con inspectores de zona.
+                const etiquetaMaquina = (a) => craneMap.get(normalizarTexto(a.equipo)) || resolverMaquinaEquipo(a.equipo) || a.zona || 'ASRS';
+
                 const maquinasPorSemana = {};
                 equiposAso.forEach(a => {
                     if (!a.fecha) return;
@@ -148,7 +183,7 @@
                     const p = periods.find(p => p.startStr === a.fecha);
                     if (!p) return;
                     if (!maquinasPorSemana[p.num]) maquinasPorSemana[p.num] = new Set();
-                    maquinasPorSemana[p.num].add(resolverMaquinaEquipo(a.equipo) || a.zona || 'ASRS');
+                    maquinasPorSemana[p.num].add(etiquetaMaquina(a));
                 });
                 const semanasOrdenadas = Object.keys(maquinasPorSemana).map(Number).sort((a, b) => a - b);
                 const badgesSemanas = semanasOrdenadas.map(n => {
@@ -156,26 +191,33 @@
                     return `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-300 dark:border-purple-800 shrink-0" title="Máquinas de la semana ${n}"><i class="far fa-calendar-alt text-[10px]"></i> Sem ${n}: ${maqs}</span>`;
                 }).join(' ');
 
+                const zonasSet = new Set();
+                equiposAso.forEach(a => zonasSet.add(etiquetaMaquina(a)));
+                const badgesZonas = [...zonasSet].map(z => `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shrink-0"><i class="fas fa-industry text-[10px]"></i> ${z}</span>`).join(' ');
+
                 html += `<tr onclick="toggleAsoDetalle('${idx}')" class="cursor-pointer select-none hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700 bg-goodyear-blue/5 dark:bg-slate-800/60">
-                    <td colspan="${totalCols}" class="py-3">
-                        <div class="flex items-center gap-3">
+                    <td class="py-3 pl-3">
+                        <div class="flex items-center gap-2">
                             <i id="asoChevron-${idx}" class="fas fa-chevron-down aso-chevron text-slate-400 dark:text-slate-500"></i>
-                            <div class="w-10 h-10 rounded-full bg-goodyear-blue/15 dark:bg-goodyear-yellow/20 border border-goodyear-blue/30 dark:border-goodyear-yellow/40 flex items-center justify-center shadow-sm shrink-0">
-                                <span class="text-sm font-bold text-goodyear-blue dark:text-goodyear-yellow">${iniciales}</span>
+                            <div class="w-9 h-9 rounded-full bg-goodyear-blue/15 dark:bg-goodyear-yellow/20 border border-goodyear-blue/30 dark:border-goodyear-yellow/40 flex items-center justify-center shadow-sm shrink-0">
+                                <span class="text-xs font-bold text-goodyear-blue dark:text-goodyear-yellow">${iniciales}</span>
                             </div>
-                            <span class="text-sm font-bold text-gray-800 dark:text-gray-200 text-center">${aso}</span>
-                            ${badgesSemanas}
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600 shadow-sm ml-auto">
-                                ${equiposAso.length} CV
-                            </span>
-                            <span class="${realizadas > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400'} px-2.5 py-1 rounded-full text-xs font-bold border ${realizadas > 0 ? 'border-green-300 dark:border-green-800' : 'border-gray-300 dark:border-slate-600'}">
-                                <i class="fas fa-check-circle"></i> ${realizadas}
-                            </span>
-                            <span class="${pendientes > 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400'} px-2.5 py-1 rounded-full text-xs font-bold border ${pendientes > 0 ? 'border-red-300 dark:border-red-800' : 'border-gray-300 dark:border-slate-600'}">
-                                <i class="fas fa-times-circle"></i> ${pendientes}
-                            </span>
+                            <span class="text-sm font-bold text-gray-800 dark:text-gray-200">${aso}</span>
                         </div>
                     </td>
+                    <td class="py-3 pr-2">
+                        <div class="flex flex-wrap gap-1">${badgesZonas || '<span class="text-xs text-gray-400">—</span>'}</div>
+                    </td>
+                    <td class="py-3 pr-2">
+                        <div class="flex flex-wrap gap-1">${badgesSemanas}<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600 shadow-sm shrink-0">${equiposAso.length} CV</span></div>
+                    </td>
+                    <td class="py-3 pr-2">
+                        <div class="flex flex-wrap items-center gap-1">
+                            <span class="${realizadas > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400'} px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${realizadas > 0 ? 'border-green-300 dark:border-green-800' : 'border-gray-300 dark:border-slate-600'}"><i class="fas fa-check-circle"></i> ${realizadas}</span>
+                            <span class="${pendientes > 0 ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300' : 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400'} px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${pendientes > 0 ? 'border-red-300 dark:border-red-800' : 'border-gray-300 dark:border-slate-600'}"><i class="fas fa-times-circle"></i> ${pendientes}</span>
+                        </div>
+                    </td>
+                    <td class="py-3"></td>
                 </tr>`;
 
                 // Agrupar el detalle por semana
