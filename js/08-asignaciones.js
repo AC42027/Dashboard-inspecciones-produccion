@@ -141,13 +141,21 @@
                 const pendientes = equiposAso.length - realizadas;
 
                 const zonasUnicas = [...new Set(equiposAso.map(a => (a.zona || 'ASRS')).filter(Boolean))];
-                const semanasUnicas = [...new Set(equiposAso.map(a => {
-                    if (!a.fecha) return null;
+                const maquinasPorSemana = {};
+                equiposAso.forEach(a => {
+                    if (!a.fecha) return;
                     const [y, m] = a.fecha.split('-').map(Number);
                     const periods = get4PeriodsOfMonth(y, m - 1);
                     const p = periods.find(p => p.startStr === a.fecha);
-                    return p ? p.num : null;
-                }).filter(Boolean))].sort((a, b) => a - b);
+                    if (!p) return;
+                    if (!maquinasPorSemana[p.num]) maquinasPorSemana[p.num] = new Set();
+                    maquinasPorSemana[p.num].add(resolverMaquinaEquipo(a.equipo) || a.zona || 'ASRS');
+                });
+                const semanasOrdenadas = Object.keys(maquinasPorSemana).map(Number).sort((a, b) => a - b);
+                const badgesSemanas = semanasOrdenadas.map(n => {
+                    const maqs = [...maquinasPorSemana[n]].sort().join(' · ');
+                    return `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-300 dark:border-purple-800 shrink-0" title="Máquinas de la semana ${n}"><i class="far fa-calendar-alt text-[10px]"></i> Sem ${n}: ${maqs}</span>`;
+                }).join(' ');
 
                 html += `<tr onclick="toggleAsoDetalle('${idx}')" class="cursor-pointer select-none hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700 bg-goodyear-blue/5 dark:bg-slate-800/60">
                     <td colspan="${totalCols}" class="py-3">
@@ -160,9 +168,7 @@
                             <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shrink-0">
                                 <i class="fas fa-map-marker-alt text-[10px]"></i> ${zonasUnicas.join(' · ')}
                             </span>
-                            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-300 dark:border-purple-800 shrink-0">
-                                <i class="far fa-calendar-alt text-[10px]"></i> Sem ${semanasUnicas.join(' · ')}
-                            </span>
+                            ${badgesSemanas}
                             <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600 shadow-sm ml-auto">
                                 ${equiposAso.length} CV
                             </span>
