@@ -412,8 +412,7 @@
 
                     // PROCESAR DATOS DE LA ZONA
                     const dEquipo = datos.reduce((acc, i) => { acc[i.equipo] = (acc[i.equipo] || 0) + 1; return acc; }, {});
-                    const labels1Raw = Object.keys(dEquipo);
-                    const labels1 = labels1Raw.map(eq => setSinQR.has(normalizarTexto(eq)) ? '⚠ ' + eq : eq);
+                    const labels1 = Object.keys(dEquipo);
                     const data1 = Object.values(dEquipo);
 
                     const dataOkNokMap = datos.reduce((acc, i) => {
@@ -431,7 +430,6 @@
                         const tot = dataOkNokMap[k].OK + dataOkNokMap[k].NOK;
                         return tot > 0 ? parseFloat(((dataOkNokMap[k].OK / tot) * 100).toFixed(1)) : 100;
                     });
-                    const labels2Display = labels2.map(eq => setSinQR.has(normalizarTexto(eq)) ? '⚠ ' + eq : eq);
 
                     // DIBUJAR GRAFICOS DE LA ZONA
                     // Chart 1: Volume
@@ -447,7 +445,7 @@
                             datasets: [{
                                 label: 'Inspecciones',
                                 data: data1,
-                                backgroundColor: labels1Raw.map(eq => setSinQR.has(normalizarTexto(eq)) ? 'rgba(245, 158, 11, 0.85)' : grad1),
+                                backgroundColor: labels1.map(eq => setSinQR.has(normalizarTexto(eq)) ? 'rgba(245, 158, 11, 0.85)' : grad1),
                                 borderRadius: 6,
                                 borderSkipped: false
                             }]
@@ -468,7 +466,7 @@
                     chartInstances.push(new Chart(ctx2, {
                         type: 'bar',
                         data: {
-                            labels: labels2Display,
+                            labels: labels2,
                             datasets: [
                                 { label: 'OK', data: dataOk, backgroundColor: gradOk, borderRadius: 6, borderSkipped: false },
                                 { label: 'NOK', data: dataNok, backgroundColor: gradNok, borderRadius: 6, borderSkipped: false }
@@ -482,7 +480,7 @@
                     chartInstances.push(new Chart(ctx3, {
                         type: 'bar',
                         data: {
-                            labels: labels2Display,
+                            labels: labels2,
                             datasets: [{
                                 label: 'Conformidad (%)',
                                 data: dataHealth,
@@ -607,11 +605,12 @@
                     const pctCls = f.pct >= 90 ? 'text-emerald-600 dark:text-emerald-400' : f.pct >= 75 ? 'text-amber-600 dark:text-amber-400' : 'text-rose-600 dark:text-rose-400';
                     const sqr = sinQRMap ? sinQRMap.get(normalizarTexto(f.aso)) : null;
                     const sqrBadge = sqr && sqr.n > 0
-                        ? `<span class="shrink-0 ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700 cursor-help" title="Asignados con reporte Sin QR: ${sqr.equipos.join(', ')}"><i class="fas fa-exclamation-triangle"></i> ${sqr.n} Sin QR</span>`
+                        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold whitespace-nowrap bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700 cursor-help" title="Asignados con reporte Sin QR: ${sqr.equipos.join(', ')}"><i class="fas fa-exclamation-triangle"></i> ${sqr.n} Sin QR</span>`
                         : '';
                     return `
-                    <div class="flex items-center gap-3">
-                        <span class="w-40 sm:w-52 lg:w-56 shrink-0 inline-flex items-center gap-1 font-bold text-goodyear-blue dark:text-blue-400 text-sm truncate" title="${f.aso}">${f.aso}${sqrBadge}</span>
+                    <div class="flex items-center gap-2">
+                        <span class="w-36 sm:w-44 shrink-0 font-bold text-goodyear-blue dark:text-blue-400 text-sm truncate" title="${f.aso}">${f.aso}</span>
+                        <span class="w-24 shrink-0 inline-flex items-center justify-start">${sqrBadge}</span>
                         <div class="flex-1 h-3 rounded-full bg-gray-100 dark:bg-slate-700 relative overflow-hidden">
                             <div class="${barCls} h-full rounded-full transition-all duration-700" style="width:${f.pct}%"></div>
                         </div>
