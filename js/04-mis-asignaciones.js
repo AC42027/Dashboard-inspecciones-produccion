@@ -269,6 +269,9 @@
         window.cerrarSesionMisAsignaciones = cerrarSesionMisAsignaciones;
 
         async function imprimirMisAsignaciones(modo) {
+            if (typeof document !== 'undefined') {
+                document.querySelectorAll('#misAsigPrintMenu, #misAsigPrintMenuTable').forEach(m => m.classList.add('hidden'));
+            }
             if (!loggedUserFullName) {
                 if (typeof mostrarAlerta === 'function') {
                     mostrarAlerta('Atención', 'Debes iniciar sesión para imprimir tus asignaciones.', 'fa-info-circle text-blue-500');
