@@ -189,8 +189,8 @@
 
             const fmt = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 
-            const construirItem = (num, start, end) => {
-                const weekAsigs = currentMisAsignaciones.filter(a => a.fecha === start);
+            const construirItem = (num, startStr, start, end) => {
+                const weekAsigs = currentMisAsignaciones.filter(a => a.fecha === startStr);
                 const grupos = [...new Set(weekAsigs.map(a => resolverGrupoAsignacion(a)).filter(Boolean))];
                 const count = weekAsigs.length;
                 const contenido = grupos.length > 0
@@ -208,7 +208,7 @@
             };
 
             if (periods.length > 0) {
-                cont.innerHTML = periods.map(p => construirItem(p.num, p.start, p.end)).join('');
+                cont.innerHTML = periods.map(p => construirItem(p.num, p.startStr, p.start, p.end)).join('');
             } else {
                 // Fallback: agrupar por fecha distinta (ordenadas cronológicamente)
                 const fechas = [...new Set(currentMisAsignaciones.map(a => a.fecha).filter(Boolean))].sort();
