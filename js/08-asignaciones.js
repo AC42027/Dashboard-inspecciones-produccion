@@ -964,19 +964,12 @@
             renderBadgesGrupos();
         }
 
-        // Grupo CC02: todos los conveyors (CV) de CC02 en un solo grupo.
+        // Grupo CC02: solo los conveyors (CV) reales de CC02 en un solo grupo
+        // (tramo principal, cruzbelt, clasificador y curvas P1400/P1450).
+        // Los CV inbound/outbound de los cranes pertenecen a sus grupos de crane, no a CC02.
         const GRUPOS_CC02 = {
             A: [
-                'CC02_P01601','CC02_P01602','CC02_P0170','CC02_P0180','CC02_P02601',
-                'CC02_P02602','CC02_P0270','CC02_P0280','CC02_P03601','CC02_P03602','CC02_P0370',
-                'CC02_P0380','CC02_P04601','CC02_P04602','CC02_P0480','CC02_P05601','CC02_P05602',
-                'CC02_P0570','CC02_P0580','CC02_P06601','CC02_P06602','CC02_P0670','CC02_P0680',
-                'CC02_P07601','CC02_P07602','CC02_P0770','CC02_P0780','CC02_P08601','CC02_P08602',
-                'CC02_P0870','CC02_P0880','CC02_P09601','CC02_P09602','CC02_P0970','CC02_P0980',
-                'CC02_P10601','CC02_P10602','CC02_P1070','CC02_P1080','CC02_P11601','CC02_P11602',
-                'CC02_P1170','CC02_P1180','CC02_P1205','CC02_P1210','CC02_P1215','CC02_P1220',
-                'CC02_P1225','CC02_P1230','CC02_P1235','CC02_P1240','CC02_P1245','CC02_P1250',
-                'CC02_P1255','CC02_P1300','CC02_P1400','CC02_P1450','CC02_P1500','CC02_P1550',
+                'CC02_P1300','CC02_P1400','CC02_P1450','CC02_P1500','CC02_P1550',
                 'CC02_P1600','CC02_P5010','CC02_P5030','CC02_P5043','CC02_P5050'
             ]
         };

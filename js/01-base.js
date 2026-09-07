@@ -79,8 +79,13 @@
                 const outbound = [];
                 equipos.forEach(eq => {
                     const ubic = (eq.ubicacion || '').toLowerCase();
-                    if (ubic.includes(`inbound crane ${n}`)) inbound.push(eq.nombre || eq.equipo);
-                    else if (ubic.includes(`outbound crane ${n}`)) outbound.push(eq.nombre || eq.equipo);
+                    // Solo emparejar ubicaciones ancladas (e.g. "Inbound Crane 1", "NBS90 Outbound Crane 3").
+                    // Asi los conveyors tipo "Curva inicial final CC02 lado outbound crane 11" (que son de CC02)
+                    // no caen dentro de los grupos de crane.
+                    const reIn = new RegExp(`^(nbs90\\s+)?inbound\\s+crane\\s+${n}$`);
+                    const reOut = new RegExp(`^(nbs90\\s+)?outbound\\s+crane\\s+${n}$`);
+                    if (reIn.test(ubic)) inbound.push(eq.nombre || eq.equipo);
+                    else if (reOut.test(ubic)) outbound.push(eq.nombre || eq.equipo);
                 });
                 groups[key] = { crane: crane.nombre, inbound, outbound };
                 inbound.forEach(c => conveyorCodes.add(c));
