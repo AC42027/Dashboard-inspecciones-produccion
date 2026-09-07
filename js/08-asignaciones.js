@@ -50,7 +50,7 @@
                 asignacionesActuales = data;
 
                 if (data.length === 0) {
-                    const colspan = isAdminModo ? 5 : 4;
+                    const colspan = isAdminModo ? 7 : 6;
                     tbody.innerHTML = `<tr><td colspan="${colspan}" class="text-center py-8 text-gray-500 font-medium">Sin inspecciones asignadas</td></tr>`;
                     return;
                 }
@@ -59,7 +59,7 @@
 
             } catch (err) {
                 console.error(err);
-                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-red-500">Error de conexión. Consultar a Manuel Rivera en caso de persistir error.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${isAdminModo ? 7 : 6}" class="text-center py-8 text-red-500">Error de conexión. Consultar a Manuel Rivera en caso de persistir error.</td></tr>`;
             } finally {
                 loader.classList.add('hidden');
             }
@@ -117,7 +117,7 @@
                 return acc;
             }, {});
 
-            const totalCols = isAdminModo ? 5 : 4;
+            const totalCols = isAdminModo ? 7 : 6;
 
             Object.entries(porAsociado).sort((a, b) => {
                 const contRealizadas = (items) => items.reduce((acc, asig) => {
@@ -140,34 +140,56 @@
                 }).length;
                 const pendientes = equiposAso.length - realizadas;
 
-                const maquinasPorSemana = {};
+                // Grupos y cantidad de equipos por cada semana (1-4)
+                const gruposPorSemana = { 1: new Set(), 2: new Set(), 3: new Set(), 4: new Set() };
+                const countPorSemana = { 1: 0, 2: 0, 3: 0, 4: 0 };
                 equiposAso.forEach(a => {
                     if (!a.fecha) return;
                     const [y, m] = a.fecha.split('-').map(Number);
                     const periods = get4PeriodsOfMonth(y, m - 1);
                     const p = periods.find(p => p.startStr === a.fecha);
-                    if (!p) return;
-                    if (!maquinasPorSemana[p.num]) maquinasPorSemana[p.num] = new Set();
-                    maquinasPorSemana[p.num].add(resolverMaquinaEquipo(a.equipo) || a.zona || 'ASRS');
+                    if (!p || !gruposPorSemana[p.num]) return;
+                    const grp = resolverMaquinaEquipo(a.equipo);
+                    if (grp) gruposPorSemana[p.num].add(grp);
+                    countPorSemana[p.num]++;
                 });
-                const semanasOrdenadas = Object.keys(maquinasPorSemana).map(Number).sort((a, b) => a - b);
-                const badgesSemanas = semanasOrdenadas.map(n => {
-                    const maqs = [...maquinasPorSemana[n]].sort().join(' · ');
-                    return `<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-300 border border-purple-300 dark:border-purple-800 shrink-0" title="Máquinas de la semana ${n}"><i class="far fa-calendar-alt text-[10px]"></i> Sem ${n}: ${maqs}</span>`;
-                }).join(' ');
+
+                const celdasSemanas = [1, 2, 3, 4].map(n => {
+                    const grupos = [...gruposPorSemana[n]].sort();
+                    const count = countPorSemana[n];
+                    if (grupos.length === 0 && count === 0) {
+                        return `<td class="text-center py-3 text-slate-300 dark:text-slate-600">—</td>`;
+                    }
+                    const badges = grupos.map(g =>
+                        `<span class="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800" title="Grupo"><i class="fas fa-layer-group"></i>${g}</span>`
+                    ).join(' ');
+                    const countBadge = count > 0
+                        ? `<span class="mt-1 inline-block text-[10px] font-bold text-slate-500 dark:text-slate-400">${count} equipo${count === 1 ? '' : 's'}</span>`
+                        : '';
+                    return `<td class="text-center align-middle px-2 py-3">
+                        <div class="flex flex-col items-center gap-1">
+                            <div class="flex flex-wrap justify-center gap-1">${badges}</div>
+                            ${countBadge}
+                        </div>
+                    </td>`;
+                }).join('');
 
                 html += `<tr onclick="toggleAsoDetalle('${idx}')" class="cursor-pointer select-none hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-200 dark:border-slate-700 bg-goodyear-blue/5 dark:bg-slate-800/60">
-                    <td colspan="${totalCols}" class="py-3">
-                        <div class="flex items-center gap-3">
-                            <i id="asoChevron-${idx}" class="fas fa-chevron-down aso-chevron text-slate-400 dark:text-slate-500"></i>
+                    <td class="py-3 pl-4 pr-2">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <i id="asoChevron-${idx}" class="fas fa-chevron-down aso-chevron text-slate-400 dark:text-slate-500 shrink-0"></i>
                             <div class="w-10 h-10 rounded-full bg-goodyear-blue/15 dark:bg-goodyear-yellow/20 border border-goodyear-blue/30 dark:border-goodyear-yellow/40 flex items-center justify-center shadow-sm shrink-0">
                                 <span class="text-sm font-bold text-goodyear-blue dark:text-goodyear-yellow">${iniciales}</span>
                             </div>
-                            <span class="text-sm font-bold text-gray-800 dark:text-gray-200 text-center">${aso}</span>
-                            ${badgesSemanas}
-                            <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-slate-600 shadow-sm ml-auto">
-                                ${equiposAso.length} CV
-                            </span>
+                            <div class="min-w-0">
+                                <div class="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">${aso}</div>
+                                <div class="text-[10px] font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wider">${equiposAso.length} CV asignado${equiposAso.length === 1 ? '' : 's'}</div>
+                            </div>
+                        </div>
+                    </td>
+                    ${celdasSemanas}
+                    <td class="text-center align-middle px-2 py-3">
+                        <div class="flex flex-col items-center gap-1">
                             <span class="${realizadas > 0 ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300' : 'bg-gray-100 text-gray-500 dark:bg-slate-700/40 dark:text-gray-400'} px-2.5 py-1 rounded-full text-xs font-bold border ${realizadas > 0 ? 'border-green-300 dark:border-green-800' : 'border-gray-300 dark:border-slate-600'}">
                                 <i class="fas fa-check-circle"></i> ${realizadas}
                             </span>
@@ -176,6 +198,11 @@
                             </span>
                         </div>
                     </td>
+                    ${isAdminModo ? `<td class="text-center px-2 py-3">
+                        <button onclick="event.stopPropagation(); toggleAsoDetalle('${idx}')" class="text-slate-400 dark:text-slate-500 hover:text-goodyear-blue dark:hover:text-yellow-400 p-1.5 rounded hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors" title="Ver detalle / seleccionar">
+                            <i class="fas fa-list-ul"></i>
+                        </button>
+                    </td>` : ''}
                 </tr>`;
 
                 // Agrupar el detalle por semana
@@ -206,7 +233,7 @@
                     html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-slate-700/60 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                         <div class="w-px self-stretch bg-gray-200 dark:bg-slate-600 mr-1"></div>
                         <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shrink-0">${asig.zona || 'N/A'}</span>
-                        ${maq ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shrink-0" title="Máquina"><i class="fas fa-industry text-[10px]"></i> ${maq}</span>` : ''}
+                        ${maq ? `<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-300 border border-sky-300 dark:border-sky-800 shrink-0" title="Grupo / máquina del equipo"><i class="fas fa-layer-group text-[10px]"></i> ${maq}</span>` : ''}
                         <div class="flex items-center gap-1 flex-1 min-w-0">
                             <span class="font-mono text-[13px] font-semibold text-goodyear-blue dark:text-blue-400">${asig.equipo}</span>${!eqValido ? ' <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-200 dark:border-amber-800" title="Este equipo no existe en el listado ASRS y por eso no se muestra en la planificación"><i class="fas fa-exclamation-triangle"></i> No existe</span>' : ''}
                         </div>
