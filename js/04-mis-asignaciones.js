@@ -186,6 +186,21 @@
             renderTablaMisAsignaciones();
         }
 
+        function toggleMisAsigPrintMenu(e) {
+            const menu = e.currentTarget.nextElementSibling;
+            if (!menu) return;
+            const wasOpen = !menu.classList.contains('hidden');
+            document.querySelectorAll('#misAsigPrintMenu, #misAsigPrintMenuTable').forEach(m => m.classList.add('hidden'));
+            if (!wasOpen) menu.classList.remove('hidden');
+            e.stopPropagation();
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.relative')) {
+                document.querySelectorAll('#misAsigPrintMenu, #misAsigPrintMenuTable').forEach(m => m.classList.add('hidden'));
+            }
+        });
+
         async function cargarCumplimientoAnual(anio) {
             const progressAnual = document.getElementById('misAsigProgressAnual');
             const normalizar = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -253,7 +268,7 @@
         }
         window.cerrarSesionMisAsignaciones = cerrarSesionMisAsignaciones;
 
-        async function imprimirMisAsignaciones() {
+        async function imprimirMisAsignaciones(modo) {
             if (!loggedUserFullName) {
                 if (typeof mostrarAlerta === 'function') {
                     mostrarAlerta('Atención', 'Debes iniciar sesión para imprimir tus asignaciones.', 'fa-info-circle text-blue-500');
@@ -286,6 +301,8 @@
 
                 const realizada = esInspeccionRealizada(a, inspecciones);
 
+                if (modo === 'pendientes') return !realizada;
+                if (modo === 'realizadas') return realizada;
                 if (misAsigFiltroEstado === 'realizadas') return realizada;
                 if (misAsigFiltroEstado === 'pendientes') return !realizada;
                 return true;
@@ -300,9 +317,28 @@
 
             const setSinQR = await obtenerSetEquiposSinQR();
 
+            const totalPeriodo = currentMisAsignaciones.filter(a => {
+                const eq = (a.equipo || '').toLowerCase();
+                const zona = (a.zona || '').toLowerCase();
+                const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText);
+                return matchesSearch;
+            }).length;
+            const realizadasPeriodo = currentMisAsignaciones.filter(a => {
+                const eq = (a.equipo || '').toLowerCase();
+                const zona = (a.zona || '').toLowerCase();
+                const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText);
+                return matchesSearch && esInspeccionRealizada(a, inspecciones);
+            }).length;
+
             const totalCount = filtered.length;
             const realizadasCount = filtered.filter(a => esInspeccionRealizada(a, inspecciones)).length;
             const pendientesCount = totalCount - realizadasCount;
+
+            const modoTitulo = modo === 'pendientes'
+                ? 'Solo Asignaciones Pendientes'
+                : modo === 'realizadas'
+                    ? 'Solo Asignaciones Realizadas'
+                    : 'Hoja de Asignaciones Individuales';
 
             const printWin = window.open('', '_blank');
             if (!printWin) {
@@ -480,7 +516,7 @@
                     <div class="header-container">
                         <div>
                             <div class="brand-title">GOODYEAR - INSPECCIONES ASRS</div>
-                            <div class="brand-subtitle">Hoja de Asignaciones Individuales</div>
+                            <div class="brand-subtitle">${modoTitulo}</div>
                         </div>
                         <div class="meta-box">
                             <div><strong>Fecha Impresión:</strong> ${fechaImpresion}</div>
@@ -501,8 +537,8 @@
                             <div class="info-label">Resumen de Asignaciones</div>
                             <div class="kpi-container" style="justify-content: flex-end; margin-top: 2px;">
                                 <span class="kpi-badge kpi-total">Total: ${totalCount}</span>
-                                <span class="kpi-badge kpi-realizada">Realizadas: ${realizadasCount}</span>
-                                <span class="kpi-badge kpi-pendiente">Pendientes: ${pendientesCount}</span>
+                                <span class="kpi-badge kpi-realizada">Realizadas: ${realizadasPeriodo}</span>
+                                <span class="kpi-badge kpi-pendiente">Pendientes: ${totalPeriodo - realizadasPeriodo}</span>
                             </div>
                         </div>
                     </div>
@@ -527,6 +563,7 @@
                     <div class="footer">
                         Goodyear Chile · Dashboard de Inspecciones ASRS · Documento de Control Interno
                     </div>
+                    ${modo === 'pendientes' ? '<div class="footer" style="margin-top: 5px; font-weight: bold; color: #b91c1c;">Este documento incluye SOLO las asignaciones PENDIENTES de ' + loggedUserFullName + '.</div>' : ''}
 
                     <script>
                         window.onload = function() {
