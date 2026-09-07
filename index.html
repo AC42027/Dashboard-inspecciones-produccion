@@ -1335,39 +1335,52 @@
                 <!-- Cards Grid -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Month Selector -->
-                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"><i class="fas fa-calendar text-[#003399] dark:text-yellow-400 mr-1.5"></i>Seleccionar Mes</label>
+                    <div class="flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
+                        <div class="flex items-center justify-between gap-2 mb-3">
+                            <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-calendar text-[#003399] dark:text-yellow-400 mr-1.5"></i>Seleccionar Mes</label>
+                            <span class="hidden sm:inline text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0">Por semana</span>
+                        </div>
                         <div class="flex gap-2">
                             <select id="misAsigMes" class="flex-1 border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()"></select>
                             <button onclick="cargarMisAsignaciones()" class="btn btn-primary btn-md">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
-                        <div id="misAsigSemanasResumen" class="mt-4 space-y-2"></div>
+                        <div id="misAsigSemanasResumen" class="mt-4 flex-1 space-y-2 overflow-y-auto min-h-0"></div>
                     </div>
 
                     <!-- Monthly Progress -->
-                    <div id="misAsigProgress" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
-                        <div class="flex items-center justify-between mb-3">
+                    <div id="misAsigProgress" class="hidden flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
+                        <div class="flex items-center mb-4">
                             <span class="text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-check-circle text-emerald-500 mr-1.5"></i>Cumplimiento Mensual</span>
-                            <span id="misAsigProgressPct" class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">0%</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center justify-center gap-2 py-2">
+                            <span id="misAsigProgressPct" class="text-5xl font-bold leading-none tracking-tight text-emerald-600 dark:text-emerald-400">0%</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 text-[11px] font-bold uppercase tracking-wider">
+                                <i class="fas fa-calendar-week"></i> Progreso del mes
+                            </span>
                         </div>
                         <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                             <div id="misAsigProgressBar" class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2" id="misAsigProgressText">0 de 0 realizados</p>
+                        <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-3" id="misAsigProgressText">0 de 0 realizados</p>
                     </div>
 
                     <!-- Annual Progress -->
-                    <div id="misAsigProgressAnual" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
-                        <div class="flex items-center justify-between mb-3">
+                    <div id="misAsigProgressAnual" class="hidden flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
+                        <div class="flex items-center mb-4">
                             <span class="text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-calendar-alt text-[#003399] dark:text-yellow-400 mr-1.5"></i>Cumplimiento Anual</span>
-                            <span id="misAsigProgressAnualPct" class="text-2xl font-bold text-[#003399] dark:text-yellow-400">0%</span>
+                        </div>
+                        <div class="flex-1 flex flex-col items-center justify-center gap-2 py-2">
+                            <span id="misAsigProgressAnualPct" class="text-5xl font-bold leading-none tracking-tight text-[#003399] dark:text-yellow-400">0%</span>
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-[11px] font-bold uppercase tracking-wider">
+                                <i class="fas fa-calendar-alt"></i> Progreso del a&ntilde;o
+                            </span>
                         </div>
                         <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                             <div id="misAsigProgressAnualBar" class="h-full bg-gradient-to-r from-blue-400 to-[#003399] dark:to-yellow-400 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2" id="misAsigProgressAnualText">0 de 0 realizados en el a&ntilde;o</p>
+                        <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-3" id="misAsigProgressAnualText">0 de 0 realizados en el a&ntilde;o</p>
                     </div>
                 </div>
 
