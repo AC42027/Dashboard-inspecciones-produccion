@@ -192,10 +192,8 @@
             const construirItem = (num, startStr, start, end) => {
                 const weekAsigs = currentMisAsignaciones.filter(a => a.fecha === startStr);
                 const grupos = [...new Set(weekAsigs.map(a => resolverGrupoAsignacion(a)).filter(Boolean))];
-                const count = weekAsigs.length;
                 const contenido = grupos.length > 0
-                    ? `<span class="text-sm font-bold text-gray-800 dark:text-white">${grupos.join(' · ')}</span>
-                       <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 ml-1.5">${count} ${count === 1 ? 'equipo' : 'equipos'}</span>`
+                    ? `<span class="text-sm font-bold text-gray-800 dark:text-white">${grupos.join(' · ')}</span>`
                     : `<span class="text-sm font-medium italic text-gray-400 dark:text-gray-500">Sin asignaciones</span>`;
                 return `
                     <div class="flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/60 px-3 py-2">
