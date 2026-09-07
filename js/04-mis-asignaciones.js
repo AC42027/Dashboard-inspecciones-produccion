@@ -84,6 +84,8 @@
 
                 currentMisAsignaciones = data.filter(a => matchAsociado(loggedUserFullName, a.asociado));
 
+                renderResumenSemanas();
+
                 if (currentMisAsignaciones.length === 0) {
                     noData.classList.remove('hidden');
                     loading.classList.add('hidden');
@@ -165,6 +167,59 @@
                 tbody.innerHTML = html;
             }
             wrapper.classList.remove('hidden');
+        }
+
+        function renderResumenSemanas() {
+            const cont = document.getElementById('misAsigSemanasResumen');
+            if (!cont) return;
+
+            const selMes = document.getElementById('misAsigMes');
+            let mes = selMes ? selMes.value : '';
+            if (!mes && currentMisAsignaciones.length > 0 && currentMisAsignaciones[0].fecha) {
+                mes = currentMisAsignaciones[0].fecha.slice(0, 7);
+            }
+            if (!mes) { cont.innerHTML = ''; return; }
+
+            const parts = mes.split('-').map(Number);
+            if (parts.length !== 2 || !parts[0] || !parts[1]) { cont.innerHTML = ''; return; }
+
+            const periods = (typeof get4PeriodsOfMonth === 'function')
+                ? get4PeriodsOfMonth(parts[0], parts[1] - 1)
+                : [];
+
+            const fmt = d => `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+
+            const construirItem = (num, start, end) => {
+                const weekAsigs = currentMisAsignaciones.filter(a => a.fecha === start);
+                const grupos = [...new Set(weekAsigs.map(a => resolverGrupoAsignacion(a)).filter(Boolean))];
+                const count = weekAsigs.length;
+                const contenido = grupos.length > 0
+                    ? `<span class="text-sm font-bold text-gray-800 dark:text-white">${grupos.join(' · ')}</span>
+                       <span class="text-[11px] font-semibold text-gray-500 dark:text-gray-400 ml-1.5">${count} ${count === 1 ? 'equipo' : 'equipos'}</span>`
+                    : `<span class="text-sm font-medium italic text-gray-400 dark:text-gray-500">Sin asignaciones</span>`;
+                return `
+                    <div class="flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/60 px-3 py-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#003399] dark:text-yellow-400 shrink-0">Semana ${num}</span>
+                            <span class="text-[11px] text-gray-500 dark:text-gray-400">${fmt(start)} - ${fmt(end)}</span>
+                        </div>
+                        <div class="flex items-center text-right shrink-0">${contenido}</div>
+                    </div>`;
+            };
+
+            if (periods.length > 0) {
+                cont.innerHTML = periods.map(p => construirItem(p.num, p.start, p.end)).join('');
+            } else {
+                // Fallback: agrupar por fecha distinta (ordenadas cronológicamente)
+                const fechas = [...new Set(currentMisAsignaciones.map(a => a.fecha).filter(Boolean))].sort();
+                cont.innerHTML = fechas.length
+                    ? fechas.map((f, i) => {
+                        const inicio = new Date(f + 'T00:00:00');
+                        const fin = new Date(inicio.getTime() + 6 * 24 * 60 * 60 * 1000);
+                        return construirItem(i + 1, inicio, fin);
+                    }).join('')
+                    : '<p class="text-sm text-gray-400 dark:text-gray-500">Sin asignaciones este mes.</p>';
+            }
         }
 
         function filtrarMisAsignaciones() {
