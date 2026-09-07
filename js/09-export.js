@@ -43,7 +43,7 @@
                     const realizada = esInspeccionRealizada(a, inspecciones, mesStr);
                     const estado = realizada ? 'REALIZADA' : 'PENDIENTE';
                     if (realizada) totalRealizadas++; else totalPendientes++;
-                    datos.push([aso, a.equipo, a.zona || 'N/A', resolverMaquinaEquipo(a.equipo) || '—', estado]);
+                    datos.push([aso, a.equipo, a.zona || 'N/A', resolverGrupoAsignacion(a) || '—', estado]);
                 });
             });
 

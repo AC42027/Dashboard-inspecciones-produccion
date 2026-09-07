@@ -123,7 +123,7 @@
             let filtered = currentMisAsignaciones.filter(a => {
                 const eq = (a.equipo || '').toLowerCase();
                 const zona = (a.zona || '').toLowerCase();
-                const maq = resolverMaquinaEquipo(a.equipo).toLowerCase();
+                const maq = resolverGrupoAsignacion(a).toLowerCase();
                 const matchesSearch = !searchText || eq.includes(searchText) || zona.includes(searchText) || maq.includes(searchText);
                 if (!matchesSearch) return false;
 
@@ -152,7 +152,7 @@
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-100 dark:border-slate-700/50">
                         <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}${esSinQR ? `<span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700" title="Este equipo tiene reporte activo sin QR"><i class="fas fa-exclamation-triangle"></i> Sin QR</span>` : ''}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${a.zona || 'N/A'}</td>
-                        <td class="text-sm font-medium text-gray-600 dark:text-gray-300 px-5 py-3.5">${resolverMaquinaEquipo(a.equipo) || '—'}</td>
+                        <td class="text-sm font-medium text-gray-600 dark:text-gray-300 px-5 py-3.5">${resolverGrupoAsignacion(a) || '—'}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${rangoSemana}</td>
                         <td class="text-center px-5 py-3.5">
                             ${st === 'REALIZADA'
@@ -376,7 +376,7 @@
                         <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
                         <td style="font-weight: bold; color: #003399;">${a.equipo || '-'}${esSinQR ? '<br><span style="color:#b45309;font-weight:bold;font-size:9.5px;">⚠ SIN QR</span>' : ''}</td>
                         <td>${a.zona || 'N/A'}</td>
-                        <td>${resolverMaquinaEquipo(a.equipo) || '—'}</td>
+                        <td>${resolverGrupoAsignacion(a) || '—'}</td>
                         <td>${rangoSemana}</td>
                         <td style="text-align: center;">${estadoBadge}</td>
                         <td style="border-bottom: 1px dashed #ccc;"></td>

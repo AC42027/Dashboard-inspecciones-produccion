@@ -149,7 +149,7 @@
                     const periods = get4PeriodsOfMonth(y, m - 1);
                     const p = periods.find(p => p.startStr === a.fecha);
                     if (!p || !gruposPorSemana[p.num]) return;
-                    const grp = resolverMaquinaEquipo(a.equipo);
+                    const grp = resolverGrupoAsignacion(a);
                     if (grp) gruposPorSemana[p.num].add(grp);
                     countPorSemana[p.num]++;
                 });
@@ -228,7 +228,7 @@
                     const st = evaluarEstadoAsignacion(asig, inspecciones, mesStr);
                     const eqValido = Array.from(document.querySelectorAll('#asrsEqList option')).some(opt =>
                         opt && normalizarTexto(opt.value) === normalizarTexto(asig.equipo));
-                    const maq = resolverMaquinaEquipo(asig.equipo);
+                    const maq = resolverGrupoAsignacion(asig);
 
                     html += `<div class="flex items-center gap-3 px-4 py-2.5 border-b border-gray-100 dark:border-slate-700/60 hover:bg-gray-50 dark:hover:bg-slate-700/40 transition-colors">
                         <div class="w-px self-stretch bg-gray-200 dark:bg-slate-600 mr-1"></div>
@@ -1608,7 +1608,7 @@
                                             <span class="text-[9px] text-goodyear-blue dark:text-blue-300 font-medium bg-blue-50 dark:bg-blue-900/30 px-1.5 py-0.5 rounded">
                                                 <i class="fas fa-map-marker-alt"></i> ${e.zona}
                                             </span>
-                                            ${resolverMaquinaEquipo(e.equipo) ? `<span class="text-[9px] text-sky-700 dark:text-sky-300 font-medium bg-sky-50 dark:bg-sky-900/30 px-1.5 py-0.5 rounded"><i class="fas fa-industry"></i> ${resolverMaquinaEquipo(e.equipo)}</span>` : ''}
+                                            ${resolverGrupoAsignacion(e) ? `<span class="text-[9px] text-sky-700 dark:text-sky-300 font-medium bg-sky-50 dark:bg-sky-900/30 px-1.5 py-0.5 rounded"><i class="fas fa-industry"></i> ${resolverGrupoAsignacion(e)}</span>` : ''}
                                         </div>
                                         <div class="pt-1.5 border-t border-gray-200 dark:border-slate-700">
                                             <div class="flex items-center gap-1.5">

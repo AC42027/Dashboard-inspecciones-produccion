@@ -176,6 +176,15 @@
             return '';
         }
 
+        // Resuelve el grupo visible de una asignación. Si la zona indica un grupo de crane
+        // ("Crane N", "Crane N Inbound"/"Outbound"), agrupa todo bajo el nombre del crane.
+        function resolverGrupoAsignacion(asig) {
+            const zona = (asig && asig.zona) || '';
+            const m = String(zona).match(/^crane\s+(\d+)/i);
+            if (m) return 'Crane ' + m[1];
+            return resolverMaquinaEquipo(asig && asig.equipo);
+        }
+
         function matchAsociado(owner, asociado) {
             if (!owner || !asociado) return true;
             const limpiar = s => normalizarTexto(s).replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
