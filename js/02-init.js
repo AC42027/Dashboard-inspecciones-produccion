@@ -88,18 +88,15 @@
             document.getElementById('view-mapa').classList.toggle('hidden', tab !== 'mapa');
             document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
 
-            // Ampliar ancho para las pestañas de mapa y asignaciones para mejor visibilidad
+            // Mantener ancho contenedor alineado con el header corporativo
             const mainCont = document.querySelector('main');
-            if (tab === 'asignaciones' || tab === 'mapa') {
-                mainCont.classList.remove('max-w-7xl');
-                mainCont.classList.add('max-w-[95%]');
-            } else {
+            if (mainCont) {
                 mainCont.classList.add('max-w-7xl');
                 mainCont.classList.remove('max-w-[95%]');
             }
 
-            const activeTabClass = 'pb-3 pt-3 border-b-4 border-[#FBBD00] text-[#FBBD00] font-bold text-xs sm:text-sm uppercase tracking-wider bg-[#0B1D45] px-5 rounded-t-lg transition-all flex items-center gap-2';
-            const inactiveTabClass = 'pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2';
+            const activeTabClass = 'pb-3 pt-3 border-b-4 border-[#FBBD00] text-[#FBBD00] font-bold text-xs sm:text-sm uppercase tracking-wider bg-[#0B1D45] px-5 rounded-t-lg transition-all flex items-center gap-2 shadow-sm';
+            const inactiveTabClass = 'pb-3 pt-3 border-b-4 border-transparent text-slate-200 hover:text-[#FBBD00] font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] px-5 rounded-t-lg transition-all flex items-center gap-2';
 
             document.getElementById('tab-inspecciones').className = tab === 'inspecciones' ? activeTabClass : inactiveTabClass;
             
