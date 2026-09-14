@@ -138,24 +138,21 @@
         <div id="view-inspecciones" class="space-y-8 block">
 
             <!-- Controles y Filtros -->
-            <section class="glass-panel filter-banner p-6">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-3">
-                        <span
-                            class="w-10 h-10 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
-                            <i class="fas fa-filter text-goodyear-blue dark:text-goodyear-yellow text-sm"></i>
+            <section class="glass-panel filter-banner p-6 overflow-hidden">
+                <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h2 class="text-base sm:text-lg font-extrabold text-white flex flex-wrap items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-[#FBBD00] text-[#0B1D45] flex items-center justify-center shadow shrink-0">
+                            <i class="fas fa-filter text-sm"></i>
                         </span>
                         <span class="flex flex-col leading-tight">
-                            <span class="text-base font-extrabold tracking-tight">Filtros de Búsqueda</span>
-                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Inspecciones técnicas</span>
+                            <span class="text-base font-extrabold tracking-tight text-white">Filtros de Búsqueda</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-[#FBBD00] brand-caption">Inspecciones técnicas • Plantas Goodyear Chile</span>
                         </span>
-                        <span
-                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 shadow-sm">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1 bg-[#FBBD00] text-[#0B1D45] rounded-full shadow-sm">
                             <i class="fas fa-clipboard-list"></i> Total: <span id="metric-total">0</span>
                         </span>
-                        <span
-                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50 shadow-sm">
-                            <i class="fas fa-calendar-days"></i> Mes: <span id="metric-mes">0</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1 bg-white/20 text-white rounded-full border border-white/30 shadow-sm">
+                            <i class="fas fa-calendar-days text-[#FBBD00]"></i> Mes: <span id="metric-mes">0</span>
                         </span>
                     </h2>
                     <div class="flex gap-3 w-full md:w-auto">
@@ -299,24 +296,21 @@
         <!-- PESTAÑA ANALÍTICA: PANEL ANALÍTICO DE INSPECCIONES -->
         <div id="view-analitica" class="space-y-8 hidden">
             <!-- Filtros de Búsqueda del Panel Analítico -->
-            <section class="glass-panel filter-banner p-6">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h2 class="text-lg font-bold text-gray-800 dark:text-white flex flex-wrap items-center gap-3">
-                        <span
-                            class="w-10 h-10 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
-                            <i class="fas fa-chart-line text-goodyear-blue dark:text-goodyear-yellow text-sm"></i>
+            <section class="glass-panel filter-banner p-6 overflow-hidden">
+                <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                    <h2 class="text-base sm:text-lg font-extrabold text-white flex flex-wrap items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-[#FBBD00] text-[#0B1D45] flex items-center justify-center shadow shrink-0">
+                            <i class="fas fa-chart-line text-sm"></i>
                         </span>
                         <span class="flex flex-col leading-tight">
-                            <span class="text-base font-extrabold tracking-tight">Filtros de Gráficas</span>
-                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Panel analítico</span>
+                            <span class="text-base font-extrabold tracking-tight text-white">Filtros de Gráficas</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-[#FBBD00] brand-caption">Panel analítico • Goodyear Chile</span>
                         </span>
-                        <span
-                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-goodyear-blue dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800 shadow-sm">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1 bg-[#FBBD00] text-[#0B1D45] rounded-full shadow-sm">
                             <i class="fas fa-clipboard-list"></i> Total: <span id="metric-total-analitica">0</span>
                         </span>
-                        <span
-                            class="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-goodyear-yellow rounded-full border border-yellow-200 dark:border-yellow-900/50 shadow-sm">
-                            <i class="fas fa-calendar-days"></i> Mes: <span id="metric-mes-analitica">0</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-extrabold px-3 py-1 bg-white/20 text-white rounded-full border border-white/30 shadow-sm">
+                            <i class="fas fa-calendar-days text-[#FBBD00]"></i> Mes: <span id="metric-mes-analitica">0</span>
                         </span>
                     </h2>
                     <div class="flex gap-3 w-full md:w-auto">
@@ -401,16 +395,15 @@
 
         <!-- PESTAÑA 2: ASIGNACIONES MENSUALES -->
         <div id="view-asignaciones" class="space-y-8 hidden">
-            <section class="glass-panel filter-banner p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-                        <span
-                            class="w-11 h-11 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
-                            <i class="fas fa-calendar-alt text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
+            <section class="glass-panel filter-banner p-6 overflow-hidden">
+                <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex justify-between items-center gap-4">
+                    <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-[#FBBD00] text-[#0B1D45] flex items-center justify-center shadow shrink-0">
+                            <i class="fas fa-calendar-alt text-sm"></i>
                         </span>
                         <span class="flex flex-col leading-tight">
-                            <span class="text-lg font-extrabold tracking-tight">Asignaciones Mensuales ASRS</span>
-                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Planificación de rutas</span>
+                            <span class="text-base font-extrabold tracking-tight text-white">Asignaciones Mensuales ASRS</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-[#FBBD00] brand-caption">Planificación de rutas • Plantas Goodyear Chile</span>
                         </span>
                     </h2>
                     <button id="btnModoAdmin" onclick="toggleModoAdmin()"
@@ -1167,16 +1160,15 @@
 
         <!-- PESTAÑA: EQUIPOS SIN QR -->
         <div id="view-equipos-sin-qr" class="space-y-8 hidden">
-            <section class="glass-panel filter-banner p-6">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-                        <span
-                            class="w-11 h-11 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
-                            <i class="fas fa-qrcode text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
+            <section class="glass-panel filter-banner p-6 overflow-hidden">
+                <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex flex-wrap justify-between items-center gap-4">
+                    <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-[#FBBD00] text-[#0B1D45] flex items-center justify-center shadow shrink-0">
+                            <i class="fas fa-qrcode text-sm"></i>
                         </span>
                         <span class="flex flex-col leading-tight">
-                            <span class="text-lg font-extrabold tracking-tight">Equipos sin QR</span>
-                            <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Registro de inspecciones</span>
+                            <span class="text-base font-extrabold tracking-tight text-white">Equipos sin QR</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-[#FBBD00] brand-caption">Registro de inspecciones • Goodyear Chile</span>
                         </span>
                     </h2>
                     <div class="flex flex-wrap items-center gap-2">
@@ -1190,7 +1182,7 @@
                             <i class="fas fa-trash-alt"></i> <span>Eliminar seleccionados (<span id="countSinQRSeleccionados">0</span>)</span>
                         </button>
                         <button onclick="cargarEquiposSinQR()"
-                            class="btn btn-primary btn-sm">
+                            class="btn btn-secondary btn-sm">
                             <i class="fas fa-sync-alt"></i> Refrescar
                         </button>
                     </div>
@@ -1223,20 +1215,18 @@
         <!-- PESTAÑA: MAPA DE ASRS -->
         <div id="view-mapa" class="space-y-6 hidden">
             <section class="glass-panel overflow-hidden">
-                <div class="brand-bar"></div>
-                <div class="p-5 sm:p-6">
-                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-5">
-                        <h2 class="text-2xl font-bold text-gray-800 dark:text-white flex items-center gap-3">
-                            <span
-                                class="w-11 h-11 rounded-full bg-goodyear-blue/10 dark:bg-goodyear-yellow/10 border border-goodyear-blue/20 dark:border-goodyear-yellow/20 flex items-center justify-center shadow-inner shrink-0">
-                                <i class="fas fa-map-location-dot text-goodyear-blue dark:text-goodyear-yellow text-base"></i>
-                            </span>
-                            <span class="flex flex-col leading-tight">
-                                <span class="text-lg font-extrabold tracking-tight">Mapa de ASRS</span>
-                                <span class="text-[10px] font-semibold uppercase tracking-wider text-gray-400 dark:text-slate-500">Layout Planta Goodyear · Busca por código (ej. P4440)</span>
-                            </span>
-                        </h2>
-                    </div>
+                <div class="card-header-navy px-6 py-4 mb-5 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                    <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-[#FBBD00] text-[#0B1D45] flex items-center justify-center shadow shrink-0">
+                            <i class="fas fa-map-location-dot text-sm"></i>
+                        </span>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-base font-extrabold tracking-tight text-white">Mapa de ASRS</span>
+                            <span class="text-[10px] font-semibold uppercase tracking-wider text-[#FBBD00] brand-caption">Layout Planta Goodyear • Busca por código (ej. P4440)</span>
+                        </span>
+                    </h2>
+                </div>
+                <div class="px-5 sm:px-6 pb-6">
 
                     <div class="flex flex-col xl:flex-row gap-3 xl:items-center">
                         <div class="relative flex-1 xl:max-w-md">
@@ -1316,19 +1306,17 @@
             <!-- Content (visible after login) -->
             <div id="misAsigContent" class="hidden space-y-6">
                 <!-- Header -->
-                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 overflow-visible">
-                    <div class="brand-bar" style="border-radius: 15px 15px 0 0;"></div>
-                    <div class="p-6">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-headline uppercase tracking-wider">
-                                    <i class="fas fa-calendar-alt text-[#0B1D45] dark:text-yellow-400"></i> Mis Asignaciones
-                                </h2>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    <i class="fas fa-user text-[#0B1D45] dark:text-yellow-400 mr-1"></i> <span id="misAsigUserName"></span>
-                                </p>
-                            </div>
-                            <div class="flex items-center gap-3">
+                <div class="glass-panel overflow-hidden">
+                    <div class="card-header-navy px-6 py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2 font-headline uppercase tracking-wider">
+                                <i class="fas fa-calendar-alt text-[#FBBD00]"></i> Mis Asignaciones
+                            </h2>
+                            <p class="text-xs text-[#D2D2D2] brand-caption mt-1">
+                                <i class="fas fa-user text-[#FBBD00] mr-1"></i> <span id="misAsigUserName"></span>
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-3">
                             <div class="relative">
                                 <button onclick="toggleMisAsigPrintMenu(event)" class="btn btn-secondary btn-md">
                                     <i class="fas fa-print"></i> <span class="hidden sm:inline">Imprimir</span>
@@ -1343,10 +1331,9 @@
                                     </a>
                                 </div>
                             </div>
-                                <button onclick="cerrarSesionMisAsignaciones()" class="btn btn-secondary btn-md">
-                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesi&oacute;n
-                                </button>
-                            </div>
+                            <button onclick="cerrarSesionMisAsignaciones()" class="btn btn-secondary btn-md">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar Sesi&oacute;n
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1421,10 +1408,10 @@
                 </div>
 
                 <!-- Table -->
-                <div id="misAsigTableWrapper" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 overflow-visible">
-                    <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-                        <h3 class="font-semibold text-gray-800 dark:text-white text-sm flex items-center gap-2">
-                            <i class="fas fa-list text-[#0B1D45] dark:text-yellow-400"></i> Detalle de Asignaciones
+                <div id="misAsigTableWrapper" class="hidden glass-panel overflow-hidden">
+                    <div class="card-header-navy px-5 py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <h3 class="font-extrabold text-white text-xs uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-list text-[#FBBD00]"></i> Detalle de Asignaciones
                         </h3>
                         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                             <div class="relative">

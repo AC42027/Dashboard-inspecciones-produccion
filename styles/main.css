@@ -120,6 +120,20 @@ h1, h2, h3, h4, .brand-headline, .headline-font {
     border-bottom: 2px solid #FBBD00;
 }
 
+/* Goodyear Racing Navy Card Headers */
+.card-header-navy {
+    background-color: #0B1D45;
+    color: #FFFFFF;
+    border-bottom: 3px solid #FBBD00;
+    border-top-left-radius: 15px;
+    border-top-right-radius: 15px;
+}
+
+.dark .card-header-navy {
+    background-color: #06122D;
+    border-bottom: 3px solid #FBBD00;
+}
+
 .glass-input {
     appearance: none;
     background: white;

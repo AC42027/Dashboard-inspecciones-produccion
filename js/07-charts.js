@@ -124,13 +124,13 @@
                 const tasaConformidad = totalPuntos > 0 ? ((globalOk / totalPuntos) * 100).toFixed(1) : '100.0';
 
                 const kpiSection = document.createElement('div');
-                kpiSection.className = 'glass-panel p-6 space-y-6';
+                kpiSection.className = 'glass-panel p-6 overflow-hidden space-y-6';
                 kpiSection.innerHTML = `
-                    <div class="flex items-center justify-between border-b border-gray-200 dark:border-slate-700 pb-4">
-                        <h3 class="text-lg font-bold text-goodyear-blue dark:text-white uppercase flex items-center gap-2">
-                            <i class="fas fa-chart-pie text-goodyear-yellow"></i> Indicadores de Rendimiento Global (KPIs)
+                    <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex items-center justify-between">
+                        <h3 class="text-base font-extrabold text-white uppercase tracking-wider flex items-center gap-2">
+                            <i class="fas fa-chart-pie text-[#FBBD00]"></i> Indicadores de Rendimiento Global (KPIs)
                         </h3>
-                        <span class="text-xs px-2.5 py-1 rounded-full font-bold ${tasaConformidad >= 90 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300'}">
+                        <span class="text-xs px-3 py-1 rounded-full font-extrabold ${tasaConformidad >= 90 ? 'bg-[#FBBD00] text-[#0B1D45]' : 'bg-amber-400 text-[#0B1D45]'}">
                             Condición Operativa: ${tasaConformidad}% OK
                         </span>
                     </div>
@@ -359,22 +359,22 @@
                     });
 
                     const zoneContainer = document.createElement('div');
-                    zoneContainer.className = 'glass-panel p-6 space-y-6 chart-enter';
+                    zoneContainer.className = 'glass-panel p-6 overflow-hidden space-y-6 chart-enter';
                     zoneContainer.style.animationDelay = `${index * 80}ms`;
                     zoneContainer.innerHTML = `
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-gray-200 dark:border-slate-700 pb-4">
-                            <h3 class="text-xl font-bold text-goodyear-blue dark:text-white uppercase flex items-center gap-2">
-                                <i class="fas fa-industry text-goodyear-yellow"></i> Zona: ${zona}
+                        <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                            <h3 class="text-base font-extrabold text-white uppercase flex items-center gap-2">
+                                <i class="fas fa-industry text-[#FBBD00]"></i> Zona: ${zona}
                             </h3>
                             <div class="flex flex-wrap gap-2 text-xs">
-                                <span class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900/40 text-goodyear-blue dark:text-blue-300 font-semibold rounded-full border border-blue-200 dark:border-blue-800">
+                                <span class="px-2.5 py-1 bg-white/20 text-white font-extrabold rounded-full border border-white/30">
                                     ${datos.length} Inspecciones
                                 </span>
-                                <span class="px-2.5 py-1 font-semibold rounded-full border ${zConformidad >= 90 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' : 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border-amber-200 dark:border-amber-800'}">
+                                <span class="px-2.5 py-1 font-extrabold rounded-full bg-[#FBBD00] text-[#0B1D45]">
                                     Conformidad: ${zConformidad}% OK
                                 </span>
-                                ${zSap > 0 ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-semibold rounded-full border border-amber-200 dark:border-amber-800"><i class="fas fa-exclamation-circle mr-1"></i>${zSap} Avisos SAP</span>` : ''}
-                                ${zQrEquipos.length > 0 ? `<span class="px-2.5 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 font-semibold rounded-full border border-amber-200 dark:border-amber-800 cursor-help" title="Equipos con reporte Sin QR: ${zQrEquipos.join(', ')}"><i class="fas fa-exclamation-triangle mr-1"></i>${zQrEquipos.length} Sin QR</span>` : ''}
+                                ${zSap > 0 ? `<span class="px-2.5 py-1 bg-amber-400 text-[#0B1D45] font-extrabold rounded-full"><i class="fas fa-exclamation-circle mr-1"></i>${zSap} Avisos SAP</span>` : ''}
+                                ${zQrEquipos.length > 0 ? `<span class="px-2.5 py-1 bg-amber-400 text-[#0B1D45] font-extrabold rounded-full cursor-help" title="Equipos con reporte Sin QR: ${zQrEquipos.join(', ')}"><i class="fas fa-exclamation-triangle mr-1"></i>${zQrEquipos.length} Sin QR</span>` : ''}
                             </div>
                         </div>
 
