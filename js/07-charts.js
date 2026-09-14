@@ -39,7 +39,7 @@
                     legend: {
                         labels: {
                             color: textColor,
-                            font: { family: 'Inter', size: 12, weight: '500' },
+                            font: { family: "'Jost', 'PT Sans', sans-serif", size: 12, weight: '500' },
                             usePointStyle: true,
                             padding: 15
                         }
@@ -54,18 +54,18 @@
                         cornerRadius: 8,
                         boxPadding: 6,
                         usePointStyle: true,
-                        titleFont: { family: 'Inter', size: 13, weight: 'bold' },
-                        bodyFont: { family: 'Inter', size: 12 }
+                        titleFont: { family: "'Anton', 'Futura PT Cond', sans-serif", size: 13, weight: 'bold' },
+                        bodyFont: { family: "'Jost', 'PT Sans', sans-serif", size: 12 }
                     },
                     ...extraPlugins
                 },
                 scales: {
                     x: {
-                        ticks: { color: textColor, font: { family: 'Inter', size: 11 } },
+                        ticks: { color: textColor, font: { family: "'Jost', 'PT Sans', sans-serif", size: 11 } },
                         grid: { display: false }
                     },
                     y: {
-                        ticks: { color: textColor, font: { family: 'Inter', size: 11 } },
+                        ticks: { color: textColor, font: { family: "'Jost', 'PT Sans', sans-serif", size: 11 } },
                         grid: { color: gridColor },
                         beginAtZero: true
                     }
@@ -240,9 +240,6 @@
 
                 // Chart K2: Bar Zonas
                 const ctxZonas = document.getElementById('kpi-chart-zonas').getContext('2d');
-                const gradZonas = ctxZonas.createLinearGradient(0, 0, 0, 200);
-                gradZonas.addColorStop(0, '#003399');
-                gradZonas.addColorStop(1, '#3b82f6');
 
                 chartInstances.push(new Chart(ctxZonas, {
                     type: 'bar',
@@ -251,7 +248,7 @@
                         datasets: [{
                             label: 'Inspecciones',
                             data: Object.values(zonaCounts),
-                            backgroundColor: gradZonas,
+                            backgroundColor: '#0B1D45',
                             borderRadius: 6,
                             borderSkipped: false
                         }]
@@ -268,10 +265,10 @@
                         labels: ['Sin Aviso SAP', 'Con Aviso SAP'],
                         datasets: [{
                             data: [sinAvisoCount, conAvisoCount],
-                            backgroundColor: ['#003399', '#f59e0b'],
+                            backgroundColor: ['#0B1D45', '#FBBD00'],
                             borderWidth: 2,
                             hoverOffset: 6,
-                            borderColor: isDark ? '#1e293b' : '#ffffff'
+                            borderColor: isDark ? '#112246' : '#ffffff'
                         }]
                     },
                     options: {
@@ -297,9 +294,6 @@
                 const trendDataNok = sortedMonths.map(m => fechaMap[m].nok);
 
                 const ctxTrend = document.getElementById('kpi-chart-trend').getContext('2d');
-                const gradLine = ctxTrend.createLinearGradient(0, 0, 0, 180);
-                gradLine.addColorStop(0, 'rgba(0, 51, 153, 0.4)');
-                gradLine.addColorStop(1, 'rgba(0, 51, 153, 0.0)');
 
                 chartInstances.push(new Chart(ctxTrend, {
                     type: 'line',
@@ -309,11 +303,11 @@
                             {
                                 label: 'Inspecciones',
                                 data: trendDataTotal.length > 0 ? trendDataTotal : [inspeccionesFiltradas.length],
-                                borderColor: '#003399',
-                                backgroundColor: gradLine,
+                                borderColor: '#0B1D45',
+                                backgroundColor: 'rgba(11, 29, 69, 0.15)',
                                 fill: true,
                                 tension: 0.4,
-                                pointBackgroundColor: '#ffd200',
+                                pointBackgroundColor: '#FBBD00',
                                 pointRadius: 4
                             },
                             {
@@ -434,9 +428,6 @@
                     // DIBUJAR GRAFICOS DE LA ZONA
                     // Chart 1: Volume
                     const ctx1 = document.getElementById(`${idDiv}-1`).getContext('2d');
-                    const grad1 = ctx1.createLinearGradient(0, 0, 0, 240);
-                    grad1.addColorStop(0, '#003399');
-                    grad1.addColorStop(1, '#2563eb');
 
                     chartInstances.push(new Chart(ctx1, {
                         type: 'bar',
@@ -445,7 +436,7 @@
                             datasets: [{
                                 label: 'Inspecciones',
                                 data: data1,
-                                backgroundColor: labels1.map(eq => setSinQR.has(normalizarTexto(eq)) ? 'rgba(245, 158, 11, 0.85)' : grad1),
+                                backgroundColor: labels1.map(eq => setSinQR.has(normalizarTexto(eq)) ? '#FBBD00' : '#0B1D45'),
                                 borderRadius: 6,
                                 borderSkipped: false
                             }]
@@ -455,21 +446,14 @@
 
                     // Chart 2: OK vs NOK Grouped Bar
                     const ctx2 = document.getElementById(`${idDiv}-2`).getContext('2d');
-                    const gradOk = ctx2.createLinearGradient(0, 0, 0, 240);
-                    gradOk.addColorStop(0, '#10b981');
-                    gradOk.addColorStop(1, '#059669');
-
-                    const gradNok = ctx2.createLinearGradient(0, 0, 0, 240);
-                    gradNok.addColorStop(0, '#f43f5e');
-                    gradNok.addColorStop(1, '#be123c');
 
                     chartInstances.push(new Chart(ctx2, {
                         type: 'bar',
                         data: {
                             labels: labels2,
                             datasets: [
-                                { label: 'OK', data: dataOk, backgroundColor: gradOk, borderRadius: 6, borderSkipped: false },
-                                { label: 'NOK', data: dataNok, backgroundColor: gradNok, borderRadius: 6, borderSkipped: false }
+                                { label: 'OK', data: dataOk, backgroundColor: '#10b981', borderRadius: 6, borderSkipped: false },
+                                { label: 'NOK', data: dataNok, backgroundColor: '#f43f5e', borderRadius: 6, borderSkipped: false }
                             ]
                         },
                         options: getCommonOptions()

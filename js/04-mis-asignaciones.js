@@ -152,7 +152,7 @@
                     const st = evaluarEstadoAsignacion(a, inspecciones);
                     const esSinQR = setSinQR.has(normalizarTexto(a.equipo));
                     html += `<tr class="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors border-b border-gray-100 dark:border-slate-700/50">
-                        <td class="font-semibold text-[#003399] dark:text-yellow-400 px-5 py-3.5">${a.equipo}${esSinQR ? `<span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700" title="Este equipo tiene reporte activo sin QR"><i class="fas fa-exclamation-triangle"></i> Sin QR</span>` : ''}</td>
+                        <td class="font-semibold text-[#0B1D45] dark:text-yellow-400 px-5 py-3.5">${a.equipo}${esSinQR ? `<span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 border border-amber-300 dark:border-amber-700" title="Este equipo tiene reporte activo sin QR"><i class="fas fa-exclamation-triangle"></i> Sin QR</span>` : ''}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${a.zona || 'N/A'}</td>
                         <td class="text-sm font-medium text-gray-600 dark:text-gray-300 px-5 py-3.5">${resolverGrupoAsignacion(a) || '—'}</td>
                         <td class="text-sm text-gray-600 dark:text-gray-300 px-5 py-3.5">${rangoSemana}</td>
@@ -198,7 +198,7 @@
                 return `
                     <div class="flex items-center justify-between gap-2 rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/60 px-3 py-2">
                         <div class="flex items-center gap-2 min-w-0">
-                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#003399] dark:text-yellow-400 shrink-0">Semana ${num}</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#0B1D45] dark:text-yellow-400 shrink-0">Semana ${num}</span>
                             <span class="text-[11px] text-gray-500 dark:text-gray-400">${fmt(start)} - ${fmt(end)}</span>
                         </div>
                         <div class="flex items-center text-right shrink-0">${contenido}</div>
@@ -427,7 +427,7 @@
                 return `
                     <tr>
                         <td style="text-align: center; font-weight: bold;">${idx + 1}</td>
-                        <td style="font-weight: bold; color: #003399;">${a.equipo || '-'}${esSinQR ? '<br><span style="color:#b45309;font-weight:bold;font-size:9.5px;">⚠ SIN QR</span>' : ''}</td>
+                        <td style="font-weight: bold; color: #0B1D45;">${a.equipo || '-'}${esSinQR ? '<br><span style="color:#b45309;font-weight:bold;font-size:9.5px;">⚠ SIN QR</span>' : ''}</td>
                         <td>${a.zona || 'N/A'}</td>
                         <td>${resolverGrupoAsignacion(a) || '—'}</td>
                         <td>${rangoSemana}</td>
@@ -460,14 +460,14 @@
                             display: flex;
                             justify-content: space-between;
                             align-items: center;
-                            border-bottom: 3px solid #003399;
+                            border-bottom: 3px solid #0B1D45;
                             padding-bottom: 12px;
                             margin-bottom: 15px;
                         }
                         .brand-title {
                             font-size: 20px;
                             font-weight: bold;
-                            color: #003399;
+                            color: #0B1D45;
                             margin: 0;
                         }
                         .brand-subtitle {
@@ -526,14 +526,14 @@
                             margin-top: 10px;
                         }
                         th {
-                            background-color: #003399;
+                            background-color: #0B1D45;
                             color: #ffffff;
                             font-size: 11px;
                             text-transform: uppercase;
                             font-weight: bold;
                             padding: 8px 10px;
                             text-align: left;
-                            border: 1px solid #003399;
+                            border: 1px solid #0B1D45;
                         }
                         td {
                             padding: 8px 10px;

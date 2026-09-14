@@ -9,8 +9,8 @@
     <!-- Favicon: escudo con check (inspección) -->
     <link rel="icon" type="image/svg+xml" href="public/favicon.svg?v=20260905j">
 
-    <!-- Google Fonts: Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Anton (Headlines), Jost (Body), EB Garamond (Captions) -->
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=EB+Garamond:ital,wght@1,600;1,700&family=Jost:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
     <!-- QRCode JS Generator -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -22,13 +22,27 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    fontFamily: {
+                        headline: ['Anton', 'Futura PT Cond', 'Impact', 'sans-serif'],
+                        sans: ['Jost', 'PT Sans', 'Segoe UI', 'sans-serif'],
+                        body: ['Jost', 'PT Sans', 'Segoe UI', 'sans-serif'],
+                        caption: ['EB Garamond', 'Livory', 'Palatino Linotype', 'serif']
+                    },
                     colors: {
                         goodyear: {
-                            blue: '#003399',
-                            yellow: '#FFD200',
-                            dark: '#0f172a',
-                            panel: '#1e293b'
+                            navy: '#0B1D45',
+                            gold: '#FBBD00',
+                            lightgray: '#D2D2D2',
+                            darkgray: '#707379',
+                            white: '#FFFFFF',
+                            black: '#231F20',
+                            electricblue: '#224FF2',
+                            electricyellow: '#FCF23D',
+                            // Aliases for compatibility:
+                            blue: '#0B1D45',
+                            yellow: '#FBBD00',
+                            dark: '#0B1D45',
+                            panel: '#112246'
                         }
                     }
                 }
@@ -1264,20 +1278,20 @@
                         <div class="brand-bar"></div>
                         <div class="p-8">
                             <div class="text-center mb-6">
-                                <div class="w-16 h-16 bg-[#003399]/10 dark:bg-yellow-400/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <i class="fas fa-clipboard-list text-2xl text-[#003399] dark:text-yellow-400"></i>
+                                <div class="w-16 h-16 bg-[#0B1D45]/10 dark:bg-yellow-400/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <i class="fas fa-clipboard-list text-2xl text-[#0B1D45] dark:text-yellow-400"></i>
                                 </div>
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Mis Asignaciones</h2>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white font-headline uppercase tracking-wider">Mis Asignaciones</h2>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Ingresa con tu usuario de red para ver tus equipos asignados.</p>
                             </div>
                             <form id="misAsigLoginForm" class="space-y-4" onsubmit="handleMisAsigLogin(event)">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Usuario LDAP</label>
-                                    <input type="text" id="misAsigUser" required class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="usuario.red">
+                                    <input type="text" id="misAsigUser" required class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#0B1D45] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#0B1D45]/20 outline-none transition-all" placeholder="usuario.red">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">Contraseña</label>
-                                    <input type="password" id="misAsigPass" required class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" placeholder="••••••••">
+                                    <input type="password" id="misAsigPass" required class="w-full border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#0B1D45] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#0B1D45]/20 outline-none transition-all" placeholder="••••••••">
                                 </div>
                                 <div id="misAsigError" class="hidden text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 flex items-center gap-2"></div>
                                 <button type="submit" id="misAsigSubmitBtn" class="w-full btn btn-primary btn-lg">
@@ -1297,11 +1311,11 @@
                     <div class="p-6">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <i class="fas fa-calendar-alt text-[#003399] dark:text-yellow-400"></i> Mis Asignaciones
+                                <h2 class="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2 font-headline uppercase tracking-wider">
+                                    <i class="fas fa-calendar-alt text-[#0B1D45] dark:text-yellow-400"></i> Mis Asignaciones
                                 </h2>
                                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                                    <i class="fas fa-user text-[#003399] dark:text-yellow-400 mr-1"></i> <span id="misAsigUserName"></span>
+                                    <i class="fas fa-user text-[#0B1D45] dark:text-yellow-400 mr-1"></i> <span id="misAsigUserName"></span>
                                 </p>
                             </div>
                             <div class="flex items-center gap-3">
@@ -1312,7 +1326,7 @@
                                 </button>
                                 <div id="misAsigPrintMenu" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 py-1.5 z-50">
                                     <a href="javascript:void(0)" onclick="imprimirMisAsignaciones('todo')" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
-                                        <i class="fas fa-list mr-2 text-[#003399] dark:text-yellow-400"></i>Imprimir Todas
+                                        <i class="fas fa-list mr-2 text-[#0B1D45] dark:text-yellow-400"></i>Imprimir Todas
                                     </a>
                                     <a href="javascript:void(0)" onclick="imprimirMisAsignaciones('pendientes')" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
                                         <i class="fas fa-hourglass-half mr-2 text-red-500"></i>Imprimir Solo Pendientes
@@ -1332,11 +1346,11 @@
                     <!-- Month Selector -->
                     <div class="flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
                         <div class="flex items-center justify-between gap-2 mb-3">
-                            <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-calendar text-[#003399] dark:text-yellow-400 mr-1.5"></i>Seleccionar Mes</label>
+                            <label class="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center"><i class="fas fa-calendar text-[#0B1D45] dark:text-yellow-400 mr-1.5"></i>Seleccionar Mes</label>
                             <span class="hidden sm:inline text-[11px] font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 shrink-0">Por semana</span>
                         </div>
                         <div class="flex gap-2">
-                            <select id="misAsigMes" class="flex-1 border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#003399] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#003399]/20 outline-none transition-all" onchange="cargarMisAsignaciones()"></select>
+                            <select id="misAsigMes" class="flex-1 border border-gray-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white rounded-xl px-4 py-2.5 text-sm focus:border-[#0B1D45] dark:focus:border-yellow-400 focus:ring-2 focus:ring-[#0B1D45]/20 outline-none transition-all" onchange="cargarMisAsignaciones()"></select>
                             <button onclick="cargarMisAsignaciones()" class="btn btn-primary btn-md">
                                 <i class="fas fa-sync-alt"></i>
                             </button>
@@ -1356,7 +1370,7 @@
                             </span>
                         </div>
                         <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                            <div id="misAsigProgressBar" class="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                            <div id="misAsigProgressBar" class="h-full bg-emerald-600 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
                         </div>
                         <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-3" id="misAsigProgressText">0 de 0 realizados</p>
                     </div>
@@ -1364,16 +1378,16 @@
                     <!-- Annual Progress -->
                     <div id="misAsigProgressAnual" class="hidden flex flex-col h-full bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 p-6">
                         <div class="flex items-center mb-4">
-                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-calendar-alt text-[#003399] dark:text-yellow-400 mr-1.5"></i>Cumplimiento Anual</span>
+                            <span class="text-sm font-semibold text-gray-700 dark:text-gray-300"><i class="fas fa-calendar-alt text-[#0B1D45] dark:text-yellow-400 mr-1.5"></i>Cumplimiento Anual</span>
                         </div>
                         <div class="flex-1 flex flex-col items-center justify-center gap-2 py-2">
-                            <span id="misAsigProgressAnualPct" class="text-5xl font-bold leading-none tracking-tight text-[#003399] dark:text-yellow-400">0%</span>
+                            <span id="misAsigProgressAnualPct" class="text-5xl font-bold leading-none tracking-tight text-[#0B1D45] dark:text-yellow-400">0%</span>
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 text-[11px] font-bold uppercase tracking-wider">
                                 <i class="fas fa-calendar-alt"></i> Progreso del a&ntilde;o
                             </span>
                         </div>
                         <div class="w-full bg-gray-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                            <div id="misAsigProgressAnualBar" class="h-full bg-gradient-to-r from-blue-400 to-[#003399] dark:to-yellow-400 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                            <div id="misAsigProgressAnualBar" class="h-full bg-[#0B1D45] dark:bg-yellow-400 rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
                         </div>
                         <p class="text-center text-xs text-gray-500 dark:text-gray-400 mt-3" id="misAsigProgressAnualText">0 de 0 realizados en el a&ntilde;o</p>
                     </div>
@@ -1382,7 +1396,7 @@
                 <!-- Loading -->
                 <div id="misAsigLoading" class="hidden flex-col items-center justify-center py-16">
                     <div class="loader loader-lg mb-4"></div>
-                    <p class="text-[#003399] dark:text-yellow-400 font-medium text-sm">Cargando tus asignaciones...</p>
+                    <p class="text-[#0B1D45] dark:text-yellow-400 font-medium text-sm">Cargando tus asignaciones...</p>
                 </div>
 
                 <!-- Error -->
@@ -1400,7 +1414,7 @@
                 <div id="misAsigTableWrapper" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 dark:border-slate-700 overflow-visible">
                     <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
                         <h3 class="font-semibold text-gray-800 dark:text-white text-sm flex items-center gap-2">
-                            <i class="fas fa-list text-[#003399] dark:text-yellow-400"></i> Detalle de Asignaciones
+                            <i class="fas fa-list text-[#0B1D45] dark:text-yellow-400"></i> Detalle de Asignaciones
                         </h3>
                         <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                             <div class="relative">
@@ -1410,7 +1424,7 @@
                                 </button>
                                 <div id="misAsigPrintMenuTable" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-gray-100 dark:border-slate-700 py-1.5 z-50">
                                     <a href="javascript:void(0)" onclick="imprimirMisAsignaciones('todo')" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
-                                        <i class="fas fa-list mr-2 text-[#003399] dark:text-yellow-400"></i>Imprimir Todas
+                                        <i class="fas fa-list mr-2 text-[#0B1D45] dark:text-yellow-400"></i>Imprimir Todas
                                     </a>
                                     <a href="javascript:void(0)" onclick="imprimirMisAsignaciones('pendientes')" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-700">
                                         <i class="fas fa-hourglass-half mr-2 text-red-500"></i>Imprimir Solo Pendientes

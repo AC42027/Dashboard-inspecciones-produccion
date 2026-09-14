@@ -84,8 +84,8 @@
             ws['!rows'] = Object.keys(rowHeights).sort((a, b) => a - b).map(i => rowHeights[i] || { hpt: 22 });
 
             // ========= ESTILOS =========
-            const blue = '003399';
-            const darkBlue = '002266';
+            const blue = '0B1D45';
+            const darkBlue = '071330';
             const grayMed = '999999';
             const grayLight = 'E8E8E8';
 
@@ -401,14 +401,14 @@
                     <style>
                         @page { size: A4 portrait; margin: 1cm; }
                         body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #000; text-align: center; }
-                        .header { margin-bottom: 20px; border-bottom: 2px solid #003399; padding-bottom: 10px; }
-                        .title { font-size: 20px; font-weight: bold; color: #003399; margin: 0; }
+                        .header { margin-bottom: 20px; border-bottom: 2px solid #0B1D45; padding-bottom: 10px; }
+                        .title { font-size: 20px; font-weight: bold; color: #0B1D45; margin: 0; }
                         .subtitle { font-size: 12px; color: #555; margin-top: 4px; }
                         .grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; }
                         .qr-card {
                             width: 165px;
                             padding: 10px;
-                            border: 2px solid #003399;
+                            border: 2px solid #0B1D45;
                             border-radius: 10px;
                             box-sizing: border-box;
                             page-break-inside: avoid;
@@ -465,7 +465,7 @@
                     <style>
                         @page { size: A4; margin: 1cm; }
                         body { font-family: Arial, sans-serif; text-align: center; }
-                        .title { font-size: 18pt; font-weight: bold; color: #003399; margin-bottom: 4px; }
+                        .title { font-size: 18pt; font-weight: bold; color: #0B1D45; margin-bottom: 4px; }
                         .subtitle { font-size: 10pt; color: #666; margin-bottom: 20px; }
                         .grid { text-align: center; }
                         .qr-card {
@@ -473,7 +473,7 @@
                             width: 170px;
                             margin: 8px;
                             padding: 10px;
-                            border: 2pt solid #003399;
+                            border: 2pt solid #0B1D45;
                             border-radius: 8px;
                             text-align: center;
                             vertical-align: top;
