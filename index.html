@@ -69,57 +69,76 @@
 
 <body class="min-h-screen flex flex-col">
 
-    <!-- Header -->
-    <header class="glass-panel sticky top-0 z-50 rounded-none border-t-0 border-x-0 border-b shadow-sm mb-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <!-- Header Industrial Goodyear -->
+    <header class="bg-[#0B1D45] text-white shadow-xl sticky top-0 z-50 mb-8">
+        <!-- BARRA TOP INDUSTRIAL GOODYEAR -->
+        <div class="bg-[#FBBD00] text-[#0B1D45] text-xs font-bold px-4 sm:px-8 py-1.5 flex justify-between items-center tracking-wide border-b border-yellow-400">
+            <span class="flex items-center gap-2 font-black uppercase text-[11px] sm:text-xs">
+                <i class="fa-solid fa-industry text-[#0B1D45]"></i>
+                GOODYEAR GLOBAL BRAND SYSTEM • AUDITORÍA & INSPECCIONES TÉCNICAS ASRS
+            </span>
+            <span id="liveClock" class="font-mono text-xs font-extrabold text-[#0B1D45] hidden sm:inline-block">--:--:--</span>
+        </div>
+
+        <!-- HEADER PRINCIPAL CON LOGO CORPORATIVO Y TITULO -->
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center gap-4">
-                <img src="public/logo-goodyear.png" onerror="this.src='logo-goodyear.png'" alt="Goodyear Logo"
-                    class="h-8 md:h-10 object-contain">
-                <h1
-                    class="text-xl font-bold text-gray-800 dark:text-white hidden sm:block ml-2 border-l-2 border-gray-300 dark:border-slate-600 pl-4">
-                    Dashboard de Inspecciones ASRS</h1>
+                <div class="flex items-center justify-center p-1">
+                    <img src="public/logo-goodyear.png" onerror="this.src='logo-goodyear.png'" alt="Goodyear Logo Oficial" class="h-10 md:h-12 w-auto object-contain drop-shadow-lg" />
+                </div>
+                <div>
+                    <h1 class="brand-headline text-xl sm:text-2xl tracking-normal text-white flex items-center gap-2.5">
+                        DASHBOARD DE INSPECCIONES TÉCNICAS
+                        <span class="bg-[#FBBD00] text-[#0B1D45] text-xs font-extrabold px-2.5 py-0.5 rounded tracking-wide font-sans hidden sm:inline-block">SISTEMA ASRS</span>
+                    </h1>
+                    <p class="text-xs text-[#D2D2D2] brand-caption font-medium">Estándar 5S & Mantenimiento Industrial • <strong class="text-[#FBBD00]">Plantas Goodyear Chile</strong></p>
+                </div>
             </div>
 
-            <div class="flex items-center gap-2">
+            <!-- CONTROLES ADICIONALES Y MODO OSCURO -->
+            <div class="flex items-center gap-3">
                 <button id="headerAdminToggle" onclick="toggleHeaderAdmin()"
-                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors flex items-center gap-2"
+                    class="bg-[#FBBD00] hover:bg-yellow-400 text-[#0B1D45] font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-2 border border-yellow-300 transition"
                     title="Acceso Planificación">
-                    <i class="fas fa-user-shield text-xl"></i>
-                    <span id="headerAdminText" class="text-xs font-bold hidden md:inline">Acceso Planificación</span>
+                    <i class="fas fa-user-shield text-sm"></i>
+                    <span id="headerAdminText" class="hidden md:inline uppercase tracking-wider">Acceso Planificación</span>
                 </button>
                 <button id="themeToggle"
-                    class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors ml-2">
-                    <i class="fas fa-moon text-xl dark:hidden"></i>
-                    <i class="fas fa-sun text-xl hidden dark:block text-yellow-400"></i>
+                    class="p-2 rounded-xl bg-[#06122D] hover:bg-slate-800 text-[#FBBD00] transition-colors border border-slate-700" title="Cambiar Tema">
+                    <i class="fas fa-moon text-lg dark:hidden"></i>
+                    <i class="fas fa-sun text-lg hidden dark:block text-[#FBBD00]"></i>
                 </button>
             </div>
         </div>
-        <!-- Tabs -->
-        <div class="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto flex gap-6 mt-2">
-            <button id="tab-inspecciones" onclick="switchTab('inspecciones')"
-                class="pb-3 text-goodyear-blue dark:text-goodyear-yellow font-bold border-b-2 border-goodyear-blue dark:border-goodyear-yellow text-sm sm:text-base transition-colors">
-                <i class="fas fa-search-plus"></i> Historial Inspecciones
-            </button>
-            <button id="tab-analitica" onclick="switchTab('analitica')"
-                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-chart-bar"></i> Gráficas
-            </button>
-            <button id="tab-mis-asignaciones" onclick="switchTab('mis-asignaciones')"
-                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-calendar-check mr-1"></i> Mis Asignaciones
-            </button>
-            <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
-                class="hidden pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-tasks"></i> Asignaciones ASRS
-            </button>
-            <button id="tab-equipos-sin-qr" onclick="switchTab('equipos-sin-qr')"
-                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-qrcode"></i> Equipos sin QR
-            </button>
-            <button id="tab-mapa" onclick="switchTab('mapa')"
-                class="pb-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium border-b-2 border-transparent text-sm sm:text-base transition-colors">
-                <i class="fas fa-map-location-dot"></i> Mapa
-            </button>
+
+        <!-- NAV TABS DE NAVEGACIÓN PRINCIPAL -->
+        <div class="bg-[#06122D] border-t border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto">
+                <button id="tab-inspecciones" onclick="switchTab('inspecciones')"
+                    class="pb-3 pt-3 border-b-4 border-[#FBBD00] text-[#FBBD00] font-bold text-xs sm:text-sm uppercase tracking-wider bg-[#0B1D45] px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-search-plus"></i> Historial Inspecciones
+                </button>
+                <button id="tab-analitica" onclick="switchTab('analitica')"
+                    class="pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-chart-bar"></i> Gráficas
+                </button>
+                <button id="tab-mis-asignaciones" onclick="switchTab('mis-asignaciones')"
+                    class="pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-calendar-check"></i> Mis Asignaciones
+                </button>
+                <button id="tab-asignaciones" onclick="switchTab('asignaciones')"
+                    class="hidden pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-tasks"></i> Asignaciones ASRS
+                </button>
+                <button id="tab-equipos-sin-qr" onclick="switchTab('equipos-sin-qr')"
+                    class="pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-qrcode"></i> Equipos sin QR
+                </button>
+                <button id="tab-mapa" onclick="switchTab('mapa')"
+                    class="pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-map-marked-alt"></i> Mapa ASRS
+                </button>
+            </div>
         </div>
     </header>
 
@@ -1565,6 +1584,19 @@
             </div>
         </div>
     </div>
+
+    <!-- Live Clock Script -->
+    <script>
+        function updateLiveClock() {
+            const clock = document.getElementById('liveClock');
+            if (clock) {
+                const now = new Date();
+                clock.textContent = now.toLocaleTimeString('es-CL');
+            }
+        }
+        setInterval(updateLiveClock, 1000);
+        document.addEventListener('DOMContentLoaded', updateLiveClock);
+    </script>
 </body>
 
 </html>

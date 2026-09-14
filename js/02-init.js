@@ -98,28 +98,31 @@
                 mainCont.classList.remove('max-w-[95%]');
             }
 
-            document.getElementById('tab-inspecciones').className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'inspecciones' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+            const activeTabClass = 'pb-3 pt-3 border-b-4 border-[#FBBD00] text-[#FBBD00] font-bold text-xs sm:text-sm uppercase tracking-wider bg-[#0B1D45] px-5 rounded-t-lg transition-all flex items-center gap-2';
+            const inactiveTabClass = 'pb-3 pt-3 border-b-4 border-transparent text-slate-400 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-white px-5 rounded-t-lg transition-all flex items-center gap-2';
+
+            document.getElementById('tab-inspecciones').className = tab === 'inspecciones' ? activeTabClass : inactiveTabClass;
             
             const tabAnalitica = document.getElementById('tab-analitica');
             if (tabAnalitica) {
-                tabAnalitica.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'analitica' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+                tabAnalitica.className = tab === 'analitica' ? activeTabClass : inactiveTabClass;
             }
 
             const tabAsig = document.getElementById('tab-asignaciones');
-            tabAsig.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'asignaciones' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+            tabAsig.className = tab === 'asignaciones' ? activeTabClass : inactiveTabClass;
             if (!isAdminModo) tabAsig.classList.add('hidden');
             
             const tabEqSinQR = document.getElementById('tab-equipos-sin-qr');
-            tabEqSinQR.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'equipos-sin-qr' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+            tabEqSinQR.className = tab === 'equipos-sin-qr' ? activeTabClass : inactiveTabClass;
 
             const tabMapa = document.getElementById('tab-mapa');
             if (tabMapa) {
-                tabMapa.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'mapa' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+                tabMapa.className = tab === 'mapa' ? activeTabClass : inactiveTabClass;
             }
             
             const tabMis = document.getElementById('tab-mis-asignaciones');
             if (tabMis) {
-                tabMis.className = `pb-3 border-b-2 text-sm sm:text-base transition-colors ${tab === 'mis-asignaciones' ? 'font-bold text-goodyear-blue dark:text-goodyear-yellow border-goodyear-blue dark:border-goodyear-yellow' : 'font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-transparent'}`;
+                tabMis.className = tab === 'mis-asignaciones' ? activeTabClass : inactiveTabClass;
             }
 
             if (tab === 'analitica') {
