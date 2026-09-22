@@ -1025,7 +1025,7 @@
         // (sorter NBS/NBS90, retorno largo y retorno corto + uniones).
         const GRUPOS_CC03 = {
             A: [
-                'CC03_P2900','CC03_P2975','CC03_P3905','CC03_P4500','CC03_P2650','CC03_P2690',
+                'CC03_P2900','CC03_P2975','CC03_P3905','CC03_P2450','CC03_P2650','CC03_P2690',
                 'CC03_P2600','CC03_P2640','CC03_P2550','CC03_P2590','CC03_P2500','CC03_P2540',
                 'CC03_P2490'
             ],
