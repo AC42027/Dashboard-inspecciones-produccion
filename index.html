@@ -88,12 +88,17 @@
 
             <!-- CONTROLES ADICIONALES Y MODO OSCURO -->
             <div class="flex items-center gap-3">
-                <button id="headerAdminToggle" onclick="toggleHeaderAdmin()"
-                    class="bg-[#FBBD00] hover:bg-yellow-400 text-[#0B1D45] font-extrabold text-xs px-3.5 py-2 rounded-xl shadow flex items-center gap-2 border border-yellow-300 transition"
-                    title="Acceso Planificación">
-                    <i class="fas fa-user-shield text-sm"></i>
-                    <span id="headerAdminText" class="hidden md:inline uppercase tracking-wider">Acceso Planificación</span>
-                </button>
+                <div id="headerUserInfo" class="hidden flex items-center gap-2 mr-1">
+                    <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#06122D] border border-slate-700">
+                        <i class="fas fa-user-circle text-[#FBBD00] text-sm"></i>
+                        <span id="headerUserName" class="text-xs font-bold text-white brand-caption uppercase tracking-wider max-w-[160px] truncate"></span>
+                    </div>
+                    <button id="headerLogoutBtn" onclick="logoutDashboard()"
+                        class="p-2 rounded-xl bg-[#FBBD00] hover:bg-yellow-400 text-[#0B1D45] transition-colors border border-yellow-300"
+                        title="Cerrar sesión">
+                        <i class="fas fa-sign-out-alt text-sm"></i>
+                    </button>
+                </div>
                 <button id="themeToggle"
                     class="p-2 rounded-xl bg-[#06122D] hover:bg-slate-800 text-[#FBBD00] transition-colors border border-slate-700" title="Cambiar Tema">
                     <i class="fas fa-moon text-lg dark:hidden"></i>
@@ -1458,32 +1463,30 @@
             </div>
         </div>
 
-    <!-- Auth Modal (LDAP) -->
+    <!-- Auth Login Gate (obligatorio al entrar al dashboard) -->
     <div id="authModal"
-        class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="glass-panel p-8 max-w-md w-full mx-4">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Acceso Planificación</h3>
-                <button onclick="toggleAuthModal()"
-                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-md">
+        <div class="glass-panel p-8 max-w-md w-full mx-4 shadow-2xl">
+            <div class="flex items-center justify-center mb-4">
+                <img src="public/logo-goodyear.png" onerror="this.src='logo-goodyear.png'" alt="Goodyear" class="h-12 w-auto object-contain" />
             </div>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Ingresa tus credenciales de red (LDAP) para acceder
-                al panel de administración.</p>
+            <div class="text-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-800 dark:text-white brand-headline" style="letter-spacing:0.02em;">Acceso al Dashboard</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Ingresa tus credenciales de red (LDAP) para entrar y consultar el estado de los avisos en SAP.</p>
+            </div>
             <form id="loginForm" onsubmit="handleLDAPLogin(event)" class="space-y-4">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Usuario (AC)</label>
-                    <input type="text" id="ldapUser" required class="glass-input w-full" placeholder="">
+                    <input type="text" id="ldapUser" required autocomplete="username" class="glass-input w-full" placeholder="Ej: ac17157">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contraseña</label>
-                    <input type="password" id="ldapPass" required class="glass-input w-full" placeholder="••••••••">
+                    <input type="password" id="ldapPass" required autocomplete="current-password" class="glass-input w-full" placeholder="••••••••">
                 </div>
                 <p id="ldapError" class="text-red-500 text-sm hidden font-medium"></p>
                 <button type="submit" id="ldapSubmitBtn"
                     class="w-full btn btn-primary btn-lg mt-2">
-                    <i class="fas fa-sign-in-alt"></i> Autenticar
+                    <i class="fas fa-sign-in-alt"></i> Ingresar
                 </button>
             </form>
         </div>

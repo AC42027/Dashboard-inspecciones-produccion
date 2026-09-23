@@ -39,17 +39,24 @@
             initTheme();
             setupEventListeners();
 
-            // Restaurar sesión admin si existe
-            if (localStorage.getItem('isAdminModo') === 'true') {
-                isAdminModo = true;
-                loggedUser = localStorage.getItem('loggedUser') || '';
+            // El gate de login está visible por defecto (login obligatorio al entrar).
+            // Si quedó una sesión activa (en la misma pestaña, sessionStorage persiste
+            // con la sesión viva), se restaura automáticamente y se cierra el gate.
+            const tieneCredenciales = sessionStorage.getItem('sap_username') && sessionStorage.getItem('sap_password');
+            const tieneUsuario = localStorage.getItem('loggedUser');
 
-                if (isAdminModo) {
+            if (tieneCredenciales && tieneUsuario) {
+                loggedUser = localStorage.getItem('loggedUser') || '';
+                loggedUserFullName = localStorage.getItem('misAsigFullName') || loggedUser;
+
+                // Restaurar modo admin si aplica
+                if (localStorage.getItem('isAdminModo') === 'true') {
+                    isAdminModo = true;
                     renderTeamList();
-                    syncTeamFromAPI(); // Sincronizar equipo desde el servidor
+                    syncTeamFromAPI();
                     const adminPanel = document.getElementById('adminPanel');
                     if (adminPanel) adminPanel.classList.remove('hidden');
-
+                    document.getElementById('tab-asignaciones').classList.remove('hidden');
                     const btnModoAdmin = document.getElementById('btnModoAdmin');
                     if (btnModoAdmin) {
                         btnModoAdmin.innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
@@ -58,31 +65,30 @@
                             btnModoAdmin.classList.replace('text-gray-700', 'text-white');
                         }
                     }
-                    actualizarHeaderAdmin(loggedUser);
                     actualizarDataListsAdmin();
-                    document.getElementById('tab-asignaciones').classList.remove('hidden');
                 }
-            }
 
-            // Restaurar sesión de Mis Asignaciones
-            const storedMisAsigUser = localStorage.getItem('misAsigUser');
-            const storedMisAsigFullName = localStorage.getItem('misAsigFullName');
-            if (storedMisAsigFullName) {
-                loggedUserFullName = storedMisAsigFullName;
+                // Restaurar Mis Asignaciones
                 document.getElementById('misAsigLogin').classList.add('hidden');
                 document.getElementById('misAsigContent').classList.remove('hidden');
                 document.getElementById('misAsigUserName').textContent = loggedUserFullName;
-                cargarCumplimientoAnual(new Date().getFullYear());
-            }
+                if (typeof cargarCumplimientoAnual === 'function') {
+                    cargarCumplimientoAnual(new Date().getFullYear());
+                }
 
-            fetchData();
+                // Cerrar gate y mostrar header de sesión activa
+                ocultarLoginGate();
+                actualizarHeaderAdmin(loggedUser);
 
-            // Si ya hay credenciales LDAP guardadas (sesión activa), consultar
-            // el estado SAP de los avisos de la tabla automáticamente.
-            if (sessionStorage.getItem('sap_username') && sessionStorage.getItem('sap_password')) {
+                // Cargar el dashboard completo
+                fetchData();
                 if (typeof cargarStatusAvisos === 'function') {
                     cargarStatusAvisos();
                 }
+            } else {
+                // Sin sesión: aseguramos que el gate quede visible y no cargamos
+                // la tabla hasta que el usuario se autentique.
+                mostrarLoginGate();
             }
         });
 

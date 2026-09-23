@@ -1,8 +1,24 @@
         // MODO ADMIN & LDAP
+        function stopEventPropagation(e) {
+            if (e) { e.stopPropagation(); e.preventDefault(); }
+        }
+
+        function mostrarLoginGate() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function ocultarLoginGate() {
+            const modal = document.getElementById('authModal');
+            if (modal) modal.classList.add('hidden');
+        }
+
         function toggleAuthModal() {
-            document.getElementById('authModal').classList.toggle('hidden');
-            document.getElementById('ldapError').classList.add('hidden');
-            document.getElementById('loginForm').reset();
+            // Ya no se usa el modal como botón externo: solo controla el gate.
+            const modal = document.getElementById('authModal');
+            if (!modal) return;
+            if (modal.classList.contains('hidden')) mostrarLoginGate();
+            else ocultarLoginGate();
         }
 
         async function handleLDAPLogin(e) {
@@ -39,29 +55,11 @@
                     localStorage.setItem('loggedUser', user);
                     localStorage.setItem('misAsigFullName', loggedUserFullName);
 
-                    toggleAuthModal();
-
-                    // Toast simple de éxito (sin depender de librerías)
-                    const toast = document.createElement('div');
-                    toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-2xl border border-slate-700/50';
-                    toast.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> <span>Login exitoso — conexión SAP L1P lista</span>`;
-                    document.body.appendChild(toast);
-                    setTimeout(() => {
-                        toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 2500);
-
                     if (isUserAdmin) {
                         isAdminModo = true;
-
-                        // Persistencia de sesión
                         localStorage.setItem('isAdminModo', 'true');
-
-                        renderTeamList(); // Inicializar lista de asociados
-                        await syncTeamFromAPI(); // Sincronizar equipo desde el servidor
                         document.getElementById('adminPanel').classList.remove('hidden');
                         document.getElementById('tab-asignaciones').classList.remove('hidden');
-
                         const btnModoAdmin = document.getElementById('btnModoAdmin');
                         if (btnModoAdmin) {
                             btnModoAdmin.innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
@@ -70,19 +68,34 @@
                                 btnModoAdmin.classList.replace('text-gray-700', 'text-white');
                             }
                         }
-
-                        actualizarHeaderAdmin(user);
-                        actualizarDataListsAdmin(); // Cargar equipos en el buscador manual
-                        renderTabla(); // Re-renderizar la tabla para mostrar el botón "Cerrar Aviso"
-                        renderEquiposSinQR(); // Mostrar botón eliminar en Equipos sin QR
-                        const verFecha = document.getElementById('verFecha').value;
-                        if (verFecha) cargarAsignacionesSemanales();
+                        renderTeamList();
+                        syncTeamFromAPI();
+                        actualizarDataListsAdmin();
                     }
 
-                    // Consultar estado SAP de los avisos visibles (solo si la tabla está cargada)
+                    // Cerrar el gate obligatorio y mostrar el header con la sesión activa
+                    ocultarLoginGate();
+                    actualizarHeaderAdmin(user);
+
+                    // Mis Asignaciones: aprovechar la sesión LDAP ya iniciada
+                    const misAsigLogin = document.getElementById('misAsigLogin');
+                    const misAsigContent = document.getElementById('misAsigContent');
+                    if (misAsigLogin && misAsigContent) {
+                        misAsigLogin.classList.add('hidden');
+                        misAsigContent.classList.remove('hidden');
+                        document.getElementById('misAsigUserName').textContent = loggedUserFullName;
+                    }
+                    localStorage.setItem('misAsigUser', user);
+                    localStorage.setItem('misAsigFullName', loggedUserFullName);
+
+                    // Cargar la info del dashboard (ya disponible): tabla + avisos con status
+                    await fetchData();
                     if (typeof cargarStatusAvisos === 'function') {
                         cargarStatusAvisos();
+                    } else {
+                        renderTabla();
                     }
+                    renderEquiposSinQR();
                 } else {
                     error.textContent = data.message || data.error || "Credenciales inválidas o error de red.";
                     error.classList.remove('hidden');
@@ -91,7 +104,7 @@
                 error.textContent = "Error de conexión con el servidor LDAP o la API.";
                 error.classList.remove('hidden');
             } finally {
-                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Autenticar';
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
                 btn.disabled = false;
             }
         }
@@ -240,23 +253,28 @@
             renderTeamList();
         }
 
-        function toggleModoAdmin() {
-            if (isAdminModo || loggedUserFullName) {
-                cerrarSesionCompleta();
-                mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión completamente.', 'fa-info-circle text-blue-500');
-            } else {
-                toggleAuthModal();
-            }
+        // Logout: limpia credenciales y recarga la página para que el gate
+        // de login obligatorio vuelva a aparecer (via 02-init.js).
+        function logoutYRecargar() {
+            cerrarSesionCompleta();
+            if (typeof ocultarLoginGate === 'function') ocultarLoginGate();
+            location.reload();
         }
 
-        window.toggleHeaderAdmin = function () {
-            if (isAdminModo || loggedUserFullName) {
-                cerrarSesionCompleta();
-                mostrarAlerta('Sesión Cerrada', 'Has cerrado la sesión completamente.', 'fa-info-circle text-blue-500');
-            } else {
-                toggleAuthModal();
-            }
+        function toggleModoAdmin() {
+            // Con login obligatorio, este botón cierra la sesión completa.
+            logoutYRecargar();
+        }
+
+        window.logoutDashboard = function () {
+            logoutYRecargar();
         };
+
+        if (typeof window.toggleHeaderAdmin !== 'function') {
+            window.toggleHeaderAdmin = function () {
+                logoutYRecargar();
+            };
+        }
 
 
         // EQUIPOS SIN QR
@@ -422,17 +440,10 @@
         // FIN EQUIPOS SIN QR
 
         function actualizarHeaderAdmin(username = '') {
-            const btn = document.getElementById('headerAdminToggle');
-            const text = document.getElementById('headerAdminText');
-            if (isAdminModo) {
-                btn.classList.add('text-goodyear-blue', 'dark:text-goodyear-yellow');
-                text.textContent = `Admin (${username.toUpperCase()})`;
-                text.classList.remove('hidden');
-            } else {
-                btn.classList.remove('text-goodyear-blue', 'dark:text-goodyear-yellow');
-                text.textContent = 'Acceso Planificación';
-                text.classList.add('hidden', 'md:inline');
-            }
+            const userInfo = document.getElementById('headerUserInfo');
+            const userName = document.getElementById('headerUserName');
+            if (userInfo) userInfo.classList.remove('hidden');
+            if (userName) userName.textContent = (username && isAdminModo) ? `Admin · ${username.toUpperCase()}` : (username ? username.toUpperCase() : loggedUserFullName || '');
         }
 
         // THEME MANAGEMENT
