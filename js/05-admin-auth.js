@@ -47,7 +47,7 @@
                     sessionStorage.setItem('sap_password', pass);
 
                     // Validar el privilegio devuelto por Django. 
-                    const isUserAdmin = data.is_admin !== undefined ? data.is_admin : (user === 'ac18958' || user === 'ac17157' || user === 'aa05016');
+                    const isUserAdmin = data.is_admin !== undefined ? data.is_admin : (user === 'ac18958' || user === 'aa05016');
 
                     // Login exitoso: cualquier usuario LDAP válido entra al dashboard.
                     loggedUser = user;
