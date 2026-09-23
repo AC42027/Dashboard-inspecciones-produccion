@@ -1,6 +1,6 @@
         // FILTROS
         const filtros = {
-            anio: '', mes: '', owner: '', zona: '', equipo: '', sap: '', critico: ''
+            anio: '', mes: '', owner: '', zona: '', equipo: '', sap: '', critico: '', aviso_estado: ''
         };
 
         // ELEMENTOS DOM
@@ -22,6 +22,7 @@
                 equipo: document.getElementById('filtro-equipo'),
                 sap: document.getElementById('filtro-sap'),
                 critico: document.getElementById('filtro-critico'),
+                aviso_estado: document.getElementById('filtro-aviso-estado'),
             },
             filtrosAnalitica: {
                 anio: document.getElementById('filtro-analitica-anio'),
@@ -31,6 +32,7 @@
                 equipo: document.getElementById('filtro-analitica-equipo'),
                 sap: document.getElementById('filtro-analitica-sap'),
                 critico: document.getElementById('filtro-analitica-critico'),
+                aviso_estado: document.getElementById('filtro-analitica-aviso-estado'),
             }
         };
 

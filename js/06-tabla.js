@@ -1,6 +1,16 @@
         // ESTADO GLOBAL DE STATUS SAP
         let sapStatusMap = {}; // { aviso: {status, order, description} }
 
+        // Devuelve el estado del aviso: 'abierto' | 'proceso' | 'cerrado' | '' (sin dato)
+        function estadoAvisoSap(aviso) {
+            const info = sapStatusMap && sapStatusMap[aviso];
+            if (!info || !info.status) return '';
+            const s = (info.status || '').toUpperCase();
+            if (s.includes('CERRAD') || s.includes('COMP')) return 'cerrado';
+            if (s.includes('PROCESO') || s.includes('INPR')) return 'proceso';
+            return 'abierto';
+        }
+
         function sapStatusBadgeHtml(aviso) {
             const info = sapStatusMap && sapStatusMap[aviso];
             if (!info) return '';
@@ -9,9 +19,9 @@
             let label = info.status || '—';
             if (!s) {
                 cls = 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-slate-700';
-            } else if (s.includes('CERRAD') || s.includes('COMP')) {
+            } else if (estadoAvisoSap(aviso) === 'cerrado') {
                 cls = 'bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800';
-            } else if (s.includes('PROCESO') || s.includes('INPR')) {
+            } else if (estadoAvisoSap(aviso) === 'proceso') {
                 cls = 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800';
             }
             return `<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border ${cls}" title="Estado SAP: ${info.status || 'sin dato'}${info.order ? ' · Orden: ' + info.order : ''}">${label}</span>`;
@@ -65,6 +75,8 @@
                         if (els.filtrosAnalitica[key]) els.filtrosAnalitica[key].value = e.target.value;
                         paginaActual = 1;
                         aplicarFiltros();
+                        // Si se filtra por estado del aviso, asegurar datos SAP cargados
+                        if (filtros.aviso_estado && typeof cargarStatusAvisos === 'function') cargarStatusAvisos();
                     });
                 }
             });
@@ -78,6 +90,7 @@
                         if (els.filtros[key]) els.filtros[key].value = e.target.value;
                         paginaActual = 1;
                         aplicarFiltros();
+                        if (filtros.aviso_estado && typeof cargarStatusAvisos === 'function') cargarStatusAvisos();
                     });
                 }
             });
@@ -126,6 +139,12 @@
                 const cumpleSap = filtros.sap === '' ||
                     (filtros.sap === 'con_aviso' ? (i.sap_nr_numero) : filtros.sap === 'sin_aviso' ? (!i.sap_nr_numero) : true);
 
+                const estadoAvisoI = estadoAvisoSap((i.sap_nr_numero || '').trim());
+                const cumpleEstadoAviso = filtros.aviso_estado === '' ||
+                    (filtros.aviso_estado === 'abierto' ? estadoAvisoI === 'abierto' :
+                     filtros.aviso_estado === 'proceso' ? estadoAvisoI === 'proceso' :
+                     filtros.aviso_estado === 'cerrado' ? estadoAvisoI === 'cerrado' : true);
+
                 const tieneCritico = (i.tecnicos || []).some(t => t.es_critico === true || t.es_critico === 1 || t.es_critico === 'true');
 
                 const cumpleCritico = filtros.critico === '' ||
@@ -136,7 +155,8 @@
                     (filtros.equipo === '' || i.equipo === filtros.equipo) &&
                     (filtros.owner === '' || i.owner === filtros.owner) &&
                     cumpleSap &&
-                    cumpleCritico;
+                    cumpleCritico &&
+                    cumpleEstadoAviso;
             });
 
             // Ordenar por fecha descendente
