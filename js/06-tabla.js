@@ -1,3 +1,59 @@
+        // ESTADO GLOBAL DE STATUS SAP
+        let sapStatusMap = {}; // { aviso: {status, order, description} }
+
+        function sapStatusBadgeHtml(aviso) {
+            const info = sapStatusMap && sapStatusMap[aviso];
+            if (!info) return '';
+            const s = (info.status || '').toUpperCase();
+            let cls = 'bg-red-100 dark:bg-red-900/60 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800';
+            let label = info.status || '—';
+            if (!s) {
+                cls = 'bg-gray-100 dark:bg-slate-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-slate-700';
+            } else if (s.includes('CERRAD') || s.includes('COMP')) {
+                cls = 'bg-green-100 dark:bg-green-900/60 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800';
+            } else if (s.includes('PROCESO') || s.includes('INPR')) {
+                cls = 'bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800';
+            }
+            return `<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border ${cls}" title="Estado SAP: ${info.status || 'sin dato'}${info.order ? ' · Orden: ' + info.order : ''}">${label}</span>`;
+        }
+
+        async function cargarStatusAvisos() {
+            const user = sessionStorage.getItem('sap_username');
+            const pass = sessionStorage.getItem('sap_password');
+            const items = inspeccionesFiltradas && inspeccionesFiltradas.length ? inspeccionesFiltradas : inspecciones;
+            const avisos = [...new Set((items || []).map(i => (i.sap_nr_numero || '').trim()).filter(Boolean))];
+            if (!user || !pass || avisos.length === 0) return;
+
+            // Solo los que aún no conocemos
+            const pendientes = avisos.filter(a => !(a in (sapStatusMap || {})));
+            if (pendientes.length === 0) return;
+
+            const resultados = {};
+            // Batch en grupos de 50 (el portal soporta notif_numbers separados por coma)
+            for (let i = 0; i < pendientes.length; i += 50) {
+                const chunk = pendientes.slice(i, i + 50);
+                try {
+                    const res = await fetch(`${API_BASE}/api/sap/avisos/status/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ avisos: chunk, username: user, password: pass })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.status === 'ok') {
+                        Object.assign(resultados, data.avisos || {});
+                    } else {
+                        console.warn('[SAP Status]', data.message || res.status);
+                        break; // No insistir si falló la autenticación u otro error global
+                    }
+                } catch (err) {
+                    console.warn('[SAP Status] error de red:', err);
+                    break;
+                }
+            }
+            sapStatusMap = Object.assign({}, sapStatusMap, resultados);
+            renderTabla();
+        }
+
         // EVENT LISTENERS
         function setupEventListeners() {
             // Event listeners para filtros de la tabla
@@ -363,6 +419,7 @@
                                 <span onclick="copiarAlPortapapeles('${i.sap_nr_numero}', event)" class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 hover:bg-blue-200 text-blue-800 dark:bg-blue-900/50 dark:hover:bg-blue-900/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800 cursor-pointer transition-all active:scale-95" title="Copiar Aviso SAP PM">
                                     <i class="fas fa-cogs text-[10px]"></i> ${i.sap_nr_numero} <i class="far fa-copy text-[10px] opacity-60"></i>
                                 </span>
+                                <div class="mt-0.5">${sapStatusBadgeHtml(i.sap_nr_numero)}</div>
                             ` : ''}
                         </td>
                         <td>${i.zona}</td>
@@ -424,6 +481,7 @@
                                                     <div onclick="copiarAlPortapapeles('${i.sap_nr_numero}', event)" class="inline-flex items-center gap-2 px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/50 dark:hover:bg-blue-900/80 border border-blue-200 dark:border-blue-800 rounded-lg text-xs font-bold text-blue-800 dark:text-blue-300 cursor-pointer transition-all active:scale-95" title="Copiar Aviso SAP PM">
                                                          <i class="fas fa-cogs"></i> SAP PM: ${i.sap_nr_numero} <i class="far fa-copy opacity-60"></i>
                                                          <span class="px-1.5 py-0.5 rounded ${badgeClass} text-[10px] uppercase">${i.sap_nr_status}</span>
+                                                         ${sapStatusBadgeHtml(i.sap_nr_numero)}
                                                      </div>
                                                 `;
                         })() : `

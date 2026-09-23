@@ -76,6 +76,14 @@
             }
 
             fetchData();
+
+            // Si ya hay credenciales LDAP guardadas (sesión activa), consultar
+            // el estado SAP de los avisos de la tabla automáticamente.
+            if (sessionStorage.getItem('sap_username') && sessionStorage.getItem('sap_password')) {
+                if (typeof cargarStatusAvisos === 'function') {
+                    cargarStatusAvisos();
+                }
+            }
         });
 
         // TABS LOGIC

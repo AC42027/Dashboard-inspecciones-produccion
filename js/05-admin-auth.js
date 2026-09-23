@@ -25,21 +25,38 @@
 
                 const data = await res.json();
                 if (res.ok && data.status === 'ok') {
+                    // Guardar credenciales LDAP en sessionStorage (no persisten entre sesiones)
+                    // para que el dashboard pueda consultar el estado de avisos SAP vía el portal.
+                    sessionStorage.setItem('sap_username', user);
+                    sessionStorage.setItem('sap_password', pass);
+
                     // Validar el privilegio devuelto por Django. 
-                    // Si no está definido (backend pendiente), cae en el fallback de los dos admins originales.
                     const isUserAdmin = data.is_admin !== undefined ? data.is_admin : (user === 'ac18958' || user === 'ac17157' || user === 'aa05016');
+
+                    // Login exitoso: cualquier usuario LDAP válido entra al dashboard.
+                    loggedUser = user;
+                    loggedUserFullName = data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || user;
+                    localStorage.setItem('loggedUser', user);
+                    localStorage.setItem('misAsigFullName', loggedUserFullName);
+
+                    toggleAuthModal();
+
+                    // Toast simple de éxito (sin depender de librerías)
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed bottom-5 right-5 z-[9999] flex items-center gap-2 bg-slate-900 text-white text-sm font-medium px-4 py-3 rounded-lg shadow-2xl border border-slate-700/50';
+                    toast.innerHTML = `<i class="fas fa-check-circle text-green-400"></i> <span>Login exitoso — conexión SAP L1P lista</span>`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => {
+                        toast.classList.add('opacity-0', 'transition-opacity', 'duration-300');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 2500);
 
                     if (isUserAdmin) {
                         isAdminModo = true;
-                        loggedUser = user;
-                        loggedUserFullName = data.full_name || `${data.first_name || ''} ${data.last_name || ''}`.trim() || user;
 
                         // Persistencia de sesión
                         localStorage.setItem('isAdminModo', 'true');
-                        localStorage.setItem('loggedUser', user);
-                        localStorage.setItem('misAsigFullName', loggedUserFullName);
 
-                        toggleAuthModal();
                         renderTeamList(); // Inicializar lista de asociados
                         await syncTeamFromAPI(); // Sincronizar equipo desde el servidor
                         document.getElementById('adminPanel').classList.remove('hidden');
@@ -60,9 +77,11 @@
                         renderEquiposSinQR(); // Mostrar botón eliminar en Equipos sin QR
                         const verFecha = document.getElementById('verFecha').value;
                         if (verFecha) cargarAsignacionesSemanales();
-                    } else {
-                        error.textContent = "Acceso denegado. Tu usuario no tiene privilegios de administrador.";
-                        error.classList.remove('hidden');
+                    }
+
+                    // Consultar estado SAP de los avisos visibles (solo si la tabla está cargada)
+                    if (typeof cargarStatusAvisos === 'function') {
+                        cargarStatusAvisos();
                     }
                 } else {
                     error.textContent = data.message || data.error || "Credenciales inválidas o error de red.";

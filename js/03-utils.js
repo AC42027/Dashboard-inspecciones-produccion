@@ -255,6 +255,10 @@
             localStorage.removeItem('misAsigFullName');
             localStorage.removeItem('misAsigUser');
 
+            // Credenciales LDAP/SAP en sessionStorage
+            sessionStorage.removeItem('sap_username');
+            sessionStorage.removeItem('sap_password');
+
             // 3. UI Modo Admin
             const adminPanel = document.getElementById('adminPanel');
             if (adminPanel) adminPanel.classList.add('hidden');
