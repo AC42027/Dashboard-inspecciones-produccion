@@ -267,13 +267,15 @@
                 </div>
             </div>
 
+            <!-- Loading estado SAP (visible siempre, anclado a la vista) -->
+            <div id="sap-loading-overlay" class="hidden fixed top-16 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-5 py-3 rounded-full bg-white dark:bg-slate-900 shadow-xl border border-gray-200 dark:border-slate-700 backdrop-blur">
+                <div class="loader"></div>
+                <p class="text-sm font-semibold text-gray-600 dark:text-gray-300 whitespace-nowrap">Consultando estado SAP de los avisos...</p>
+            </div>
+
             <!-- Tabla -->
-            <section id="tabla-section" class="hidden glass-panel overflow-hidden relative">
-                <div id="sap-loading-overlay" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
-                    <div class="loader"></div>
-                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300">Consultando estado SAP de los avisos...</p>
-                </div>
-                <div class="overflow-x-auto">
+            <section id="tabla-section" class="hidden glass-panel overflow-hidden">
+                    <div class="overflow-x-auto">
                     <table class="w-full text-left premium-table" id="tabla-inspecciones">
                         <thead>
                             <tr>
