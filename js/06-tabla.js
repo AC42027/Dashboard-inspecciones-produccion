@@ -30,7 +30,7 @@
         async function cargarStatusAvisos() {
             const user = sessionStorage.getItem('sap_username');
             const pass = sessionStorage.getItem('sap_password');
-            const items = inspeccionesFiltradas && inspeccionesFiltradas.length ? inspeccionesFiltradas : inspecciones;
+            const items = inspecciones && inspecciones.length ? inspecciones : [];
             const avisos = [...new Set((items || []).map(i => (i.sap_nr_numero || '').trim()).filter(Boolean))];
             if (!user || !pass || avisos.length === 0) return;
 
@@ -61,7 +61,7 @@
                 }
             }
             sapStatusMap = Object.assign({}, sapStatusMap, resultados);
-            renderTabla();
+            aplicarFiltros();
         }
 
         // EVENT LISTENERS
@@ -70,13 +70,15 @@
             Object.keys(els.filtros).forEach(key => {
                 const el = els.filtros[key];
                 if (el) {
-                    el.addEventListener('change', (e) => {
+                    el.addEventListener('change', async (e) => {
                         filtros[key] = e.target.value;
                         if (els.filtrosAnalitica[key]) els.filtrosAnalitica[key].value = e.target.value;
                         paginaActual = 1;
+                        // Si se filtra por estado del aviso, asegurar datos SAP cargados ANTES de filtrar
+                        if (filtros.aviso_estado && typeof cargarStatusAvisos === 'function') {
+                            await cargarStatusAvisos();
+                        }
                         aplicarFiltros();
-                        // Si se filtra por estado del aviso, asegurar datos SAP cargados
-                        if (filtros.aviso_estado && typeof cargarStatusAvisos === 'function') cargarStatusAvisos();
                     });
                 }
             });
@@ -85,12 +87,14 @@
             Object.keys(els.filtrosAnalitica).forEach(key => {
                 const el = els.filtrosAnalitica[key];
                 if (el) {
-                    el.addEventListener('change', (e) => {
+                    el.addEventListener('change', async (e) => {
                         filtros[key] = e.target.value;
                         if (els.filtros[key]) els.filtros[key].value = e.target.value;
                         paginaActual = 1;
+                        if (filtros.aviso_estado && typeof cargarStatusAvisos === 'function') {
+                            await cargarStatusAvisos();
+                        }
                         aplicarFiltros();
-                        if (filtros.aviso_estado && typeof cargarStatusAvisos === 'function') cargarStatusAvisos();
                     });
                 }
             });
