@@ -268,7 +268,11 @@
             </div>
 
             <!-- Tabla -->
-            <section id="tabla-section" class="hidden glass-panel overflow-hidden">
+            <section id="tabla-section" class="hidden glass-panel overflow-hidden relative">
+                <div id="sap-loading-overlay" class="hidden absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm">
+                    <div class="loader"></div>
+                    <p class="text-sm font-semibold text-gray-600 dark:text-gray-300">Consultando estado SAP de los avisos...</p>
+                </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left premium-table" id="tabla-inspecciones">
                         <thead>

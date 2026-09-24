@@ -1,5 +1,6 @@
         // ESTADO GLOBAL DE STATUS SAP
         let sapStatusMap = {}; // { aviso: {status, order, description} }
+        let sapStatusPromise = null; // promesa compartida de la carga en curso
 
         // Devuelve el estado del aviso: 'abierto' | 'proceso' | 'cerrado' | '' (sin dato)
         function estadoAvisoSap(aviso) {
@@ -27,41 +28,57 @@
             return `<span class="ml-1 px-1.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-wide border ${cls}" title="Estado SAP: ${info.status || 'sin dato'}${info.order ? ' · Orden: ' + info.order : ''}">${label}</span>`;
         }
 
-        async function cargarStatusAvisos() {
+        function toggleSapSpinner(on) {
+            const el = document.getElementById('sap-loading-overlay');
+            if (!el) return;
+            el.classList.toggle('hidden', !on);
+        }
+
+        function cargarStatusAvisos() {
+            if (sapStatusPromise) return sapStatusPromise;
+
             const user = sessionStorage.getItem('sap_username');
             const pass = sessionStorage.getItem('sap_password');
             const items = inspecciones && inspecciones.length ? inspecciones : [];
             const avisos = [...new Set((items || []).map(i => (i.sap_nr_numero || '').trim()).filter(Boolean))];
-            if (!user || !pass || avisos.length === 0) return;
+            if (!user || !pass || avisos.length === 0) return Promise.resolve();
 
             // Solo los que aún no conocemos
             const pendientes = avisos.filter(a => !(a in (sapStatusMap || {})));
-            if (pendientes.length === 0) return;
+            if (pendientes.length === 0) return Promise.resolve();
 
-            const resultados = {};
-            // Batch en grupos de 50 (el portal soporta notif_numbers separados por coma)
-            for (let i = 0; i < pendientes.length; i += 50) {
-                const chunk = pendientes.slice(i, i + 50);
-                try {
-                    const res = await fetch(`${API_BASE}/api/sap/avisos/status/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ avisos: chunk, username: user, password: pass })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.status === 'ok') {
-                        Object.assign(resultados, data.avisos || {});
-                    } else {
-                        console.warn('[SAP Status]', data.message || res.status);
-                        break; // No insistir si falló la autenticación u otro error global
+            toggleSapSpinner(true);
+            const promesa = (async () => {
+                const resultados = {};
+                // Batch en grupos de 50 (el portal soporta notif_numbers separados por coma)
+                for (let i = 0; i < pendientes.length; i += 50) {
+                    const chunk = pendientes.slice(i, i + 50);
+                    try {
+                        const res = await fetch(`${API_BASE}/api/sap/avisos/status/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ avisos: chunk, username: user, password: pass })
+                        });
+                        const data = await res.json();
+                        if (res.ok && data.status === 'ok') {
+                            Object.assign(resultados, data.avisos || {});
+                        } else {
+                            console.warn('[SAP Status]', data.message || res.status);
+                            break; // No insistir si falló la autenticación u otro error global
+                        }
+                    } catch (err) {
+                        console.warn('[SAP Status] error de red:', err);
+                        break;
                     }
-                } catch (err) {
-                    console.warn('[SAP Status] error de red:', err);
-                    break;
                 }
-            }
-            sapStatusMap = Object.assign({}, sapStatusMap, resultados);
-            aplicarFiltros();
+                sapStatusMap = Object.assign({}, sapStatusMap, resultados);
+                aplicarFiltros();
+            })().finally(() => {
+                sapStatusPromise = null;
+                toggleSapSpinner(false);
+            });
+            sapStatusPromise = promesa;
+            return promesa;
         }
 
         // EVENT LISTENERS
