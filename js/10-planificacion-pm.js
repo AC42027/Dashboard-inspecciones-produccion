@@ -45,7 +45,7 @@
             const estadoInspeccion = normalizarEstadoSapPM(inspeccion.sap_nr_status);
             const infoSap = typeof sapStatusMap !== 'undefined' && sapStatusMap ? sapStatusMap[aviso] : null;
             const estadoDetalleSap = normalizarEstadoSapPM(
-                `${infoSap?.status || ''} ${infoSap?.description || ''} ${infoSap?.system_status || ''} ${infoSap?.user_status || ''}`
+                `${infoSap?.status || ''} ${infoSap?.description || ''} ${infoSap?.system_status || ''} ${infoSap?.user_status || ''} ${(infoSap?.statuses || []).join(' ')}`
             );
 
             if ([estadoConsultado, estadoInspeccion, estadoDetalleSap].includes('cerrado')) {
