@@ -266,6 +266,9 @@
             const tabAsig = document.getElementById('tab-asignaciones');
             if (tabAsig) tabAsig.classList.add('hidden');
 
+            const tabPlanPm = document.getElementById('tab-planificacion-pm');
+            if (tabPlanPm) tabPlanPm.classList.add('hidden');
+
             const btnModoAdmin = document.getElementById('btnModoAdmin');
             if (btnModoAdmin) {
                 btnModoAdmin.innerHTML = '<i class="fas fa-user-shield"></i> <span class="hidden sm:inline">Administrar</span>';
@@ -307,5 +310,4 @@
             }
         }
         window.cerrarSesionCompleta = cerrarSesionCompleta;
-
 

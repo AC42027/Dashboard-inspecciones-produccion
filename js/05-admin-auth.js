@@ -60,6 +60,7 @@
                         localStorage.setItem('isAdminModo', 'true');
                         document.getElementById('adminPanel').classList.remove('hidden');
                         document.getElementById('tab-asignaciones').classList.remove('hidden');
+                        document.getElementById('tab-planificacion-pm')?.classList.remove('hidden');
                         const btnModoAdmin = document.getElementById('btnModoAdmin');
                         if (btnModoAdmin) {
                             btnModoAdmin.innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
@@ -457,4 +458,3 @@
                 renderCharts(); // Re-render charts para adaptar colores
             });
         }
-

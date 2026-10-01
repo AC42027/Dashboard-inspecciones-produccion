@@ -7,7 +7,7 @@
             const info = sapStatusMap && sapStatusMap[aviso];
             if (!info || !info.status) return '';
             const s = (info.status || '').toUpperCase();
-            if (s.includes('CERRAD') || s.includes('COMP')) return 'cerrado';
+            if (s.includes('CERR') || s.includes('COMP') || s.includes('NOCO') || s.includes('CLOS') || s.includes('MECE')) return 'cerrado';
             if (s.includes('PROCESO') || s.includes('INPR')) return 'proceso';
             return 'abierto';
         }
@@ -548,4 +548,3 @@
                 return rowHtml;
             }).join('');
         }
-

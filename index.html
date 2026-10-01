@@ -126,6 +126,10 @@
                     class="hidden pb-3 pt-3 border-b-4 border-transparent text-slate-200 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-[#FBBD00] px-5 rounded-t-lg transition-all flex items-center gap-2">
                     <i class="fas fa-tasks"></i> Asignaciones ASRS
                 </button>
+                <button id="tab-planificacion-pm" onclick="switchTab('planificacion-pm')"
+                    class="hidden pb-3 pt-3 border-b-4 border-transparent text-slate-200 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-[#FBBD00] px-5 rounded-t-lg transition-all flex items-center gap-2">
+                    <i class="fas fa-screwdriver-wrench"></i> Prioridad PM
+                </button>
                 <button id="tab-equipos-sin-qr" onclick="switchTab('equipos-sin-qr')"
                     class="pb-3 pt-3 border-b-4 border-transparent text-slate-200 font-bold text-xs sm:text-sm uppercase tracking-wider hover:bg-[#0B1D45] hover:text-[#FBBD00] px-5 rounded-t-lg transition-all flex items-center gap-2">
                     <i class="fas fa-qrcode"></i> Equipos sin QR
@@ -420,6 +424,85 @@
             <section id="graficas-container" class="space-y-8">
                 <!-- Renderizado dinámicamente -->
             </section>
+        </div>
+
+        <!-- PESTAÑA ADMIN: PLANIFICACIÓN PM -->
+        <div id="view-planificacion-pm" class="space-y-6 hidden">
+            <section class="glass-panel filter-banner p-6 overflow-hidden">
+                <div class="card-header-navy px-6 py-4 -mx-6 -mt-6 mb-6 flex flex-col lg:flex-row justify-between lg:items-center gap-4">
+                    <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-3">
+                        <span class="w-9 h-9 rounded-full bg-[#FBBD00] text-[#0B1D45] flex items-center justify-center shadow shrink-0">
+                            <i class="fas fa-screwdriver-wrench text-sm"></i>
+                        </span>
+                        <span class="flex flex-col leading-tight">
+                            <span class="text-base font-bold tracking-wide text-white font-sans uppercase">Hallazgos para Mantenimiento PM</span>
+                            <span class="text-[11px] font-medium tracking-wide text-[#FBBD00] brand-caption">Consulta de avisos abiertos • Criticidad y antigüedad</span>
+                        </span>
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="exportarPrioridadPMExcel()"
+                            class="px-3 py-2 rounded-lg bg-[#FBBD00] hover:bg-yellow-400 text-[#0B1D45] text-xs font-extrabold transition-colors shadow">
+                            <i class="fas fa-file-excel mr-1"></i> Exportar Excel
+                        </button>
+                        <button type="button" onclick="actualizarPlanificacionPM()"
+                            class="px-3 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-colors">
+                            <i class="fas fa-rotate mr-1"></i> Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div id="pm-alerta-estado" class="hidden mb-5 rounded-xl border px-4 py-3 text-sm"></div>
+
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                    <article class="pm-kpi-card">
+                        <span class="pm-kpi-icon bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300"><i class="fas fa-inbox"></i></span>
+                        <div><p class="pm-kpi-label">Avisos vigentes</p><p id="pm-kpi-pendientes" class="pm-kpi-value">0</p></div>
+                    </article>
+                    <article class="pm-kpi-card">
+                        <span class="pm-kpi-icon bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300"><i class="fas fa-triangle-exclamation"></i></span>
+                        <div><p class="pm-kpi-label">Avisos críticos</p><p id="pm-kpi-criticos" class="pm-kpi-value">0</p></div>
+                    </article>
+                    <article class="pm-kpi-card">
+                        <span class="pm-kpi-icon bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300"><i class="fas fa-clock"></i></span>
+                        <div><p class="pm-kpi-label">Más de 7 días</p><p id="pm-kpi-vencidos" class="pm-kpi-value">0</p></div>
+                    </article>
+                    <article class="pm-kpi-card">
+                        <span class="pm-kpi-icon bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-300"><i class="fas fa-calendar-check"></i></span>
+                        <div><p class="pm-kpi-label">Hallazgos visibles</p><p id="pm-kpi-semana" class="pm-kpi-value">0</p></div>
+                    </article>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="filter-field flex flex-col">
+                        <label for="pm-filtro-busqueda">Buscar aviso o equipo</label>
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                            <input id="pm-filtro-busqueda" type="search" oninput="renderPlanificacionPM()"
+                                class="pm-text-input w-full pl-9" placeholder="Ej. 10029481, Crane 4...">
+                        </div>
+                    </div>
+                    <div class="filter-field flex flex-col">
+                        <label for="pm-filtro-criticidad">Criticidad</label>
+                        <select id="pm-filtro-criticidad" class="glass-input w-full" onchange="renderPlanificacionPM()">
+                            <option value="">Todas</option>
+                            <option value="critico">Críticos</option>
+                            <option value="no_critico">No críticos</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <div>
+                <section class="glass-panel overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-sm font-extrabold text-[#0B1D45] dark:text-white">Avisos y hallazgos priorizados</h3>
+                        </div>
+                        <span id="pm-total-cola" class="px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold">0 avisos</span>
+                    </div>
+                    <div id="pm-cola" class="divide-y divide-slate-200 dark:divide-slate-700"></div>
+                </section>
+            </div>
         </div>
 
         <!-- PESTAÑA 2: ASIGNACIONES MENSUALES -->
@@ -1524,10 +1607,11 @@
     <script src="js/03-utils.js?v=20260905j"></script>
     <script src="js/04-mis-asignaciones.js?v=20260905j"></script>
     <script src="js/05-admin-auth.js?v=20260905j"></script>
-    <script src="js/06-tabla.js?v=20260905j"></script>
+    <script src="js/06-tabla.js?v=20261001c"></script>
     <script src="js/07-charts.js?v=20260905j"></script>
     <script src="js/08-asignaciones.js?v=20260905j"></script>
     <script src="js/09-export.js?v=20260905j"></script>
+    <script src="js/10-planificacion-pm.js?v=20261001e"></script>
 
     <!-- Mapa de ASRS -->
     <script src="mapa/mapa.js?v=20260905j"></script>

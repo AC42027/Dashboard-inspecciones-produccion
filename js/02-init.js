@@ -59,6 +59,7 @@
                     const adminPanel = document.getElementById('adminPanel');
                     if (adminPanel) adminPanel.classList.remove('hidden');
                     document.getElementById('tab-asignaciones').classList.remove('hidden');
+                    document.getElementById('tab-planificacion-pm')?.classList.remove('hidden');
                     const btnModoAdmin = document.getElementById('btnModoAdmin');
                     if (btnModoAdmin) {
                         btnModoAdmin.innerHTML = '<i class="fas fa-times"></i> <span class="hidden sm:inline">Cerrar Admin</span>';
@@ -100,6 +101,7 @@
             const viewAnalitica = document.getElementById('view-analitica');
             if (viewAnalitica) viewAnalitica.classList.toggle('hidden', tab !== 'analitica');
             document.getElementById('view-asignaciones').classList.toggle('hidden', tab !== 'asignaciones');
+            document.getElementById('view-planificacion-pm')?.classList.toggle('hidden', tab !== 'planificacion-pm');
             document.getElementById('view-equipos-sin-qr').classList.toggle('hidden', tab !== 'equipos-sin-qr');
             document.getElementById('view-mapa').classList.toggle('hidden', tab !== 'mapa');
             document.getElementById('view-mis-asignaciones').classList.toggle('hidden', tab !== 'mis-asignaciones');
@@ -124,6 +126,12 @@
             const tabAsig = document.getElementById('tab-asignaciones');
             tabAsig.className = tab === 'asignaciones' ? activeTabClass : inactiveTabClass;
             if (!isAdminModo) tabAsig.classList.add('hidden');
+
+            const tabPlanPm = document.getElementById('tab-planificacion-pm');
+            if (tabPlanPm) {
+                tabPlanPm.className = tab === 'planificacion-pm' ? activeTabClass : inactiveTabClass;
+                if (!isAdminModo) tabPlanPm.classList.add('hidden');
+            }
             
             const tabEqSinQR = document.getElementById('tab-equipos-sin-qr');
             tabEqSinQR.className = tab === 'equipos-sin-qr' ? activeTabClass : inactiveTabClass;
@@ -167,6 +175,10 @@
                     cargarAsignacionesSemanales();
                 }
                 actualizarFechasSemanas();
+            }
+
+            if (tab === 'planificacion-pm' && typeof inicializarPlanificacionPM === 'function') {
+                inicializarPlanificacionPM();
             }
 
             if (tab === 'mis-asignaciones') {
