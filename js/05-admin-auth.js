@@ -210,6 +210,10 @@
                 selHS.innerHTML = '<option value="PENDIENTE">-- Sin Asignar --</option>' +
                     asrsTeam.map(name => `<option value="${name}" ${name === valH ? 'selected' : ''}>${name}</option>`).join('');
             }
+
+            if (typeof actualizarOpcionesAsociadosMes === 'function') {
+                actualizarOpcionesAsociadosMes();
+            }
         }
 
         async function addAssociate() {

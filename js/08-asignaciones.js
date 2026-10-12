@@ -739,6 +739,115 @@
             const selFecha = document.getElementById('manualGrupoFecha');
             let fecha = selFecha ? selFecha.value : '';
 
+            actualizarOpcionesAsociadosMes();
+        }
+
+        const asignacionesAsociadosMesCache = {};
+        const asignacionesAsociadosMesData = {};
+
+        async function obtenerConteoAsignacionesPorAsociado(mes) {
+            if (!asignacionesAsociadosMesCache[mes]) {
+                asignacionesAsociadosMesCache[mes] = fetch(`${API_BASE}/api/asignaciones/?mes=${mes}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (!Array.isArray(data)) throw new Error('Formato de asignaciones no válido');
+                        const equiposPorAsociado = new Map();
+                        data.forEach(asig => {
+                            const nombre = normalizarTexto(asig.asociado);
+                            if (!nombre) return;
+                            if (!equiposPorAsociado.has(nombre)) equiposPorAsociado.set(nombre, new Set());
+                            equiposPorAsociado.get(nombre).add(normalizarTexto(asig.equipo));
+                        });
+                        asignacionesAsociadosMesData[mes] = equiposPorAsociado;
+                        return equiposPorAsociado;
+                    })
+                    .catch(error => {
+                        delete asignacionesAsociadosMesCache[mes];
+                        delete asignacionesAsociadosMesData[mes];
+                        throw error;
+                    });
+            }
+            return asignacionesAsociadosMesCache[mes];
+        }
+
+        function obtenerConteosAsociadosConVistaPrevia(mes, asignacionesGuardadasMes) {
+            const equiposPorAsociado = new Map();
+            if (!esGeneracionAuto || asignacionesPreview.length === 0) {
+                asignacionesGuardadasMes.forEach((equipos, asociado) => {
+                    equiposPorAsociado.set(asociado, new Set(equipos));
+                });
+            }
+            asignacionesPreview.forEach(asig => {
+                if (!asig.fecha || !asig.fecha.startsWith(mes)) return;
+                const equipo = normalizarTexto(asig.equipo);
+                equiposPorAsociado.forEach((equipos, nombre) => {
+                    equipos.delete(equipo);
+                    if (equipos.size === 0) equiposPorAsociado.delete(nombre);
+                });
+                const asociado = normalizarTexto(asig.asociado);
+                if (!asociado) return;
+                if (!equiposPorAsociado.has(asociado)) equiposPorAsociado.set(asociado, new Set());
+                equiposPorAsociado.get(asociado).add(equipo);
+            });
+            return equiposPorAsociado;
+        }
+
+        function crearOpcionesAsociadosMes(valorSeleccionado, mes, equiposPorAsociado) {
+            const sinAsignaciones = asrsTeam.filter(nombre => !equiposPorAsociado.has(normalizarTexto(nombre)));
+            const conAsignaciones = asrsTeam.filter(nombre => equiposPorAsociado.has(normalizarTexto(nombre)));
+            const nombreMes = obtenerNombreMesEspañol(mes);
+            const escapar = valor => String(valor == null ? '' : valor).replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+            const opcion = nombre => {
+                const cantidad = equiposPorAsociado.get(normalizarTexto(nombre))?.size || 0;
+                const nombreEscapado = escapar(nombre);
+                const etiqueta = cantidad ? `${nombreEscapado} — ${cantidad} equipo${cantidad === 1 ? '' : 's'}` : `${nombreEscapado} — Sin asignaciones`;
+                return `<option value="${nombreEscapado}" ${nombre === valorSeleccionado ? 'selected' : ''}>${etiqueta}</option>`;
+            };
+            return `<option value="PENDIENTE" ${valorSeleccionado === 'PENDIENTE' ? 'selected' : ''}>-- Sin Asignar --</option>` +
+                `<optgroup label="Sin asignaciones en ${nombreMes} (${sinAsignaciones.length})">${sinAsignaciones.map(opcion).join('')}</optgroup>` +
+                `<optgroup label="Ya asignados en ${nombreMes} (${conAsignaciones.length})">${conAsignaciones.map(opcion).join('')}</optgroup>`;
+        }
+
+        function refrescarSelectoresAsociadosMes(mes, asignacionesGuardadasMes) {
+            const equiposPorAsociado = obtenerConteosAsociadosConVistaPrevia(mes, asignacionesGuardadasMes);
+            document.querySelectorAll('#adminPanel select[id$="AsoSelect"]').forEach(select => {
+                const valor = select.value;
+                select.innerHTML = crearOpcionesAsociadosMes(valor, mes, equiposPorAsociado);
+            });
+        }
+
+        async function actualizarOpcionesAsociadosMes() {
+            const selMes = document.getElementById('asigMesGenerar');
+            const mes = selMes?.value;
+            if (!mes) return;
+
+            const estado = document.getElementById('asrsAssociateMonthStatus');
+            if (estado) estado.textContent = 'Consultando asociados asignados para el mes...';
+            try {
+                const asignacionesGuardadasMes = await obtenerConteoAsignacionesPorAsociado(mes);
+                if (document.getElementById('asigMesGenerar')?.value !== mes) return;
+
+                refrescarSelectoresAsociadosMes(mes, asignacionesGuardadasMes);
+                if (estado) estado.textContent = `Los asociados se agrupan según tengan asignaciones en ${obtenerNombreMesEspañol(mes)}.`;
+                if (asignacionesPreview.length > 0) renderPreview();
+            } catch (error) {
+                console.error(`No se pudo consultar el estado mensual de los asociados (${mes}).`, error);
+                if (estado) estado.textContent = 'No se pudo consultar el estado mensual; las personas siguen disponibles sin indicador.';
+            }
+        }
+
+        function invalidarEstadoAsociadosMes(mes) {
+            if (!mes) return;
+            delete asignacionesAsociadosMesCache[mes];
+            delete asignacionesAsociadosMesData[mes];
+            if (document.getElementById('asigMesGenerar')?.value === mes) {
+                actualizarOpcionesAsociadosMes();
+            }
             if (!srmKey) { mostrarAlerta('Atención', 'Seleccione un grupo SRM.', 'fa-exclamation-circle text-amber-500'); return; }
 
             if (!fecha) {
@@ -1608,8 +1717,9 @@
                                                 <i class="fas fa-exchange-alt text-[9px] text-gray-400"></i>
                                                 <select onchange="cambiarAsignacion('${e.equipo}', this.value)" 
                                                     class="flex-grow bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded px-1.5 py-0.5 text-[9px] font-medium focus:ring-2 focus:ring-goodyear-blue outline-none cursor-pointer">
-                                                    <option value="PENDIENTE" ${isPending ? 'selected' : ''}>-- Sin Asignar --</option>
-                                                    ${asrsTeam.map(name => `<option value="${name}" ${name === aso ? 'selected' : ''}>${name}</option>`).join('')}
+                                                    ${asignacionesAsociadosMesData[semFecha.slice(0, 7)]
+                                                        ? crearOpcionesAsociadosMes(aso === 'PENDIENTE' ? 'PENDIENTE' : aso, semFecha.slice(0, 7), obtenerConteosAsociadosConVistaPrevia(semFecha.slice(0, 7), asignacionesAsociadosMesData[semFecha.slice(0, 7)]))
+                                                        : `<option value="PENDIENTE" ${isPending ? 'selected' : ''}>-- Sin Asignar --</option>${asrsTeam.map(name => `<option value="${name}" ${name === aso ? 'selected' : ''}>${name}</option>`).join('')}`}
                                                 </select>
                                             </div>
                                         </div>
@@ -1812,3 +1922,7 @@
         }
 
 
+            const mesSeleccionado = document.getElementById('asigMesGenerar')?.value;
+            if (mesSeleccionado && asignacionesAsociadosMesData[mesSeleccionado]) {
+                refrescarSelectoresAsociadosMes(mesSeleccionado, asignacionesAsociadosMesData[mesSeleccionado]);
+            }
