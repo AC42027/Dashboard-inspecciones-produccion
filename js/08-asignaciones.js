@@ -433,6 +433,7 @@
             }
 
             renderBadgesGrupos();
+            actualizarOpcionesAsociadosMes();
         }
 
         async function generarAsignaciones() {
