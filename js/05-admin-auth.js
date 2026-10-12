@@ -27,6 +27,7 @@
             const pass = document.getElementById('ldapPass').value;
             const btn = document.getElementById('ldapSubmitBtn');
             const error = document.getElementById('ldapError');
+            let autenticacionExitosa = false;
 
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Autenticando...';
             btn.disabled = true;
@@ -41,6 +42,7 @@
 
                 const data = await res.json();
                 if (res.ok && data.status === 'ok') {
+                    autenticacionExitosa = true;
                     // Guardar credenciales LDAP en sessionStorage (no persisten entre sesiones)
                     // para que el dashboard pueda consultar el estado de avisos SAP vía el portal.
                     sessionStorage.setItem('sap_username', user);
@@ -102,7 +104,15 @@
                     error.classList.remove('hidden');
                 }
             } catch (err) {
-                error.textContent = "Error de conexión con el servidor LDAP o la API.";
+                console.error(
+                    autenticacionExitosa
+                        ? 'LDAP autenticó correctamente, pero falló la inicialización del dashboard.'
+                        : 'No se pudo completar la solicitud de autenticación LDAP.',
+                    err
+                );
+                error.textContent = autenticacionExitosa
+                    ? 'Acceso correcto, pero ocurrió un error al cargar el dashboard. Recarga la página.'
+                    : "Error de conexión con el servidor LDAP o la API.";
                 error.classList.remove('hidden');
             } finally {
                 btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Ingresar';
