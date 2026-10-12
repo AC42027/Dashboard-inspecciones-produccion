@@ -848,6 +848,15 @@
             if (document.getElementById('asigMesGenerar')?.value === mes) {
                 actualizarOpcionesAsociadosMes();
             }
+        }
+
+        async function agregarGrupoSRM() {
+            esGeneracionAuto = false;
+            const srmKey = document.getElementById('manualGrupoSRM').value;
+            const aso = document.getElementById('manualGrupoAsoSelect').value;
+            const selFecha = document.getElementById('manualGrupoFecha');
+            let fecha = selFecha ? selFecha.value : '';
+
             if (!srmKey) { mostrarAlerta('Atención', 'Seleccione un grupo SRM.', 'fa-exclamation-circle text-amber-500'); return; }
 
             if (!fecha) {
