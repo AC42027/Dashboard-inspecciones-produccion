@@ -202,9 +202,11 @@
             if (!asig || !inspeccionesList || inspeccionesList.length === 0) return 'PENDIENTE';
 
             const eqNorm = normalizarTexto(asig.equipo);
+            const mesAsignacion = (asig.fecha && asig.fecha.slice(0, 7)) || mesStr;
 
-            // Buscar inspecciones del equipo realizadas por el asociado asignado
+            // Solo las inspecciones del mismo mes pueden completar esta asignación.
             const inspeccionesAsociado = inspeccionesList.filter(i => {
+                if (mesAsignacion && (!i.fecha || !i.fecha.startsWith(mesAsignacion))) return false;
                 if (normalizarTexto(i.equipo) !== eqNorm) return false;
                 if (i.owner && !matchAsociado(i.owner, asig.asociado)) return false;
                 return true;
@@ -228,11 +230,7 @@
                 return 'FUERA_DE_TIEMPO';
             }
 
-            // Fallback: si coincide el mes
-            if (mesStr) {
-                const enMes = inspeccionesAsociado.some(i => i.fecha && i.fecha.startsWith(mesStr));
-                if (enMes) return 'REALIZADA';
-            }
+            if (mesAsignacion) return 'REALIZADA';
 
             return 'PENDIENTE';
         }
@@ -310,4 +308,3 @@
             }
         }
         window.cerrarSesionCompleta = cerrarSesionCompleta;
-
