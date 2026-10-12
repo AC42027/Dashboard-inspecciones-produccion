@@ -797,20 +797,16 @@
 
         function crearOpcionesAsociadosMes(valorSeleccionado, mes, equiposPorAsociado) {
             const sinAsignaciones = asrsTeam.filter(nombre => !equiposPorAsociado.has(normalizarTexto(nombre)));
-            const conAsignaciones = asrsTeam.filter(nombre => equiposPorAsociado.has(normalizarTexto(nombre)));
             const nombreMes = obtenerNombreMesEspañol(mes);
             const escapar = valor => String(valor == null ? '' : valor).replace(/[&<>"']/g, char => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             })[char]);
             const opcion = nombre => {
-                const cantidad = equiposPorAsociado.get(normalizarTexto(nombre))?.size || 0;
                 const nombreEscapado = escapar(nombre);
-                const etiqueta = cantidad ? `${nombreEscapado} — ${cantidad} equipo${cantidad === 1 ? '' : 's'}` : `${nombreEscapado} — Sin asignaciones`;
-                return `<option value="${nombreEscapado}" ${nombre === valorSeleccionado ? 'selected' : ''}>${etiqueta}</option>`;
+                return `<option value="${nombreEscapado}" ${nombre === valorSeleccionado ? 'selected' : ''}>${nombreEscapado}</option>`;
             };
             return `<option value="PENDIENTE" ${valorSeleccionado === 'PENDIENTE' ? 'selected' : ''}>-- Sin Asignar --</option>` +
-                `<optgroup label="Sin asignaciones en ${nombreMes} (${sinAsignaciones.length})">${sinAsignaciones.map(opcion).join('')}</optgroup>` +
-                `<optgroup label="Ya asignados en ${nombreMes} (${conAsignaciones.length})">${conAsignaciones.map(opcion).join('')}</optgroup>`;
+                `<optgroup label="Sin asignaciones en ${nombreMes} (${sinAsignaciones.length})">${sinAsignaciones.map(opcion).join('')}</optgroup>`;
         }
 
         function refrescarSelectoresAsociadosMes(mes, asignacionesGuardadasMes) {
@@ -833,11 +829,11 @@
                 if (document.getElementById('asigMesGenerar')?.value !== mes) return;
 
                 refrescarSelectoresAsociadosMes(mes, asignacionesGuardadasMes);
-                if (estado) estado.textContent = `Los asociados se agrupan según tengan asignaciones en ${obtenerNombreMesEspañol(mes)}.`;
+                if (estado) estado.textContent = `Solo se muestran asociados sin asignaciones en ${obtenerNombreMesEspañol(mes)}.`;
                 if (asignacionesPreview.length > 0) renderPreview();
             } catch (error) {
                 console.error(`No se pudo consultar el estado mensual de los asociados (${mes}).`, error);
-                if (estado) estado.textContent = 'No se pudo consultar el estado mensual; las personas siguen disponibles sin indicador.';
+                if (estado) estado.textContent = 'No se pudo consultar el estado mensual; no se puede filtrar la lista de asociados.';
             }
         }
 
